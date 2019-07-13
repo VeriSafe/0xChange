@@ -2,7 +2,6 @@ import React, { HTMLAttributes } from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { UI_DECIMALS_DISPLAYED_PRICE_ETH } from '../../../common/constants';
 import { marketFilters } from '../../../common/markets';
 import { changeMarket, goToHome } from '../../../store/actions';
 import { getBaseToken, getCurrencyPair, getMarkets } from '../../../store/selectors';
@@ -68,7 +67,7 @@ const MarketsDropdownBody = styled(CardBase)`
     box-shadow: ${props => props.theme.componentsTheme.boxShadow};
     max-height: 100%;
     max-width: 100%;
-    width: 401px;
+    width: 451px;
 `;
 
 const MarketsFilters = styled.div`
@@ -391,7 +390,7 @@ class MarketsDropdown extends React.Component<Props, State> {
 
     private readonly _getPrice: any = (market: Market) => {
         if (market.price) {
-            return market.price.toFixed(UI_DECIMALS_DISPLAYED_PRICE_ETH);
+            return market.price.toFixed(market.currencyPair.config.pricePrecision as number);
         }
 
         return '-';

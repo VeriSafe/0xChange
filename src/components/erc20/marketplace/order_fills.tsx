@@ -1,12 +1,12 @@
-
 import React from 'react';
 import { connect } from 'react-redux';
 import TimeAgo from 'react-timeago';
 import styled from 'styled-components';
 
-import { UI_DECIMALS_DISPLAYED_ORDER_SIZE, UI_DECIMALS_DISPLAYED_PRICE_ETH } from '../../../common/constants';
+import { UI_DECIMALS_DISPLAYED_ORDER_SIZE } from '../../../common/constants';
 import { changeMarket, goToHome } from '../../../store/actions';
 import { getBaseToken, getFills, getQuoteToken, getUserOrders, getWeb3State } from '../../../store/selectors';
+import { getCurrencyPairByTokensSymbol } from '../../../util/known_currency_pairs';
 import { isWeth } from '../../../util/known_tokens';
 import { tokenAmountInUnits } from '../../../util/tokens';
 import { CurrencyPair, Fill, OrderSide, StoreState, Token, UIOrder, Web3State } from '../../../util/types';
@@ -16,10 +16,9 @@ import { LoadingWrapper } from '../../common/loading';
 import { CustomTD, Table, TH, THead, TR } from '../../common/table';
 
 const DexTradesList = styled(Card)`
-    max-height: 320px;
+    max-height: 400px;
     overflow: auto;
 `;
-
 
 interface StateProps {
     baseToken: Token | null;
@@ -34,15 +33,14 @@ interface DispatchProps {
     goToHome: () => any;
 }
 
-
 type Props = StateProps & DispatchProps;
 
-const SideTD = styled(CustomTD) <{ side: OrderSide }>`
+const SideTD = styled(CustomTD)<{ side: OrderSide }>`
     color: ${props =>
         props.side === OrderSide.Buy ? props.theme.componentsTheme.green : props.theme.componentsTheme.red};
 `;
 const ClicableTD = styled(CustomTD)`
-   cursor: pointer;
+    cursor: pointer;
 `;
 
 const fillToRow = (fill: Fill, index: number, _setMarket: any) => {
@@ -53,17 +51,17 @@ const fillToRow = (fill: Fill, index: number, _setMarket: any) => {
     const tokenQuoteSymbol = isWeth(fill.tokenQuote.symbol) ? 'ETH' : fill.tokenQuote.symbol.toUpperCase();
     const displayAmountQuote = `${amountQuote} ${tokenQuoteSymbol}`;
     const market = `${fill.tokenBase.symbol.toUpperCase()}/${tokenQuoteSymbol}`;
+    const currencyPair: CurrencyPair = getCurrencyPairByTokensSymbol(fill.tokenBase.symbol, fill.tokenQuote.symbol);
 
-    const price = parseFloat(fill.price.toString()).toFixed(UI_DECIMALS_DISPLAYED_PRICE_ETH);
-    const currencyPair: CurrencyPair = {
-        base: fill.tokenBase.symbol,
-        quote: fill.tokenQuote.symbol,
-    }
+    const price = parseFloat(fill.price.toString()).toFixed(currencyPair.config.pricePrecision);
+
     const setMarket = () => _setMarket(currencyPair);
     return (
         <TR key={index}>
             <SideTD side={fill.side}>{sideLabel}</SideTD>
-            <ClicableTD styles={{ textAlign: 'right', tabular: true }} onClick={setMarket}>{market}</ClicableTD>
+            <ClicableTD styles={{ textAlign: 'right', tabular: true }} onClick={setMarket}>
+                {market}
+            </ClicableTD>
             <CustomTD styles={{ textAlign: 'right', tabular: true }}>{price}</CustomTD>
             <CustomTD styles={{ textAlign: 'right', tabular: true }}>{displayAmountBase}</CustomTD>
             <CustomTD styles={{ textAlign: 'right', tabular: true }}>{displayAmountQuote}</CustomTD>
@@ -136,6 +134,9 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
     };
 };
 
-const OrderFillsContainer = connect(mapStateToProps, mapDispatchToProps)(OrderFills);
+const OrderFillsContainer = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+)(OrderFills);
 
 export { OrderFills, OrderFillsContainer };

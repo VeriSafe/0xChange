@@ -211,8 +211,11 @@ class BuySell extends React.Component<Props, State> {
 
         const isMakerAmountEmpty = makerAmount === null || makerAmount.isZero();
         const isPriceEmpty = price === null || price.isZero();
-        const isPriceMin = price === null || price.isLessThan(new BigNumber(1).div(new BigNumber(10)).pow(UI_DECIMALS_DISPLAYED_PRICE_ETH));
-        const orderTypeLimitIsEmpty = orderType === OrderType.Limit && (isMakerAmountEmpty || isPriceEmpty || isPriceMin);
+        const isPriceMin =
+            price === null ||
+            price.isLessThan(new BigNumber(1).div(new BigNumber(10)).pow(UI_DECIMALS_DISPLAYED_PRICE_ETH));
+        const orderTypeLimitIsEmpty =
+            orderType === OrderType.Limit && (isMakerAmountEmpty || isPriceEmpty || isPriceMin);
         const orderTypeMarketIsEmpty = orderType === OrderType.Market && isMakerAmountEmpty;
 
         const btnPrefix = tab === OrderSide.Buy ? 'Buy ' : 'Sell ';
@@ -250,8 +253,8 @@ class BuySell extends React.Component<Props, State> {
                                 min={new BigNumber(0)}
                                 onChange={this.updateMakerAmount}
                                 value={makerAmount}
-                                placeholder={'0'}
-                                valueFixedDecimals={0}
+                                placeholder={Number(0).toFixed(currencyPair.config.basePrecision)}
+                                valueFixedDecimals={currencyPair.config.basePrecision}
                             />
                             <BigInputNumberTokenLabel tokenSymbol={currencyPair.base} />
                         </FieldContainer>
@@ -266,8 +269,8 @@ class BuySell extends React.Component<Props, State> {
                                         min={new BigNumber(0)}
                                         onChange={this.updatePrice}
                                         value={price}
-                                        placeholder={'0.0000001'}
-                                        valueFixedDecimals={7}
+                                        placeholder={'0.00000001'}
+                                        valueFixedDecimals={8}
                                     />
                                     <BigInputNumberTokenLabel tokenSymbol={currencyPair.quote} />
                                 </FieldContainer>

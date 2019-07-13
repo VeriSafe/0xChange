@@ -20,3 +20,6 @@ html,
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+div.coinmarketcap-currency-widget> div > div:nth-child(1) > div:nth-child(1) > span:nth-child(5){
+    color: white !important;
+}

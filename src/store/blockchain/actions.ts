@@ -300,8 +300,8 @@ export const setConnectedDexFills: ThunkCreator<Promise<any>> = (ethAccount: str
 
         const lastBlockChecked = localStorage.getLastBlockChecked(ethAccount);
 
-        const fromBlock =lastBlockChecked !== null ? lastBlockChecked + 1 : Math.max(blockNumber - START_BLOCK_LIMIT, 1);
-       
+        const fromBlock =
+            lastBlockChecked !== null ? lastBlockChecked + 1 : Math.max(blockNumber - START_BLOCK_LIMIT, 1);
 
         const toBlock = blockNumber;
 
@@ -328,7 +328,6 @@ export const setConnectedDexFills: ThunkCreator<Promise<any>> = (ethAccount: str
                 );
             },
             pastFillEventsCallback: async fillEvents => {
-
                 const validFillEvents = fillEvents.filter(knownTokens.isValidFillEvent);
                 const fills = await Promise.all(
                     validFillEvents.map(async fillEvent => {
@@ -356,9 +355,6 @@ export const setConnectedDexFills: ThunkCreator<Promise<any>> = (ethAccount: str
         localStorage.saveLastBlockChecked(blockNumber, ethAccount);
     };
 };
-
-
-
 
 export const initWallet: ThunkCreator<Promise<any>> = () => {
     return async (dispatch, getState) => {
@@ -605,7 +601,7 @@ export const initializeAppNoMetamaskOrLocked: ThunkCreator = () => {
 
             // tslint:disable-next-line:no-floating-promises
             await dispatch(fetchMarkets());
-             // tslint:disable-next-line: no-floating-promises
+            // tslint:disable-next-line: no-floating-promises
             dispatch(updateMarketPriceQuote());
         } else {
             // tslint:disable-next-line:no-floating-promises
@@ -614,6 +610,5 @@ export const initializeAppNoMetamaskOrLocked: ThunkCreator = () => {
 
         // tslint:disable-next-line:no-floating-promises
         dispatch(updateMarketPriceEther());
-   
     };
 };

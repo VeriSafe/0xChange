@@ -29,6 +29,18 @@ export const schemas: Schema[] = [
         ],
     },
     {
+        id: '/configPairSchema',
+        properties: {
+            minPrice: { $ref: '/wholeNumberSchema' },
+            pricePrecision: { $ref: '/wholeNumberSchema' },
+            minAmount: { $ref: '/wholeNumberSchema' },
+            basePrecision: { $ref: '/wholeNumberSchema' },
+            quotePrecision: { $ref: '/wholeNumberSchema' },
+        },
+        type: 'object',
+    },
+
+    {
         id: '/marketFilterSchema',
         properties: {
             text: { type: 'string' },
@@ -42,6 +54,7 @@ export const schemas: Schema[] = [
         properties: {
             base: { type: 'string' },
             quote: { type: 'string' },
+            config: { $ref: '/configPairSchema' },
         },
         required: ['base', 'quote'],
         type: 'object',
@@ -52,9 +65,13 @@ export const schemas: Schema[] = [
             symbol: { type: 'string' },
             name: { type: 'string' },
             icon: { type: 'string' },
+            id: { type: 'string' },
             primaryColor: { type: 'string' },
             decimals: { $ref: '/wholeNumberSchema' },
             displayDecimals: { $ref: '/wholeNumberSchema' },
+            minAmount: { $ref: '/wholeNumberSchema' },
+            maxAmount: { $ref: '/wholeNumberSchema' },
+            precision: { $ref: '/wholeNumberSchema' },
         },
         required: ['decimals', 'symbol', 'name', 'addresses'],
         type: 'object',

@@ -20,10 +20,10 @@ export const ETH_DECIMALS = 18;
 
 export const UI_DECIMALS_DISPLAYED_ON_STEP_MODALS = 3;
 export const UI_DECIMALS_DISPLAYED_SPREAD_PERCENT = 2;
-export const UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION = 2;
+export const UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION = 8;
 export const UI_DECIMALS_DISPLAYED_ORDER_SIZE = 0;
-export const UI_DECIMALS_DISPLAYED_PRICE_ETH = 7;
-export const UI_GENERAL_TITLE = 'Launch Kit';
+export const UI_DECIMALS_DISPLAYED_PRICE_ETH = 8;
+export const UI_GENERAL_TITLE = '0xChange';
 
 export const METAMASK_EXTENSION_URL = 'https://metamask.io/';
 export const METAMASK_CHROME_EXTENSION_DOWNLOAD_URL =
@@ -77,6 +77,4 @@ export const NETWORK_ID: number = Number.parseInt(process.env.REACT_APP_NETWORK_
 
 export const NETWORK_NAME: string = Network[NETWORK_ID];
 
-export const FILLS_LIMIT: number =
-    Number.parseInt(process.env.REACT_APP_FILLS_LIMIT as string, 10) || 50;
-
+export const FILLS_LIMIT: number = Number.parseInt(process.env.REACT_APP_FILLS_LIMIT as string, 10) || 50;

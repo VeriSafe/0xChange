@@ -202,6 +202,10 @@ export interface OrderBook {
 export interface CurrencyPair {
     base: string;
     quote: string;
+    config: {
+        basePrecision: number;
+        pricePrecision?: number;
+    };
 }
 
 export interface Market {

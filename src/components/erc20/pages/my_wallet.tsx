@@ -19,6 +19,7 @@ export const MyWallet = () => (
     <Content>
         <CheckMetamaskStateModalContainer>
             <ColumnNarrow>
+                {/*<CoinMarketCapWidget />*/}
                 <WalletWethBalanceContainer />
             </ColumnNarrow>
             <ColumnWideMyWallet>

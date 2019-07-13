@@ -36,9 +36,9 @@ export const localStorageMiddleware: Middleware = ({ getState }: MiddlewareAPI) 
             const state = getState();
             const ethAccount = FEE_RECIPIENT;
             const fills = getFills(state);
-    
+
             localStorage.saveFills(fills, ethAccount);
-    
+
             break;
         }
         case getType(actions.setFills): {
@@ -49,9 +49,6 @@ export const localStorageMiddleware: Middleware = ({ getState }: MiddlewareAPI) 
 
             break;
         }
-
-
-
 
         default:
             return result;

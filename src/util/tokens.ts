@@ -30,5 +30,3 @@ export const getEtherscanLinkForToken = (token: Token): string => {
 export const getEtherscanLinkForTokenAndAddress = (token: Token, ethAccount: string): string => {
     return `${ETHERSCAN_URL[NETWORK_ID]}token/${token.address}?a=${ethAccount}`;
 };
-
-

@@ -1,9 +1,21 @@
 {
     "general": {
-        "title": "VeriDex",
-        "icon": "assets/icons/vsf.svg"
+        "title": "0xChange",
+        "icon": "assets/icons/0xChangeLogo.svg"
     },
     "tokens": [
+        {
+            "decimals": 8,
+            "symbol": "0xbtc",
+            "name": "0xBitcoin",
+            "primaryColor": "#ff7423",
+            "icon": "assets/icons/zxb.svg",
+            "addresses": {
+                "1": "0xb6ed7644c69416d67b522e20bc294a9a9b405b31"
+            },
+            "displayDecimals": 2,
+            "id": "0xbtc"
+        },
         {
             "decimals": 18,
             "symbol": "vsf",
@@ -11,21 +23,21 @@
             "primaryColor": "#081e6e",
             "icon": "assets/icons/vsf.svg",
             "addresses": {
-               "1": "0xac9ce326e95f51b5005e9fe1dd8085a01f18450c"
+                "1": "0xac9ce326e95f51b5005e9fe1dd8085a01f18450c"
             },
             "id": "verisafe",
             "displayDecimals": 0
         },
         {
             "decimals": 18,
-            "symbol": "kubo",
-            "name": "KuboCoin",
-            "primaryColor": "#020202",
-            "icon": "assets/icons/kubo.svg",
+            "symbol": "king",
+            "name": "King Token",
+            "primaryColor": "#cfb3e2",
+            "icon": "assets/icons/king.svg",
             "addresses": {
-                "1": "0x4f76E85d067e219779A863ff18577846b3152F1F"
+                "1": "0xc46321EfE8883D22D81eD65CB4F0766e1004129d"
             },
-            "displayDecimals": 0
+            "displayDecimals": 6
         },
         {
             "symbol": "weth",
@@ -40,39 +52,39 @@
                 "50": "0x0b1ba0af832d7c05fd64161e0db78e85978e8082"
             },
             "decimals": 18,
-            "displayDecimals": 2,
+            "displayDecimals": 6,
             "id": "ethereum"
         },
         {
-            "decimals": 18,
-            "symbol": "nuke",
-            "name": "Half Life",
-            "primaryColor": "#fb3520",
-            "icon": "assets/icons/nuke.svg",
+            "decimals": 8,
+            "symbol": "lira",
+            "name": "Lira Cash",
+            "primaryColor": "#6997e0",
+            "icon": "assets/icons/lira.svg",
             "addresses": {
-                "1": "0xc58c0Fca06908E66540102356f2E91edCaEB8D81"
+                "1": "0x49aaa160506f7e07e6c3f6cd6316b6866025cdcb"
             },
-            "displayDecimals": 0
+            "displayDecimals": 2
         },
         {
-            "decimals": 18,
-            "symbol": "sntvt",
-            "name": "Sentivate",
-            "primaryColor": "#fe2e57",
-            "icon": "assets/icons/sntvt.svg",
+            "decimals": 8,
+            "symbol": "sedo",
+            "name": "SEDO PoW Token",
+            "primaryColor": "#365ff6",
+            "icon": "assets/icons/sedo.svg",
             "addresses": {
-                "1": "0x7865af71cf0b288b4e7f654f4f7851eb46a2b7f8"
+                "1": "0x0f00f1696218eaefa2d2330df3d6d1f94813b38f"
             },
-            "displayDecimals": 0
+            "displayDecimals": 2
         },
         {
-            "decimals": 6,
-            "symbol": "ethplo",
-            "name": "ETHplode",
-            "primaryColor": "#1b95e0",
-            "icon": "assets/icons/ethplo.svg",
+            "decimals": 8,
+            "symbol": "kiwi",
+            "name": "KIWI Token",
+            "primaryColor": "#23a11a",
+            "icon": "assets/icons/kiwi.svg",
             "addresses": {
-                "1": "0xe0c6ce3e73029f201e5c0bedb97f67572a93711c"
+                "1": "0x2bf91c18cd4ae9c2f2858ef9fe518180f7b5096d"
             },
             "displayDecimals": 0
         },
@@ -91,9 +103,10 @@
             "decimals": 18,
             "displayDecimals": 2
         },
-   
+
         {
             "decimals": 18,
+            "displayDecimals": 2,
             "symbol": "dai",
             "name": "Dai",
             "icon": "assets/icons/dai.svg",
@@ -104,156 +117,103 @@
                 "4": "0x6f2d6ff85efca691aad23d549771160a12f0a0fc",
                 "42": "0xc4375b7de8af5a38a93548eb8453a498222c4ff2",
                 "50": ""
-            }
-        },
-        {
-            "decimals": 18,
-            "symbol": "mkr",
-            "name": "Maker",
-            "primaryColor": "#68CCBB",
-            "icon": "assets/icons/mkr.svg",
-            "addresses": {
-                "1": "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
-                "3": "0x06732516acd125b6e83c127752ed5f027e1b276e",
-                "4": "0xb763e26cd6dd09d16f52dc3c60ebb77e46b03290",
-                "42": "0x7B6B10CAa9E8E9552bA72638eA5b47c25afea1f3",
-                "50": "0x34d402f14d58e001d8efbe6585051bf9706aa064"
-            }
-        },
-        {
-            "decimals": 18,
-            "symbol": "rep",
-            "name": "Augur",
-            "icon": "assets/icons/rep.svg",
-            "primaryColor": "#512D80",
-            "addresses": {
-                "1": "0x1985365e9f78359a9B6AD760e32412f4a445E862",
-                "3": "0xb0b443fe0e8a04c4c85e8fda9c5c1ccc057d6653",
-                "4": "0x6a732d537daf79d75efaeae286d30fc578fa98d0",
-                "42": "0x8CB3971b8EB709C14616BD556Ff6683019E90d9C",
-                "50": "0x25b8fe1de9daf8ba351890744ff28cf7dfa8f5e3"
-            }
-        },
-        {
-            "decimals": 9,
-            "symbol": "dgx",
-            "name": "DigixDao",
-            "icon": "assets/icons/dgx.svg",
-            "primaryColor": "#E1AA3E",
-            "addresses": {
-                "1": "0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A",
-                "3": "0xc4895a5aafa2708d6bc1294e20ec839aad156b1d",
-                "4": "0xc40a46ca4bc8e6057ed571e39cf400f3f935e4d5",
-                "42": "0xA4f468c9c692eb6B4b8b06270dAe7A2CfeedcDe9",
-                "50": "0xcdb594a32b1cc3479d8746279712c39d18a07fc0"
-            }
-        },
-        {
-            "decimals": 18,
-            "symbol": "mln",
-            "name": "Melon",
-            "icon": "assets/icons/mln.svg",
-            "primaryColor": "#333333",
-            "addresses": {
-                "1": "0xec67005c4E498Ec7f55E092bd1d35cbC47C91892",
-                "3": "0x823ebe83d39115536274a8617e00a1ff3544fd63",
-                "4": "0x521c0941300a18a4edc697368f43a6a870be1f3d",
-                "42": "0x17e394D1Df6cE29d042195Ea38411A98ff3Ead94",
-                "50": "0x1e2f9e10d02a6b8f8f69fcbf515e75039d2ea30d"
-            }
-        },
-        {
-            "decimals": 18,
-            "symbol": "ftm",
-            "name": "Fantom",
-            "primaryColor": "#020202",
-            "icon": "assets/icons/ftm.svg",
-            "addresses": {
-                "1": "0x4e15361fd6b4bb609fa63c81a2be19d873717870"
             },
-            "displayDecimals": 0
+            "id": "dai"
         }
-    
     ],
     "pairs": [
         {
-            "base": "nuke",
-            "quote": "weth"
+            "base": "0xbtc",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 2
+            }
         },
         {
             "base": "vsf",
-            "quote": "weth"
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 0,
+                "pricePrecision": 5
+            }
         },
         {
-            "base": "kubo",
-            "quote": "vsf"
+            "base": "vsf",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 0,
+                "pricePrecision": 7
+            }
         },
         {
-            "base": "kubo",
-            "quote": "weth"
+            "base": "0xbtc",
+            "quote": "dai",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 6
+            }
         },
         {
-            "base": "sntvt",
-            "quote": "vsf"
-        },
-        {
-            "base": "sntvt",
-            "quote": "weth"
-        },
-        {
-            "base": "nuke",
-            "quote": "vsf"
-        },
-        {
-            "base": "ethplo",
-            "quote": "vsf"
-        },
-        {
-            "base": "ethplo",
-            "quote": "weth"
-        },
-        {
-            "base": "ftm",
-            "quote": "vsf"
-        },
-        {
-            "base": "ftm",
-            "quote": "weth"
-        },
-        {
-            "base": "mkr",
-            "quote": "weth"
-        },
-        {
-            "base": "mkr",
-            "quote": "vsf"
-        },
-        {
-            "base": "rep",
-            "quote": "vsf"
-        },
-        {
-            "base": "mln",
-            "quote": "vsf"
+            "base": "weth",
+            "quote": "dai",
+            "config": {
+                "basePrecision": 6,
+                "pricePrecision": 6
+            }
         },
         {
             "base": "zrx",
-            "quote": "vsf"
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 6
+            }
         },
         {
-            "base": "zrx",
-            "quote": "weth"
+            "base": "king",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 6,
+                "pricePrecision": 4
+            }
+        },
+        {
+            "base": "lira",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 6
+            }
+        },
+        {
+            "base": "sedo",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 6
+            }
+        },
+        {
+            "base": "kiwi",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 8
+            }
         }
     ],
     "marketFilters": [
         {
-            "text": "VSF",
-            "value": "vsf"
+            "text": "0XBTC",
+            "value": "0xbtc"
         },
         {
             "text": "ETH",
             "value": "weth"
-        }    
+        },
+        {
+            "text": "DAI",
+            "value": "dai"
+        }
     ]
-    
 }
