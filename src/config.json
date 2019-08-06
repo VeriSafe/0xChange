@@ -23,7 +23,8 @@
             "primaryColor": "#081e6e",
             "icon": "assets/icons/vsf.svg",
             "addresses": {
-                "1": "0xac9ce326e95f51b5005e9fe1dd8085a01f18450c"
+                "1": "0xac9ce326e95f51b5005e9fe1dd8085a01f18450c",
+                "3": "0xba3a79d758f19efe588247388754b8e4d6edda81"
             },
             "id": "verisafe",
             "displayDecimals": 0

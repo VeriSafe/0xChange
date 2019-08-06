@@ -1,4 +1,4 @@
-import { assetDataUtils, ExchangeFillEventArgs, LogWithDecodedArgs, BigNumber } from '0x.js';
+import { assetDataUtils, BigNumber, ExchangeFillEventArgs, LogWithDecodedArgs } from '0x.js';
 
 import { KnownTokens } from './known_tokens';
 import { getOrderSideFromFillEvent } from './notifications';

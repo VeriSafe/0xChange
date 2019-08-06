@@ -4,7 +4,6 @@ import { createAction, createAsyncAction } from 'typesafe-actions';
 
 import { COLLECTIBLE_ADDRESS, FEE_RECIPIENT, NETWORK_ID, START_BLOCK_LIMIT } from '../../common/constants';
 import { ConvertBalanceMustNotBeEqualException } from '../../exceptions/convert_balance_must_not_be_equal_exception';
-
 import { SignedOrderException } from '../../exceptions/signed_order_exception';
 import { subscribeToFillEvents, subscribeToFillEventsByFeeRecipient } from '../../services/exchange';
 import { getGasEstimationInfoAsync } from '../../services/gas_price_estimation';

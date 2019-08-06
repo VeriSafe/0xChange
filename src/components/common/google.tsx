@@ -4,7 +4,7 @@ declare var window: any;
 
 interface Props {
     className?: string;
-    style?: any; // eslint-disable-line
+    style?: any; // eslint-disable-line/*
     client?: string;
     slot: string;
     layout?: string;
@@ -12,12 +12,14 @@ interface Props {
     responsive?: string;
 }
 
-export default class GoogleADS extends React.Component<Props> {
-    componentDidMount() {
-        if (window) (window.adsbygoogle = window.adsbygoogle || []).push({});
-    }
+export class GoogleADS extends React.Component<Props> {
+    public componentDidMount = () => {
+        if (window) {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+    };
 
-    render() {
+    public render = () => {
         return (
             <ins
                 className={`${this.props.className || ''} adsbygoogle`}
@@ -29,13 +31,5 @@ export default class GoogleADS extends React.Component<Props> {
                 data-full-width-responsive={this.props.responsive || 'false'}
             />
         );
-    }
+    };
 }
-
-/*Google.defaultProps = {
-    className: '',
-    style: {display: 'block'}, 
-    format: 'auto',
-    layout: '',
-    responsive: 'false'
-  };*/

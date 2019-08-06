@@ -3,8 +3,8 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "0x.js": "^6.0.9",
-        "@0x/connect": "^5.0.8",
+        "0x.js": "^6.0.11",
+        "@0x/connect": "^5.0.12",
         "@0x/web3-wrapper": "^6.0.6",
         "@types/async-retry": "^1.4.1",
         "@types/recharts": "^1.1.16",
@@ -40,12 +40,13 @@
     "scripts": {
         "start": "cross-env PORT=3001 react-scripts start",
         "build": "react-scripts build",
-        "test": "REACT_APP_NETWORK_ID=50 react-scripts test --env=node",
+        "test": "cross-env REACT_APP_NETWORK_ID=50 react-scripts test --env=node",
         "test-once": "cross-env CI=true react-scripts test --coverage",
-        "lint": "tslint --project . 'src/**/*.{ts,tsx}' && npm run prettier-check",
+        "lint": "cross-env tslint --project . 'src/**/*.{ts,tsx}' && npm run prettier-check",
+        "lint-fix": "cross-env tslint --project . 'src/**/*.{ts,tsx}' --fix",
         "eject": "react-scripts eject",
         "prettier": "cross-env prettier --write '**/*.{ts,tsx,json,md}' --ignore-path .gitignore",
-        "prettier-check": "prettier --check '**/*.{ts,tsx,json,md}' --ignore-path .gitignore",
+        "prettier-check": "cross-env prettier --check '**/*.{ts,tsx,json,md}' --ignore-path .gitignore",
         "coveralls": "cat ./coverage/lcov.info | coveralls"
     },
     "eslintConfig": {

@@ -178,7 +178,10 @@ class OrderToRow extends React.Component<OrderToRowProps> {
 
     public render = () => {
         const { order, index, baseToken, priceColor, mySizeOrders = [], web3State, currencyPair } = this.props;
-        const size = tokenAmountInUnits(order.size, baseToken.decimals, currencyPair.config.basePrecision);
+        const basePrecision = currencyPair.config.basePrecision;
+        const pricePrecision = currencyPair.config.pricePrecision;
+
+        const size = tokenAmountInUnits(order.size, baseToken.decimals, basePrecision);
         const price = order.price.toString();
 
         const mySize = mySizeOrders.reduce((sumSize, mySizeItem) => {
@@ -188,7 +191,7 @@ class OrderToRow extends React.Component<OrderToRowProps> {
             return sumSize;
         }, new BigNumber(0));
 
-        const mySizeConverted = tokenAmountInUnits(mySize, baseToken.decimals, currencyPair.config.basePrecision);
+        const mySizeConverted = tokenAmountInUnits(mySize, baseToken.decimals, basePrecision);
         const isMySizeEmpty = mySize.eq(new BigNumber(0));
         const displayColor = isMySizeEmpty ? '#dedede' : undefined;
         const mySizeRow =
@@ -210,11 +213,11 @@ class OrderToRow extends React.Component<OrderToRowProps> {
                     <ShowNumberWithColors
                         isHover={this.state.isHover}
                         num={new BigNumber(size)}
-                        precision={currencyPair.config.basePrecision}
+                        precision={basePrecision}
                     />
                 </CustomTD>
                 <CustomTD as="div" styles={{ tabular: true, textAlign: 'right', color: priceColor }}>
-                    {parseFloat(price).toFixed(currencyPair.config.pricePrecision)}
+                    {parseFloat(price).toFixed(pricePrecision)}
                 </CustomTD>
                 {mySizeRow}
             </GridRowInner>

@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import TimeAgo from 'react-timeago';
 import styled from 'styled-components';
 
-import { UI_DECIMALS_DISPLAYED_ORDER_SIZE } from '../../../common/constants';
 import { changeMarket, goToHome } from '../../../store/actions';
 import { getBaseToken, getFills, getQuoteToken, getUserOrders, getWeb3State } from '../../../store/selectors';
 import { getCurrencyPairByTokensSymbol } from '../../../util/known_currency_pairs';
@@ -45,9 +44,9 @@ const ClicableTD = styled(CustomTD)`
 
 const fillToRow = (fill: Fill, index: number, _setMarket: any) => {
     const sideLabel = fill.side === OrderSide.Sell ? 'Sell' : 'Buy';
-    const amountBase = tokenAmountInUnits(fill.amountBase, fill.tokenBase.decimals, UI_DECIMALS_DISPLAYED_ORDER_SIZE);
+    const amountBase = tokenAmountInUnits(fill.amountBase, fill.tokenBase.decimals, fill.tokenBase.displayDecimals);
     const displayAmountBase = `${amountBase} ${fill.tokenBase.symbol.toUpperCase()}`;
-    const amountQuote = tokenAmountInUnits(fill.amountQuote, fill.tokenQuote.decimals, 3);
+    const amountQuote = tokenAmountInUnits(fill.amountQuote, fill.tokenQuote.decimals, fill.tokenQuote.displayDecimals);
     const tokenQuoteSymbol = isWeth(fill.tokenQuote.symbol) ? 'ETH' : fill.tokenQuote.symbol.toUpperCase();
     const displayAmountQuote = `${amountQuote} ${tokenQuoteSymbol}`;
     const market = `${fill.tokenBase.symbol.toUpperCase()}/${tokenQuoteSymbol}`;
