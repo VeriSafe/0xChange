@@ -9,7 +9,7 @@ const Widget = styled.div`
  * @see https://cleverbeagle.com/blog/articles/tutorial-how-to-load-third-party-scripts-dynamically-in-javascript
  */
 const loadCoinMarketCapWidget = (callback: any) => {
-    const existingScript = document.getElementById('googleMaps');
+    const existingScript = document.getElementById('coinmarketcap');
 
     if (!existingScript) {
         const script = document.createElement('script');

@@ -18,6 +18,7 @@ const initialMarketState: MarketState = {
     quoteToken: null,
     markets: null,
     ethInUsd: null,
+    tokensPrice: null,
 };
 
 export function market(state: MarketState = initialMarketState, action: RootAction): MarketState {
@@ -40,6 +41,14 @@ export function market(state: MarketState = initialMarketState, action: RootActi
             return { ...state, quoteInUsd: null };
         case getType(actions.fetchMarketPriceQuoteError):
             return { ...state, quoteInUsd: null };
+        case getType(actions.fetchMarketPriceTokensStart):
+            return state;
+        case getType(actions.fetchMarketPriceTokensUpdate):
+            return { ...state, tokensPrice: action.payload };
+        case getType(actions.fetchMarketPriceTokensError):
+            return state;
+        case getType(actions.fetchERC20MarketsError):
+            return state;
         default:
             return state;
     }

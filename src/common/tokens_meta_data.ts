@@ -7,10 +7,14 @@ export interface TokenMetaData {
     name: string;
     primaryColor: string;
     id?: string;
+    c_id?: string;
     icon?: string;
     displayDecimals?: number;
     minAmount?: number;
     maxAmount?: number;
     precision?: number;
+    description?: string;
+    website?: string;
+    verisafe_sticker?: string;
 }
 export const KNOWN_TOKENS_META_DATA: TokenMetaData[] = Config.getConfig().tokens;

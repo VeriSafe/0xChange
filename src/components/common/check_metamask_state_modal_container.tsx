@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { LocalStorage } from '../../services/local_storage';
 import { goToHome, initWallet } from '../../store/actions';
 import { getWeb3State } from '../../store/selectors';
 import { ModalDisplay, StoreState, Web3State } from '../../util/types';
@@ -28,7 +27,6 @@ interface OwnProps {
 
 type Props = StateProps & DispatchProps & OwnProps;
 
-const localStorage = new LocalStorage(window.localStorage);
 class CheckMetamaskStateModal extends React.Component<Props, State> {
     public state = {
         shouldOpenModal: true,
@@ -70,7 +68,7 @@ class CheckMetamaskStateModal extends React.Component<Props, State> {
 
     private readonly _connectWallet = () => {
         this.props.onConnectWallet();
-        localStorage.saveWalletConnected(true);
+        // localStorage.saveWalletConnected(true);
     };
 
     private readonly _updateState = () => {

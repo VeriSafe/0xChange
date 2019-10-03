@@ -119,6 +119,9 @@ class OrderDetails extends React.Component<Props, State> {
         const fee = this._getFeeStringForRender();
         const cost = this._getCostStringForRender();
         const costText = this._getCostLabelStringForRender();
+        const priceMedianText = this._getMedianPriceStringForRender();
+        const { orderType } = this.props;
+
         return (
             <>
                 <LabelContainer>
@@ -132,6 +135,12 @@ class OrderDetails extends React.Component<Props, State> {
                     <CostLabel>{costText}</CostLabel>
                     <CostValue>{cost}</CostValue>
                 </Row>
+                {orderType === OrderType.Market && (
+                    <Row>
+                        <CostLabel>Median Price:</CostLabel>
+                        <CostValue>{priceMedianText}</CostValue>
+                    </Row>
+                )}
             </>
         );
     };
@@ -158,20 +167,20 @@ class OrderDetails extends React.Component<Props, State> {
         } else {
             const { tokenAmount, openSellOrders, openBuyOrders } = this.props;
             const isSell = orderSide === OrderSide.Sell;
-            const [ordersToFill, amountToPayForEachOrder, canOrderBeFilled] = buildMarketOrders(
+            const { orders, amounts, canBeFilled } = buildMarketOrders(
                 {
                     amount: tokenAmount,
                     orders: isSell ? openBuyOrders : openSellOrders,
                 },
                 orderSide,
             );
-            const feeInZrx = ordersToFill.reduce((sum, order) => sum.plus(order.takerFee), new BigNumber(0));
-            const quoteTokenAmount = sumTakerAssetFillableOrders(orderSide, ordersToFill, amountToPayForEachOrder);
+            const feeInZrx = orders.reduce((sum, order) => sum.plus(order.takerFee), new BigNumber(0));
+            const quoteTokenAmount = sumTakerAssetFillableOrders(orderSide, orders, amounts);
 
             this.setState({
                 feeInZrx,
                 quoteTokenAmount,
-                canOrderBeFilled,
+                canOrderBeFilled: canBeFilled,
             });
         }
     };
@@ -205,6 +214,26 @@ class OrderDetails extends React.Component<Props, State> {
             return `${costAmount} ${tokenSymbolToDisplayString(quote)}`;
         }
     };
+    private readonly _getMedianPriceStringForRender = () => {
+        const { canOrderBeFilled } = this.state;
+        const { orderType } = this.props;
+        const { tokenAmount } = this.props;
+        if (orderType === OrderType.Market && !canOrderBeFilled) {
+            return `---`;
+        }
+        if (tokenAmount.eq(0)) {
+            return `---`;
+        }
+        const { quote, base, config } = this.props.currencyPair;
+        const { quoteTokenAmount } = this.state;
+        const quoteToken = getKnownTokens().getTokenBySymbol(quote);
+        const baseToken = getKnownTokens().getTokenBySymbol(base);
+        const quoteTokenAmountUnits = new BigNumber(tokenAmountInUnits(quoteTokenAmount, quoteToken.decimals, 18));
+        const baseTokenAmountUnits = new BigNumber(tokenAmountInUnits(tokenAmount, baseToken.decimals, 18));
+        const priceDisplay = quoteTokenAmountUnits.div(baseTokenAmountUnits).toFormat(config.pricePrecision + 1);
+        return `${priceDisplay} ${tokenSymbolToDisplayString(quote)}`;
+    };
+
     private readonly _getCostLabelStringForRender = () => {
         const { qouteInUSD, orderSide } = this.props;
         if (qouteInUSD) {

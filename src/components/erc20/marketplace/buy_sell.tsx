@@ -220,14 +220,15 @@ class BuySell extends React.Component<Props, State> {
         const pricePrecision = currencyPair.config.pricePrecision;
         const minAmount = currencyPair.config.minAmount;
         const minAmountUnits = unitsInTokenAmount(String(currencyPair.config.minAmount), decimals);
-        const amount = makerAmount || minAmountUnits;
 
         const basePrecision = currencyPair.config.basePrecision;
         const stepAmount = new BigNumber(1).div(new BigNumber(10).pow(basePrecision));
         const stepAmountUnits = unitsInTokenAmount(String(stepAmount), decimals);
 
-        const isMakerAmountEmpty = amount.isZero();
-        const isMakerAmountMin = amount.isLessThan(minAmountUnits);
+        const amount = makerAmount || minAmountUnits;
+        const isMakerAmountEmpty = amount === null || amount.isZero();
+        const isMakerAmountMin = amount === null || amount.isLessThan(minAmountUnits);
+
         const isPriceEmpty = price === null || price.isZero();
         const isPriceMin =
             price === null || price.isLessThan(new BigNumber(1).div(new BigNumber(10).pow(pricePrecision)));
@@ -345,7 +346,7 @@ class BuySell extends React.Component<Props, State> {
         const { currencyPair } = this.props;
         const minAmount = currencyPair.config.minAmount;
         const decimals = getKnownTokens().getTokenBySymbol(currencyPair.base).decimals;
-        const minAmountUnits = unitsInTokenAmount(String(currencyPair.config.minAmount), decimals);
+        const minAmountUnits = unitsInTokenAmount(String(minAmount), decimals);
 
         const orderSide = this.state.tab;
         const makerAmount = this.state.makerAmount || minAmountUnits;

@@ -20,10 +20,14 @@ export const getWethTokenFromTokensMetaDataByNetworkId = (tokensMetaData: TokenM
                 ? tokenMetaData.displayDecimals
                 : UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION,
         id: tokenMetaData.id || undefined,
+        c_id: tokenMetaData.c_id || undefined,
         minAmount: tokenMetaData.minAmount || 0,
         maxAmount: tokenMetaData.maxAmount || undefined,
         precision:
             tokenMetaData.precision !== undefined ? tokenMetaData.precision : UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION,
+        website: tokenMetaData.website || undefined,
+        description: tokenMetaData.description || undefined,
+        verisafe_sticker: undefined,
     };
 };
 
@@ -44,12 +48,16 @@ export const mapTokensMetaDataToTokenByNetworkId = (tokensMetaData: TokenMetaDat
                             ? tokenMetaData.displayDecimals
                             : UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION,
                     id: tokenMetaData.id || undefined,
+                    c_id: tokenMetaData.c_id || undefined,
                     minAmount: tokenMetaData.minAmount || 0,
                     maxAmount: tokenMetaData.maxAmount || undefined,
                     precision:
                         tokenMetaData.precision !== undefined
                             ? tokenMetaData.precision
                             : UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION,
+                    website: tokenMetaData.website || undefined,
+                    description: tokenMetaData.description || undefined,
+                    verisafe_sticker: tokenMetaData.verisafe_sticker || undefined,
                 };
             },
         );

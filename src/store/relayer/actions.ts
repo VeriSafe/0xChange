@@ -1,7 +1,7 @@
 import { BigNumber, SignedOrder } from '0x.js';
 import { createAction } from 'typesafe-actions';
 
-import { ZERO_ADDRESS } from '../../common/constants';
+import { AFFILIATE_FEE_PERCENTAGE, FEE_RECIPIENT } from '../../common/constants';
 import { INSUFFICIENT_ORDERS_TO_FILL_AMOUNT_ERR } from '../../exceptions/common';
 import { InsufficientOrdersAmountException } from '../../exceptions/insufficient_orders_amount_exception';
 import { RelayerException } from '../../exceptions/relayer_exception';
@@ -53,7 +53,13 @@ export const getAllOrders: ThunkCreator = () => {
         const web3State = getWeb3State(state) as Web3State;
         try {
             let uiOrders: UIOrder[] = [];
-            const isWeb3NotDoneState = [Web3State.Locked, Web3State.NotInstalled, Web3State.Error].includes(web3State);
+            const isWeb3NotDoneState = [
+                Web3State.Locked,
+                Web3State.NotInstalled,
+                Web3State.Error,
+                Web3State.Connecting,
+                Web3State.Connect,
+            ].includes(web3State);
             // tslint:disable-next-line:prefer-conditional-expression
             if (isWeb3NotDoneState) {
                 uiOrders = await getAllOrdersAsUIOrdersWithoutOrdersInfo(baseToken, quoteToken);
@@ -170,11 +176,11 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
         const gasPrice = getGasPriceInWei(state);
 
         const isBuy = side === OrderSide.Buy;
-        const orders = isBuy ? getOpenSellOrders(state) : getOpenBuyOrders(state);
-        const [ordersToFill, amounts, canBeFilled] = buildMarketOrders(
+        const allOrders = isBuy ? getOpenSellOrders(state) : getOpenBuyOrders(state);
+        const { orders, amounts, canBeFilled } = buildMarketOrders(
             {
                 amount,
-                orders,
+                orders: allOrders,
             },
             side,
         );
@@ -195,22 +201,31 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
             let txHash;
             if (isMarketBuyForwarder) {
                 txHash = await contractWrappers.forwarder.marketBuyOrdersWithEthAsync(
-                    ordersToFill,
+                    orders,
                     amount,
                     ethAccount,
                     ethAmountRequired,
                     [],
-                    0,
-                    ZERO_ADDRESS,
+                    AFFILIATE_FEE_PERCENTAGE,
+                    FEE_RECIPIENT,
                     getTransactionOptions(gasPrice),
                 );
             } else {
-                txHash = await contractWrappers.exchange.batchFillOrdersAsync(
-                    ordersToFill,
-                    amounts,
-                    ethAccount,
-                    getTransactionOptions(gasPrice),
-                );
+                if (isBuy) {
+                    txHash = await contractWrappers.exchange.marketBuyOrdersAsync(
+                        orders,
+                        amount,
+                        ethAccount,
+                        getTransactionOptions(gasPrice),
+                    );
+                } else {
+                    txHash = await contractWrappers.exchange.marketSellOrdersAsync(
+                        orders,
+                        amount,
+                        ethAccount,
+                        getTransactionOptions(gasPrice),
+                    );
+                }
             }
 
             const web3Wrapper = await getWeb3Wrapper();
@@ -234,7 +249,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                 ]),
             );
 
-            const amountInReturn = sumTakerAssetFillableOrders(side, ordersToFill, amounts);
+            const amountInReturn = sumTakerAssetFillableOrders(side, orders, amounts);
 
             return { txHash, amountInReturn };
         } else {
