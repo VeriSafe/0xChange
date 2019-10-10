@@ -7,7 +7,7 @@ import { InsufficientFeeBalanceException } from '../../../exceptions/insufficien
 import { InsufficientTokenBalanceException } from '../../../exceptions/insufficient_token_balance_exception';
 import { SignatureFailedException } from '../../../exceptions/signature_failed_exception';
 import { createSignedOrder, submitLimitOrder } from '../../../store/actions';
-import {  getEstimatedTxTimeMs, getQuoteToken, getStepsModalCurrentStep, getWallet } from '../../../store/selectors';
+import { getEstimatedTxTimeMs, getQuoteToken, getStepsModalCurrentStep, getWallet } from '../../../store/selectors';
 import { tokenSymbolToDisplayString } from '../../../util/tokens';
 import { OrderSide, StepBuySellLimitOrder, StoreState, Token, Wallet } from '../../../util/types';
 
@@ -83,9 +83,9 @@ class SignOrderStep extends React.Component<Props, State> {
             let errorException = error;
             if (error.message.toLowerCase() === INSUFFICIENT_MAKER_BALANCE_ERR.toLowerCase()) {
                 // Maker balance not enough
-                side === OrderSide.Sell ? 
-                errorException = new InsufficientTokenBalanceException(step.token.symbol)
-                :   errorException = new InsufficientTokenBalanceException(quoteToken.symbol);
+                side === OrderSide.Sell
+                    ? (errorException = new InsufficientTokenBalanceException(step.token.symbol))
+                    : (errorException = new InsufficientTokenBalanceException(quoteToken.symbol));
             } else if (error.message.toString().includes(INSUFFICIENT_FEE_BALANCE)) {
                 // Fee balance not enough
                 errorException = new InsufficientFeeBalanceException();

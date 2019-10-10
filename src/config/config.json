@@ -78,18 +78,6 @@
         },
         {
             "decimals": 8,
-            "symbol": "sedo",
-            "name": "SEDO PoW Token",
-            "primaryColor": "#365ff6",
-            "icon": "assets/icons/sedo.svg",
-            "addresses": {
-                "1": "0x0f00f1696218eaefa2d2330df3d6d1f94813b38f"
-            },
-            "displayDecimals": 2,
-            "website": "http://sedocoin.org/"
-        },
-        {
-            "decimals": 8,
             "symbol": "kiwi",
             "name": "KIWI Token",
             "primaryColor": "#23a11a",
@@ -106,6 +94,7 @@
             "icon": "assets/icons/zrx.svg",
             "addresses": {
                 "1": "0xE41d2489571d322189246DaFA5ebDe1F4699F498",
+                "3": "0xff67881f8d12f372d91baae9752eb3631ff0ed00",
                 "4": "0x8080c7e4b81ecf23aa6f877cfbfd9b0c228c6ffa",
                 "5": "0xff67881f8d12f372d91baae9752eb3631ff0ed00",
                 "42": "0x2002d3812f58e35f0ea1ffbf80a75a38c32175fa",
@@ -245,14 +234,6 @@
         },
         {
             "base": "lira",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 2,
-                "pricePrecision": 6
-            }
-        },
-        {
-            "base": "sedo",
             "quote": "0xbtc",
             "config": {
                 "basePrecision": 2,
