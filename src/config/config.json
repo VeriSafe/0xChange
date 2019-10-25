@@ -67,17 +67,6 @@
         },
         {
             "decimals": 8,
-            "symbol": "lira",
-            "name": "Lira Cash",
-            "primaryColor": "#6997e0",
-            "icon": "assets/icons/lira.svg",
-            "addresses": {
-                "1": "0x49aaa160506f7e07e6c3f6cd6316b6866025cdcb"
-            },
-            "displayDecimals": 2
-        },
-        {
-            "decimals": 8,
             "symbol": "kiwi",
             "name": "KIWI Token",
             "primaryColor": "#23a11a",
@@ -174,7 +163,22 @@
             "c_id":"maker",
             "description": "Maker is comprised of a decentralized stablecoin, collateral loans, and community governance.",
             "id": "maker"
-        }
+        },
+        {
+            "decimals": 18,
+            "displayDecimals": 2,
+            "symbol": "lpt",
+            "name": "Livepeer",
+            "primaryColor": "#68CCBB",
+            "icon": "assets/icons/lpt.svg",
+            "addresses": {
+                "1": "0x58b6a8a3302369daec383334672404ee733ab239"
+            },
+            "website": "https://livepeer.org/",
+            "c_id":"livepeer",
+            "description": "Open Source Video Infrastructure Services, Built On The Ethereum Blockchain..",
+            "id": "livepeer"
+        }       
     ],
     "pairs": [
         {
@@ -186,18 +190,10 @@
         },
         {
             "base": "vsf",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 0,
-                "pricePrecision": 5
-            }
-        },
-        {
-            "base": "vsf",
             "quote": "weth",
             "config": {
                 "basePrecision": 0,
-                "pricePrecision": 7
+                "pricePrecision": 8
             }
         },
         {
@@ -214,38 +210,6 @@
             "config": {
                 "basePrecision": 6,
                 "pricePrecision": 6
-            }
-        },
-        {
-            "base": "zrx",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 2,
-                "pricePrecision": 6
-            }
-        },
-        {
-            "base": "king",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 6,
-                "pricePrecision": 4
-            }
-        },
-        {
-            "base": "lira",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 2,
-                "pricePrecision": 6
-            }
-        },
-        {
-            "base": "kiwi",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 2,
-                "pricePrecision": 8
             }
         },
         {
@@ -287,13 +251,41 @@
                 "basePrecision": 2,
                 "pricePrecision": 6
             }
+        },
+        {
+            "base": "kiwi",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 8
+            }
+        },
+        {
+            "base": "lpt",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 8
+            }
+        },
+        {
+            "base": "king",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 8,
+                "pricePrecision": 2
+            }
+        },
+        {
+            "base": "king",
+            "quote": "dai",
+            "config": {
+                "basePrecision": 8,
+                "pricePrecision": 2
+            }
         }
     ],
     "marketFilters": [
-        {
-            "text": "0XBTC",
-            "value": "0xbtc"
-        },
         {
             "text": "ETH",
             "value": "weth"

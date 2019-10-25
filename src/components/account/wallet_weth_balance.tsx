@@ -6,6 +6,7 @@ import styled, { withTheme } from 'styled-components';
 import { startWrapEtherSteps } from '../../store/actions';
 import {
     getConvertBalanceState,
+    getEthAccount,
     getEthBalance,
     getEthInUsd,
     getWeb3State,
@@ -14,12 +15,14 @@ import {
 import { Theme, themeDimensions } from '../../themes/commons';
 import { getKnownTokens } from '../../util/known_tokens';
 import { tokenAmountInUnits } from '../../util/tokens';
-import { ConvertBalanceState, StoreState, Web3State } from '../../util/types';
+import { ButtonVariant, ConvertBalanceState, StoreState, Web3State } from '../../util/types';
+import { Button as EButton } from '../common/button';
 import { Card } from '../common/card';
 import { ArrowUpDownIcon } from '../common/icons/arrow_up_down_icon';
 import { LoadingWrapper } from '../common/loading';
 import { IconType, Tooltip } from '../common/tooltip';
 
+import { FiatOnRampModal } from './fiat_modal';
 import { WethModal } from './wallet_weth_modal';
 
 interface StateProps {
@@ -28,6 +31,7 @@ interface StateProps {
     web3State: Web3State;
     wethBalance: BigNumber;
     convertBalanceState: ConvertBalanceState;
+    ethAccount: string;
 }
 
 interface DispatchProps {
@@ -48,6 +52,7 @@ interface State {
     isSubmitting: boolean;
     modalIsOpen: boolean;
     selectedWeth: string;
+    modalBuyEthIsOpen: boolean;
 }
 
 const Content = styled.div`
@@ -155,11 +160,16 @@ const Note = styled.p`
     text-align: center;
 `;
 
+const ButtonStyled = styled(EButton)`
+    width: 100%;
+`;
+
 class WalletWethBalance extends React.PureComponent<Props, State> {
     public readonly state: State = {
         modalIsOpen: false,
         selectedWeth: '0',
         isSubmitting: false,
+        modalBuyEthIsOpen: false,
     };
 
     public render = () => {
@@ -172,6 +182,7 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
             inDropdown,
             className,
             convertBalanceState,
+            ethAccount,
         } = this.props;
         const { isSubmitting } = this.state;
         const totalEth = ethBalance.plus(wethBalance);
@@ -187,6 +198,13 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
         if (web3State === Web3State.Loading) {
             content = <LoadingWrapper />;
         } else if (ethBalance && wethBalance) {
+
+            const openFiatOnRamp = () => {
+                this.setState({
+                    modalBuyEthIsOpen: true,
+                });
+            };
+
             content = (
                 <>
                     <Row>
@@ -221,15 +239,31 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
                         totalEth={totalEth}
                         wethBalance={wethBalance}
                     />
+                    <Row>
+                        <ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
+                                Buy ETH
+                        </ButtonStyled>
+                    </Row>
                 </>
             );
         }
+        const resetModal = () => {
+            this.setState({
+                modalBuyEthIsOpen: false,
+            });
+        };
 
         return (
             <>
                 <Card title={inDropdown ? '' : 'ETH / wETH Balances'} className={className}>
                     <Content>{content}</Content>
                 </Card>
+                <FiatOnRampModal
+                        isOpen={this.state.modalBuyEthIsOpen}
+                        reset={resetModal}
+                        theme={theme}
+                        ethAccount={ethAccount}
+                    />
                 {inDropdown ? null : (
                     <Note>
                         wETH is used for trades on 0x
@@ -283,6 +317,7 @@ const mapStateToProps = (state: StoreState): StateProps => {
         wethBalance: getWethBalance(state),
         web3State: getWeb3State(state),
         ethInUsd: getEthInUsd(state),
+        ethAccount: getEthAccount(state),
         convertBalanceState: getConvertBalanceState(state),
     };
 };
