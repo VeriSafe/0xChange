@@ -95,6 +95,8 @@ export interface UIState {
     readonly hasUnreadNotifications: boolean;
     readonly stepsModal: StepsModalState;
     readonly orderPriceSelected: BigNumber | null;
+    readonly sidebarOpen: boolean;
+    readonly openFiatOnRampModal: boolean;
 }
 
 export interface MarketState {
@@ -121,6 +123,7 @@ export enum StepKind {
     ToggleTokenLock = 'ToggleTokenLock',
     TransferToken = 'TransferToken',
     BuySellLimit = 'BuySellLimit',
+    BuySellLimitMatching = 'BuySellLimitMatching',
     BuySellMarket = 'BuySellMarket',
     UnlockCollectibles = 'UnlockCollectibles',
     SellCollectible = 'SellCollectible',
@@ -170,6 +173,15 @@ export interface StepBuySellMarket {
     token: Token;
 }
 
+export interface StepBuySellLimitMatching {
+    kind: StepKind.BuySellLimitMatching;
+    amount: BigNumber;
+    price: BigNumber;
+    price_avg: BigNumber;
+    side: OrderSide;
+    token: Token;
+}
+
 export interface StepSellCollectible {
     kind: StepKind.SellCollectible;
     collectible: Collectible;
@@ -193,6 +205,7 @@ export type Step =
     | StepSellCollectible
     | StepBuyCollectible
     | StepUnlockCollectibles
+    | StepBuySellLimitMatching
     | StepTransferToken;
 
 export interface StepsModalState {
@@ -376,6 +389,8 @@ export enum Wallet {
     Torus = 'Torus',
     Fortmatic = 'Fortmatic',
     WalletConnect = 'WalletConnect',
+    Coinbase = 'Coinbase Wallet',
+    Enjin = 'Enjin Wallet',
 }
 
 export interface Collectible {
@@ -444,6 +459,16 @@ export interface PartialTheme {
 export interface GeneralConfig {
     title?: string;
     icon?: string;
+    social?: {
+        facebook_url?: string;
+        reddit_url?: string;
+        twitter_url?: string;
+        telegram_url?: string;
+        discord_url?: string;
+        bitcointalk_url?: string;
+        youtube_url?: string;
+        medium_url?: string;
+    };
 }
 
 interface WalletsConfig {
@@ -460,4 +485,36 @@ export interface ConfigFile {
     wallets?: WalletsConfig;
     theme?: PartialTheme;
     general?: GeneralConfig;
+}
+
+export enum Browser {
+    Chrome = 'CHROME',
+    Firefox = 'FIREFOX',
+    Opera = 'OPERA',
+    Safari = 'SAFARI',
+    Edge = 'EDGE',
+    Other = 'OTHER',
+}
+
+export enum OperatingSystem {
+    Android = 'ANDROID',
+    iOS = 'IOS', // tslint:disable-line:enum-naming
+    Mac = 'MAC',
+    Windows = 'WINDOWS',
+    WindowsPhone = 'WINDOWS_PHONE',
+    Linux = 'LINUX',
+    Other = 'OTHER',
+}
+
+export enum ProviderType {
+    Parity = 'PARITY',
+    MetaMask = 'META_MASK',
+    Mist = 'MIST',
+    CoinbaseWallet = 'COINBASE_WALLET',
+    EnjinWallet = 'ENJIN_WALLET',
+    Cipher = 'CIPHER',
+    TrustWallet = 'TRUST_WALLET',
+    Opera = 'OPERA',
+    Fallback = 'FALLBACK',
+    // tslint:disable-next-line: max-file-line-count
 }

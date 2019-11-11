@@ -22,7 +22,7 @@ import { ArrowUpDownIcon } from '../common/icons/arrow_up_down_icon';
 import { LoadingWrapper } from '../common/loading';
 import { IconType, Tooltip } from '../common/tooltip';
 
-import { FiatOnRampModal } from './fiat_modal';
+import { FiatOnRampModalContainer } from './fiat_modal';
 import { WethModal } from './wallet_weth_modal';
 
 interface StateProps {
@@ -258,12 +258,7 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
                 <Card title={inDropdown ? '' : 'ETH / wETH Balances'} className={className}>
                     <Content>{content}</Content>
                 </Card>
-                <FiatOnRampModal
-                        isOpen={this.state.modalBuyEthIsOpen}
-                        reset={resetModal}
-                        theme={theme}
-                        ethAccount={ethAccount}
-                    />
+                <FiatOnRampModalContainer />
                 {inDropdown ? null : (
                     <Note>
                         wETH is used for trades on 0x

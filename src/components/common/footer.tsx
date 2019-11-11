@@ -2,15 +2,22 @@ import React, { HTMLAttributes } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
+import { Config } from '../../common/config';
 import { ERC20_APP_BASE_PATH, GIT_COMMIT } from '../../common/constants';
 import { themeBreakPoints, themeDimensions } from '../../themes/commons';
+
+import { SocialIcon } from './icons/social_icon';
 
 interface Props extends HTMLAttributes<HTMLDivElement> {}
 
 const FooterWrapper = styled.div`
     align-items: center;
+    justify-content: center;
+`;
+
+const LinksContainer = styled.div`
+    align-items: center;
     display: flex;
-    height: ${themeDimensions.footerHeight};
     justify-content: center;
     padding: 0 ${themeDimensions.horizontalPadding} ${themeDimensions.verticalPadding};
 
@@ -25,6 +32,14 @@ const FooterWrapper = styled.div`
         height: 0px;
         overflow: hidden;
     }
+`;
+
+const SocialsContainer = styled.div`
+    align-items: center;
+    display: flex;
+    height: ${themeDimensions.footerHeight};
+    justify-content: center;
+    padding: 0 ${themeDimensions.horizontalPadding} ${themeDimensions.verticalPadding};
 `;
 
 const HrefStyled = styled.a`
@@ -113,8 +128,22 @@ const poweredBySVG = () => {
 };
 
 export const Footer: React.FC<Props> = props => {
+    const config = Config.getConfig();
+    let socialButtons;
+    if (config.general && config.general.social) {
+        const social_urls_keys = Object.keys(config.general.social);
+        const social_urls = config.general.social;
+        socialButtons = () => {
+            return social_urls_keys.map(s => (
+                // @ts-ignore
+                <SocialIcon key={s} icon={s.split('_')[0]} url={social_urls[s]} />
+            ));
+        };
+    }
+
     return (
         <FooterWrapper title={GIT_COMMIT} {...props}>
+                      <LinksContainer>
            <LinkStyled to={`${ERC20_APP_BASE_PATH}/listed-tokens`}>Tokens</LinkStyled>
             <HrefStyled href="https://0xbitcoin.org/" target="_blank" rel="noopener noreferrer" className="link">
                 About 0xBitcoin
@@ -126,6 +155,8 @@ export const Footer: React.FC<Props> = props => {
             <HrefStyled href="https://discord.gg/t2ca2DY" target="_blank" rel="noopener noreferrer" className="link">
                 About 0xChange
             </HrefStyled>
+            </LinksContainer>
+            {socialButtons && <SocialsContainer>{socialButtons()}</SocialsContainer>}
         </FooterWrapper>
     );
 };
