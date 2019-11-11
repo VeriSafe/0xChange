@@ -98,7 +98,8 @@ class NotificationItem extends React.Component<Props, State> {
         if (
             item.kind === NotificationKind.Market ||
             item.kind === NotificationKind.CancelOrder ||
-            item.kind === NotificationKind.TokenTransferred
+            item.kind === NotificationKind.TokenTransferred ||
+            item.kind === NotificationKind.DepositTransferred
         ) {
             this.setState({
                 pending: true,
@@ -160,6 +161,9 @@ class NotificationItem extends React.Component<Props, State> {
                 break;
             case NotificationKind.TokenTransferred:
                 operation = 'Transfer Sent';
+                break;
+            case NotificationKind.DepositTransferred:
+                operation = 'Deposit Sent';
                 break;
             default: {
                 const _exhaustiveCheck: never = item;

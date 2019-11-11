@@ -3,7 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
-import { startWrapEtherSteps } from '../../store/actions';
+import { openFiatOnRampModal, startWrapEtherSteps } from '../../store/actions';
 import {
     getConvertBalanceState,
     getEthAccount,
@@ -22,7 +22,6 @@ import { ArrowUpDownIcon } from '../common/icons/arrow_up_down_icon';
 import { LoadingWrapper } from '../common/loading';
 import { IconType, Tooltip } from '../common/tooltip';
 
-import { FiatOnRampModalContainer } from './fiat_modal';
 import { WethModal } from './wallet_weth_modal';
 
 interface StateProps {
@@ -36,6 +35,7 @@ interface StateProps {
 
 interface DispatchProps {
     onStartWrapEtherSteps: (newBalance: BigNumber) => Promise<any>;
+    onClickOpenFiatOnRampModal: () => any;
 }
 
 interface OwnProps {
@@ -182,7 +182,7 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
             inDropdown,
             className,
             convertBalanceState,
-            ethAccount,
+            onClickOpenFiatOnRampModal,
         } = this.props;
         const { isSubmitting } = this.state;
         const totalEth = ethBalance.plus(wethBalance);
@@ -200,9 +200,7 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
         } else if (ethBalance && wethBalance) {
 
             const openFiatOnRamp = () => {
-                this.setState({
-                    modalBuyEthIsOpen: true,
-                });
+                onClickOpenFiatOnRampModal();
             };
 
             content = (
@@ -247,18 +245,13 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
                 </>
             );
         }
-        const resetModal = () => {
-            this.setState({
-                modalBuyEthIsOpen: false,
-            });
-        };
+
 
         return (
             <>
                 <Card title={inDropdown ? '' : 'ETH / wETH Balances'} className={className}>
                     <Content>{content}</Content>
                 </Card>
-                <FiatOnRampModalContainer />
                 {inDropdown ? null : (
                     <Note>
                         wETH is used for trades on 0x
@@ -314,12 +307,22 @@ const mapStateToProps = (state: StoreState): StateProps => {
         ethInUsd: getEthInUsd(state),
         ethAccount: getEthAccount(state),
         convertBalanceState: getConvertBalanceState(state),
+       
     };
 };
 
-const mapDispatchToProps = {
-    onStartWrapEtherSteps: startWrapEtherSteps,
+const mapDispatchToProps = (dispatch: any) => {
+    return {
+        onStartWrapEtherSteps: (newBalance: BigNumber) => dispatch(startWrapEtherSteps(newBalance)),
+        onClickOpenFiatOnRampModal: () => dispatch(openFiatOnRampModal(true)),
+    };
 };
+
+
+/*const mapDispatchToProps = {
+    onStartWrapEtherSteps: startWrapEtherSteps,
+    onClickOpenFiatOnRampModal:  openFiatOnRampModal(true),
+};*/
 
 const WalletWethBalanceContainer = withTheme(
     connect(

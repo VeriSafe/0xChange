@@ -10,6 +10,7 @@ import { getGasEstimationInfoAsync } from '../../services/gas_price_estimation';
 import { LocalStorage } from '../../services/local_storage';
 import { tokensToTokenBalances, tokenToTokenBalance } from '../../services/tokens';
 import { deleteWeb3Wrapper, isMetamaskInstalled } from '../../services/web3_wrapper';
+import * as serviceWorker from '../../serviceWorker';
 import { envUtil } from '../../util/env';
 import { buildFill } from '../../util/fills';
 import { getKnownTokens, isWeth } from '../../util/known_tokens';
@@ -183,6 +184,62 @@ export const transferToken: ThunkCreator<Promise<any>> = (
                 {
                     id: txHash,
                     kind: NotificationKind.TokenTransferred,
+                    amount,
+                    token,
+                    address,
+                    tx,
+                    timestamp: new Date(),
+                },
+            ]),
+        );
+
+        /*web3Wrapper.awaitTransactionSuccessAsync(tx).then(() => {
+            // tslint:disable-next-line:no-floating-promises
+            dispatch(updateTokenBalancesOnToggleTokenLock(token, isUnlocked));
+        });*/
+
+        return txHash;
+    };
+};
+
+export const depositToken: ThunkCreator<Promise<any>> = (
+    token: Token,
+    amount: BigNumber,
+    address: string,
+    isEth: boolean,
+) => {
+    return async (dispatch, getState, { getContractWrappers, getWeb3Wrapper }) => {
+        const state = getState();
+        const ethAccount = getEthAccount(state);
+        const gasPrice = getGasPriceInWei(state);
+
+        const contractWrappers = await getContractWrappers();
+        const web3Wrapper = await getWeb3Wrapper();
+        let txHash;
+        if (isEth) {
+            txHash = await web3Wrapper.sendTransactionAsync({
+                from: ethAccount.toLowerCase(),
+                to: address.toLowerCase(),
+                value: amount,
+                gasPrice: getTransactionOptions(gasPrice).gasPrice,
+            });
+        } else {
+            txHash = await contractWrappers.erc20Token.transferAsync(
+                token.address,
+                ethAccount.toLowerCase(),
+                address.toLowerCase(),
+                amount,
+                getTransactionOptions(gasPrice),
+            );
+        }
+
+        const tx = web3Wrapper.awaitTransactionSuccessAsync(txHash);
+
+        dispatch(
+            addNotifications([
+                {
+                    id: txHash,
+                    kind: NotificationKind.DepositTransferred,
                     amount,
                     token,
                     address,
@@ -764,9 +821,11 @@ export const initializeAppWallet: ThunkCreator = () => {
             const providerType = envUtil.getProviderTypeFromWindow();
             switch (providerType) {
                 case ProviderType.CoinbaseWallet:
+                    serviceWorker.unregister();
                     await dispatch(initWallet(Wallet.Coinbase));
                     return;
                 case ProviderType.EnjinWallet:
+                    serviceWorker.unregister();
                     await dispatch(initWallet(Wallet.Enjin));
                     return;
                 default:

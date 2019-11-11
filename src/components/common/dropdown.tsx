@@ -1,6 +1,8 @@
 import React, { HTMLAttributes } from 'react';
 import styled from 'styled-components';
 
+import { themeBreakPoints } from '../../themes/commons';
+
 export enum DropdownPositions {
     Center,
     Left,

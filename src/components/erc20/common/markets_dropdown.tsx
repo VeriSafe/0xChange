@@ -5,12 +5,14 @@ import styled from 'styled-components';
 import { marketFilters } from '../../../common/markets';
 import { changeMarket, goToHome } from '../../../store/actions';
 import { getBaseToken, getCurrencyPair, getMarkets } from '../../../store/selectors';
-import { themeDimensions } from '../../../themes/commons';
+import { themeBreakPoints, themeDimensions } from '../../../themes/commons';
 import { getKnownTokens } from '../../../util/known_tokens';
 import { filterMarketsByString, filterMarketsByTokenSymbol } from '../../../util/markets';
+import { isMobile } from '../../../util/screen';
 import { CurrencyPair, Filter, Market, StoreState, Token } from '../../../util/types';
 import { CardBase } from '../../common/card_base';
 import { Dropdown } from '../../common/dropdown';
+import { withWindowWidth } from '../../common/hoc/withWindowWidth';
 import { ChevronDownIcon } from '../../common/icons/chevron_down_icon';
 import { MagnifierIcon } from '../../common/icons/magnifier_icon';
 import { TokenIcon } from '../../common/icons/token_icon';
@@ -23,13 +25,18 @@ interface DispatchProps {
     goToHome: () => any;
 }
 
+interface OwnProps {
+    windowWidth: number;
+}
+
 interface PropsToken {
     baseToken: Token | null;
     currencyPair: CurrencyPair;
     markets: Market[] | null;
+  
 }
 
-type Props = PropsDivElement & PropsToken & DispatchProps;
+type Props = PropsDivElement & PropsToken & DispatchProps & OwnProps;
 
 interface State {
     selectedFilter: Filter;
@@ -48,7 +55,9 @@ interface MarketRowProps {
 
 const rowHeight = '48px';
 
-const MarketsDropdownWrapper = styled(Dropdown)``;
+const MarketsDropdownWrapper = styled(Dropdown)`
+`;
+
 
 const MarketsDropdownHeader = styled.div`
     align-items: center;
@@ -68,6 +77,12 @@ const MarketsDropdownBody = styled(CardBase)`
     max-height: 100%;
     max-width: 100%;
     width: 451px;
+    @media(max-width: ${themeBreakPoints.sm}) {
+        position: relative;
+        max-width: 340px;
+        left:-70px;
+    }
+    
 `;
 
 const MarketsFilters = styled.div`
@@ -77,6 +92,9 @@ const MarketsFilters = styled.div`
     justify-content: space-between;
     min-height: ${rowHeight};
     padding: 8px 8px 8px ${themeDimensions.horizontalPadding};
+    @media (max-width: ${themeBreakPoints.sm}) {
+        display: inline;
+    }
 `;
 
 const MarketsFiltersLabel = styled.h2`
@@ -85,6 +103,9 @@ const MarketsFiltersLabel = styled.h2`
     font-weight: 600;
     line-height: normal;
     margin: 0 auto 0 0;
+    @media (max-width: ${themeBreakPoints.sm}) {
+        padding: 8px 8px 8px ${themeDimensions.horizontalPadding};
+    }
 `;
 
 const TokenFiltersTabs = styled.div`
@@ -211,6 +232,16 @@ const TokenIconAndLabel = styled.div`
     justify-content: flex-start;
 `;
 
+const FilterSearchContainer = styled.div`
+ @media (max-width: ${themeBreakPoints.sm}) {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 8px 8px ${themeDimensions.horizontalPadding};
+    }
+`;
+
+
+
 const TokenLabel = styled.div`
     color: ${props => props.theme.componentsTheme.textColorCommon};
     font-size: 14px;
@@ -234,7 +265,7 @@ class MarketsDropdown extends React.Component<Props, State> {
     private readonly _dropdown = React.createRef<Dropdown>();
 
     public render = () => {
-        const { currencyPair, baseToken, ...restProps } = this.props;
+        const { currencyPair, baseToken, windowWidth, ...restProps } = this.props;
 
         const header = (
             <MarketsDropdownHeader>
@@ -253,12 +284,25 @@ class MarketsDropdown extends React.Component<Props, State> {
             </MarketsDropdownHeader>
         );
 
+        const FilterSearchContent = isMobile(windowWidth) ? 
+           ( <>
+            <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
+            <FilterSearchContainer>
+                {this._getTokensFilterTabs()}
+                {this._getSearchField()}
+            </FilterSearchContainer>
+            </>) : 
+            (<>
+            <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
+            {this._getTokensFilterTabs()}
+            {this._getSearchField()}
+            </>);
+
+   
         const body = (
             <MarketsDropdownBody>
                 <MarketsFilters onMouseOver={this._setUserOnDropdown} onMouseOut={this._removeUserOnDropdown}>
-                    <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
-                    {this._getTokensFilterTabs()}
-                    {this._getSearchField()}
+                    {FilterSearchContent}
                 </MarketsFilters>
                 <TableWrapper>{this._getMarkets()}</TableWrapper>
             </MarketsDropdownBody>
@@ -412,9 +456,9 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
     };
 };
 
-const MarketsDropdownContainer = connect(
+const MarketsDropdownContainer = withWindowWidth(connect(
     mapStateToProps,
     mapDispatchToProps,
-)(MarketsDropdown);
+)(MarketsDropdown));
 
 export { MarketsDropdown, MarketsDropdownContainer };

@@ -93,9 +93,12 @@ const ToolbarContent = (props: Props) => {
     let startContent;
     if (isMobile(props.windowWidth)) {
         startContent = (
-            <StyledButton onClick={setOpenSideBar}>
-                <MenuBurguer />
-            </StyledButton>
+            <>
+                <StyledButton onClick={setOpenSideBar}>
+                    <MenuBurguer />
+                </StyledButton>
+                <MarketsDropdownHeader shouldCloseDropdownBodyOnClick={false} />
+            </>
         );
     } else {
         startContent = (

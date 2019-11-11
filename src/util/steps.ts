@@ -17,6 +17,8 @@ export const getStepTitle = (step: Step): string => {
             return 'Buy';
         case StepKind.TransferToken:
             return 'Transfer';
+        case StepKind.DepositToken:
+            return 'Deposit';
         default:
             const _exhaustiveCheck: never = step;
             return _exhaustiveCheck;
@@ -34,6 +36,7 @@ export const isLongStep = (step: Step): boolean => {
         case StepKind.UnlockCollectibles:
         case StepKind.WrapEth:
         case StepKind.TransferToken:
+        case StepKind.DepositToken:
         case StepKind.BuyCollectible:
             return true;
         default:

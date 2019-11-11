@@ -122,6 +122,7 @@ export enum StepKind {
     WrapEth = 'WrapEth',
     ToggleTokenLock = 'ToggleTokenLock',
     TransferToken = 'TransferToken',
+    DepositToken = 'DepositToken',
     BuySellLimit = 'BuySellLimit',
     BuySellLimitMatching = 'BuySellLimitMatching',
     BuySellMarket = 'BuySellMarket',
@@ -160,6 +161,14 @@ export interface StepBuySellLimitOrder {
 
 export interface StepTransferToken {
     kind: StepKind.TransferToken;
+    amount: BigNumber;
+    address: string;
+    token: Token;
+    isEth: boolean;
+}
+
+export interface StepDepositToken {
+    kind: StepKind.DepositToken;
     amount: BigNumber;
     address: string;
     token: Token;
@@ -206,6 +215,7 @@ export type Step =
     | StepBuyCollectible
     | StepUnlockCollectibles
     | StepBuySellLimitMatching
+    | StepDepositToken
     | StepTransferToken;
 
 export interface StepsModalState {
@@ -284,6 +294,7 @@ export enum NotificationKind {
     Limit = 'Limit',
     OrderFilled = 'OrderFilled',
     TokenTransferred = 'TokenTransferred',
+    DepositTransferred = 'DepositTransferred',
 }
 
 export interface Fill {
@@ -340,6 +351,13 @@ interface TransferTokenNotification extends TransactionNotification {
     address: string;
 }
 
+interface DepositTokenNotification extends TransactionNotification {
+    kind: NotificationKind.DepositTransferred;
+    amount: BigNumber;
+    token: Token;
+    address: string;
+}
+
 interface LimitNotification extends BaseNotification {
     kind: NotificationKind.Limit;
     amount: BigNumber;
@@ -359,6 +377,7 @@ export type Notification =
     | MarketNotification
     | LimitNotification
     | OrderFilledNotification
+    | DepositTokenNotification
     | TransferTokenNotification;
 
 export enum OrderType {

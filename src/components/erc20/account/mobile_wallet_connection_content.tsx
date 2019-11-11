@@ -98,7 +98,7 @@ export const MobileWalletConnectionContent = () => {
                 <ListItem onClick={onClickFiatOnRampModal}>Buy ETH</ListItem>
                 <ListItem onClick={viewAccountExplorer}>View Address on Etherscan</ListItem>
                 <ListItem onClick={connectToExplorer}>Track DEX volume</ListItem>
-                <ListItem onClick={openFabrx}>Set Alerts</ListItem>
+               {/* <ListItem onClick={openFabrx}>Set Alerts</ListItem>*/}
                 <ListItem onClick={onLogoutWallet}>Logout Wallet</ListItem>
             </ListContainer>
         </MenuContainer>

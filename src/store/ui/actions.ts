@@ -31,6 +31,7 @@ import {
     ThunkCreator,
     Token,
     TokenBalance,
+    StepDepositToken,
 } from '../../util/types';
 import * as selectors from '../selectors';
 
@@ -158,6 +159,28 @@ export const startTranferTokenSteps: ThunkCreator = (
         dispatch(setStepsModalDoneSteps([]));
     };
 };
+
+export const startDepositTokenSteps: ThunkCreator = (
+    amount: BigNumber,
+    token: Token,
+    address: string,
+    isEth: boolean,
+) => {
+    return async dispatch => {
+        const depositTokenStep: StepDepositToken = {
+            kind: StepKind.DepositToken,
+            amount,
+            token,
+            address,
+            isEth,
+        };
+
+        dispatch(setStepsModalCurrentStep(depositTokenStep));
+        dispatch(setStepsModalPendingSteps([]));
+        dispatch(setStepsModalDoneSteps([]));
+    };
+};
+
 
 export const startSellCollectibleSteps: ThunkCreator = (
     collectible: Collectible,
@@ -494,6 +517,31 @@ export const addTransferTokenNotification: ThunkCreator = (
                 {
                     id,
                     kind: NotificationKind.TokenTransferred,
+                    amount,
+                    token,
+                    address,
+                    tx,
+                    timestamp: new Date(),
+                },
+            ]),
+        );
+    };
+    // tslint:disable-next-line: max-file-line-count
+};
+
+export const addDepositTokenNotification: ThunkCreator = (
+    id: string,
+    amount: BigNumber,
+    token: Token,
+    address: string,
+    tx: Promise<any>,
+) => {
+    return async dispatch => {
+        dispatch(
+            addNotifications([
+                {
+                    id,
+                    kind: NotificationKind.DepositTransferred,
                     amount,
                     token,
                     address,
