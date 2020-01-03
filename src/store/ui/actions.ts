@@ -13,12 +13,14 @@ import {
     createBuySellLimitSteps,
     createBuySellMarketSteps,
     createDutchBuyCollectibleSteps,
+    createLendingTokenSteps,
     createSellCollectibleSteps,
 } from '../../util/steps_modals_generation';
 import { tokenAmountInUnitsToBigNumber } from '../../util/tokens';
 import {
     Collectible,
     Fill,
+    iTokenData,
     MarketFill,
     Notification,
     NotificationKind,
@@ -27,11 +29,13 @@ import {
     StepKind,
     StepToggleTokenLock,
     StepTransferToken,
+    StepUnLendingToken,
     StepWrapEth,
     ThunkCreator,
     Token,
     TokenBalance,
     StepDepositToken,
+    TokenIEO,
 } from '../../util/types';
 import * as selectors from '../selectors';
 
@@ -274,6 +278,37 @@ export const startBuySellLimitSteps: ThunkCreator = (
     };
 };
 
+export const startBuySellLimitIEOSteps: ThunkCreator = (
+    amount: BigNumber,
+    price: BigNumber,
+    side: OrderSide,
+    makerFee: BigNumber,
+    baseToken: Token,
+    quoteToken: Token,
+) => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const tokenBalanceIEO = selectors.getBaseTokenBalanceIEO(state) as TokenBalance;
+        const wethTokenBalance = selectors.getWethTokenBalance(state) as TokenBalance;
+
+        const buySellLimitFlow: Step[] = createBuySellLimitSteps(
+            baseToken,
+            quoteToken,
+            [tokenBalanceIEO],
+            wethTokenBalance,
+            amount,
+            price,
+            side,
+            makerFee,
+            true,
+        );
+
+        dispatch(setStepsModalCurrentStep(buySellLimitFlow[0]));
+        dispatch(setStepsModalPendingSteps(buySellLimitFlow.slice(1)));
+        dispatch(setStepsModalDoneSteps([]));
+    };
+};
+
 export const startBuySellLimitMatchingSteps: ThunkCreator = (
     amount: BigNumber,
     price: BigNumber,
@@ -364,6 +399,53 @@ export const startBuySellLimitMatchingSteps: ThunkCreator = (
     };
 };
 
+export const startLendingTokenSteps: ThunkCreator = (
+    amount: BigNumber,
+    token: Token,
+    iToken: iTokenData,
+    isEth: boolean,
+) => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const ethBalance = selectors.getEthBalance(state);
+        const wethBalance = selectors.getWethBalance(state);
+        const totalEthBalance = selectors.getTotalEthBalance(state);
+        const isEthAndWethNotEnoughBalance = isEth && totalEthBalance.isLessThan(amount);
+
+        if (isEthAndWethNotEnoughBalance) {
+            throw new InsufficientTokenBalanceException(token.symbol);
+        }
+
+        const lendingTokenFlow: Step[] = createLendingTokenSteps(iToken, token, wethBalance, ethBalance, amount, isEth);
+
+        dispatch(setStepsModalCurrentStep(lendingTokenFlow[0]));
+        dispatch(setStepsModalPendingSteps(lendingTokenFlow.slice(1)));
+        dispatch(setStepsModalDoneSteps([]));
+    };
+};
+
+export const startUnLendingTokenSteps: ThunkCreator = (
+    amount: BigNumber,
+    token: Token,
+    iToken: iTokenData,
+    isEth: boolean,
+) => {
+    return async dispatch => {
+        const unLendingTokenStep: StepUnLendingToken = {
+            kind: StepKind.UnLendingToken,
+            amount,
+            token,
+            isEth,
+            iToken,
+            isLending: false,
+        };
+
+        dispatch(setStepsModalCurrentStep(unLendingTokenStep));
+        dispatch(setStepsModalPendingSteps([]));
+        dispatch(setStepsModalDoneSteps([]));
+    };
+};
+
 export const startBuySellMarketSteps: ThunkCreator = (amount: BigNumber, side: OrderSide, takerFee: BigNumber) => {
     return async (dispatch, getState) => {
         const state = getState();
@@ -403,13 +485,13 @@ export const startBuySellMarketSteps: ThunkCreator = (amount: BigNumber, side: O
             // When buying and
             // if quote token is weth, should have enough ETH + WETH balance, or
             // if quote token is not weth, should have enough quote token balance
-            const ifEthAndWethNotEnoughBalance =
+            const isEthAndWethNotEnoughBalance =
                 isWeth(quoteToken.symbol) && totalEthBalance.isLessThan(totalFilledAmount);
             const ifOtherQuoteTokenAndNotEnoughBalance =
                 !isWeth(quoteToken.symbol) &&
                 quoteTokenBalance &&
                 quoteTokenBalance.balance.isLessThan(totalFilledAmount);
-            if (ifEthAndWethNotEnoughBalance || ifOtherQuoteTokenAndNotEnoughBalance) {
+            if (isEthAndWethNotEnoughBalance || ifOtherQuoteTokenAndNotEnoughBalance) {
                 throw new InsufficientTokenBalanceException(quoteToken.symbol);
             }
         }
@@ -480,6 +562,41 @@ export const createSignedOrder: ThunkCreator = (amount: BigNumber, price: BigNum
     };
 };
 
+export const createSignedOrderIEO: ThunkCreator = (amount: BigNumber, price: BigNumber, side: OrderSide) => {
+    return async (_dispatch, getState, { getContractWrappers, getWeb3Wrapper }) => {
+        const state = getState();
+        const ethAccount = selectors.getEthAccount(state);
+        const baseToken = selectors.getBaseTokenIEO(state) as TokenIEO;
+        const wethTokenBalance = selectors.getWethTokenBalance(state) as TokenBalance;
+        if (!wethTokenBalance) {
+            return;
+        }
+        const quoteToken = wethTokenBalance.token;
+        try {
+            const web3Wrapper = await getWeb3Wrapper();
+            const contractWrappers = await getContractWrappers();
+
+            const order = await buildLimitOrder(
+                {
+                    account: ethAccount,
+                    amount,
+                    price,
+                    baseTokenAddress: baseToken.address,
+                    quoteTokenAddress: quoteToken.address,
+                    exchangeAddress: contractWrappers.exchange.address,
+                },
+                side,
+                baseToken.endDate,
+            );
+
+            const provider = new MetamaskSubprovider(web3Wrapper.getProvider());
+            return signatureUtils.ecSignOrderAsync(provider, order, ethAccount);
+        } catch (error) {
+            throw new SignedOrderException(error.message);
+        }
+    };
+};
+
 export const addMarketBuySellNotification: ThunkCreator = (
     id: string,
     amount: BigNumber,
@@ -529,6 +646,7 @@ export const addTransferTokenNotification: ThunkCreator = (
     // tslint:disable-next-line: max-file-line-count
 };
 
+
 export const addDepositTokenNotification: ThunkCreator = (
     id: string,
     amount: BigNumber,
@@ -541,10 +659,58 @@ export const addDepositTokenNotification: ThunkCreator = (
             addNotifications([
                 {
                     id,
+                    tx,
+                    timestamp: new Date(),
                     kind: NotificationKind.DepositTransferred,
                     amount,
                     token,
                     address,
+                },
+            ]),
+        );
+    };
+    // tslint:disable-next-line: max-file-line-count
+};
+
+export const addLendingTokenNotification: ThunkCreator = (
+    id: string,
+    amount: BigNumber,
+    token: Token,
+    address: string,
+    tx: Promise<any>,
+) => {
+    return async dispatch => {
+        dispatch(
+            addNotifications([
+                {
+                    id,
+                    kind: NotificationKind.LendingComplete,
+                    amount,
+                    token,
+                    tx,
+                    timestamp: new Date(),
+                },
+            ]),
+        );
+    };
+    // tslint:disable-next-line: max-file-line-count
+};
+
+export const addUnLendingTokenNotification: ThunkCreator = (
+    id: string,
+    amount: BigNumber,
+    token: Token,
+    address: string,
+    tx: Promise<any>,
+) => {
+    return async dispatch => {
+        dispatch(
+            addNotifications([
+                {
+                    id,
+                    kind: NotificationKind.UnLendingComplete,
+                    amount,
+                    token,
                     tx,
                     timestamp: new Date(),
                 },

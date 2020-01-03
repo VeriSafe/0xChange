@@ -10,7 +10,10 @@ const initialBlockchainState: BlockchainState = {
     ethAccount: '',
     wallet: null,
     web3State: Web3State.Loading,
+    tokenBaseIEO: null,
+    tokenBaseBalanceIEO: null,
     tokenBalances: [],
+    tokenBalancesIEO: [],
     ethBalance: new BigNumber(0),
     wethTokenBalance: null,
     gasInfo: {
@@ -26,8 +29,21 @@ export function blockchain(state: BlockchainState = initialBlockchainState, acti
             return { ...state, ethAccount: action.payload };
         case getType(actions.setWeb3State):
             return { ...state, web3State: action.payload };
+        case getType(actions.setBaseTokenIEO):
+            return { ...state, tokenBaseIEO: action.payload };
+        case getType(actions.setBaseTokenBalanceIEO):
+            return { ...state, tokenBaseBalanceIEO: action.payload };
+        case getType(actions.setTokenBalancesIEO):
+            return { ...state, tokenBalancesIEO: action.payload };
         case getType(actions.setTokenBalances):
             return { ...state, tokenBalances: action.payload };
+        case getType(actions.setTokenBalance):
+            const tokenBalances = state.tokenBalances;
+            const tokenBalance = action.payload;
+            const index = tokenBalances.findIndex(t => t.token.address === tokenBalance.token.address);
+            tokenBalances[index] = tokenBalance;
+            return { ...state, tokenBalances };
+
         case getType(actions.setWethTokenBalance):
             return { ...state, wethTokenBalance: action.payload };
         case getType(actions.setGasInfo):

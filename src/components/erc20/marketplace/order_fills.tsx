@@ -49,18 +49,17 @@ const fillToRow = (fill: Fill, index: number, _setMarket: any) => {
     const tokenQuoteSymbol = isWeth(fill.tokenQuote.symbol) ? 'ETH' : fill.tokenQuote.symbol.toUpperCase();
     const displayAmountQuote = `${amountQuote} ${tokenQuoteSymbol}`;
     const market = `${fill.tokenBase.symbol.toUpperCase()}/${tokenQuoteSymbol}`;
-    let error = false;
     let currencyPair: CurrencyPair;
-    let price: string = '';
     try {
-       currencyPair = getCurrencyPairByTokensSymbol(fill.tokenBase.symbol, fill.tokenQuote.symbol);
-       price = parseFloat(fill.price.toString()).toFixed(currencyPair.config.pricePrecision);
+        currencyPair = getCurrencyPairByTokensSymbol(fill.tokenBase.symbol, fill.tokenQuote.symbol);
     } catch {
-        error = true;
+        return null;
     }
+    const price = parseFloat(fill.price.toString()).toFixed(currencyPair.config.pricePrecision);
+
     const setMarket = () => _setMarket(currencyPair);
     return (
-      !error &&  <TR key={index}>
+       <TR key={index}>
             <SideTD side={fill.side}>{sideLabel}</SideTD>
             <ClicableTD styles={{ textAlign: 'right', tabular: true }} onClick={setMarket}>
                 {market}

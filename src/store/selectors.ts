@@ -1,7 +1,12 @@
 import { BigNumber, OrderStatus } from '0x.js';
 import { createSelector } from 'reselect';
 
-import { ERC20_APP_BASE_PATH } from '../common/constants';
+import {
+    ERC20_APP_BASE_PATH,
+    ERC721_APP_BASE_PATH,
+    LAUNCHPAD_APP_BASE_PATH,
+    MARGIN_APP_BASE_PATH,
+} from '../common/constants';
 import { isWeth } from '../util/known_tokens';
 import {
     getLastPrice,
@@ -29,6 +34,9 @@ import { mergeByPrice } from '../util/ui_orders';
 
 export const getEthAccount = (state: StoreState) => state.blockchain.ethAccount;
 export const getTokenBalances = (state: StoreState) => state.blockchain.tokenBalances;
+export const getBaseTokenIEO = (state: StoreState) => state.blockchain.tokenBaseIEO;
+export const getBaseTokenBalanceIEO = (state: StoreState) => state.blockchain.tokenBaseBalanceIEO;
+export const getTokenBalancesIEO = (state: StoreState) => state.blockchain.tokenBalancesIEO;
 export const getWeb3State = (state: StoreState) => state.blockchain.web3State;
 export const getWallet = (state: StoreState) => state.blockchain.wallet;
 export const getEthBalance = (state: StoreState) => state.blockchain.ethBalance;
@@ -66,10 +74,28 @@ export const getCollectibleById = (state: StoreState, props: { collectibleId: st
 export const getSelectedCollectible = (state: StoreState) => state.collectibles.collectibleSelected;
 export const getCurrentRoutePath = (state: StoreState) => state.router.location.pathname;
 export const getRouterLocationSearch = (state: StoreState) => state.router.location.search;
+export const getAccountMarketStats = (state: StoreState) => state.relayer.accountMarketStats;
+export const getITokensData = (state: StoreState) => state.bzx.iTokensData;
+export const getBZXiTokensList = (state: StoreState) => state.bzx.TokensList;
+export const getBZXLoadingState = (state: StoreState) => state.bzx.bzxLoadingState;
+export const getIEOOrders = (state: StoreState) => state.relayer.ieoOrders;
+export const getUserIEOUIOrders = (state: StoreState) => state.relayer.userIEOOrders;
 
 export const getCurrentMarketPlace = createSelector(
     getCurrentRoutePath,
-    (currentRoute: string) => (currentRoute.includes(ERC20_APP_BASE_PATH) ? MARKETPLACES.ERC20 : MARKETPLACES.ERC721),
+    (currentRoute: string) => {
+        if (currentRoute.includes(ERC20_APP_BASE_PATH)) {
+            return MARKETPLACES.ERC20;
+        } else if (currentRoute.includes(ERC721_APP_BASE_PATH)) {
+            return MARKETPLACES.ERC721;
+        } else if (currentRoute.includes(LAUNCHPAD_APP_BASE_PATH)) {
+            return MARKETPLACES.LaunchPad;
+        } else if (currentRoute.includes(MARGIN_APP_BASE_PATH)) {
+            return MARKETPLACES.Margin;
+        } else {
+            return MARKETPLACES.ERC20;
+        }
+    },
 );
 
 export const getCurrentMarketFills = createSelector(
@@ -156,6 +182,8 @@ export const getOpenOrders = createSelector(
         switch (web3State) {
             case Web3State.NotInstalled:
             case Web3State.Error:
+            case Web3State.Connect:
+            case Web3State.Connecting:
             case Web3State.Locked: {
                 return orders;
             }

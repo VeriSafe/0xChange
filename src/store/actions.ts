@@ -1,20 +1,25 @@
 import { getWeb3Wrapper } from '../services/web3_wrapper';
 import { getKnownTokens } from '../util/known_tokens';
-import { MARKETPLACES } from '../util/types';
+import { getLogger } from '../util/logger';
+import { BZXLoadingState, MARKETPLACES } from '../util/types';
 
-import { updateGasInfo, updateTokenBalances } from './blockchain/actions';
+import { fetchLaunchpad, updateGasInfo, updateTokenBalances } from './blockchain/actions';
+import { fetchBZX, initBZX } from './bzx/actions';
 import { getAllCollectibles } from './collectibles/actions';
 import { setMarketTokens, updateMarketPriceEther, updateMarketPriceQuote } from './market/actions';
 import { getOrderBook, getOrderbookAndUserOrders } from './relayer/actions';
-import { getCurrencyPair, getCurrentMarketPlace } from './selectors';
+import { getBZXLoadingState, getCurrencyPair, getCurrentMarketPlace } from './selectors';
 
 export * from './blockchain/actions';
+export * from './bzx/actions';
 export * from './market/actions';
 export * from './relayer/actions';
 export * from './router/actions';
 export * from './ui/actions';
 export * from './market/actions';
 export * from './collectibles/actions';
+
+const logger = getLogger('Store::Actions');
 
 export const updateStore = () => {
     return async (dispatch: any, getState: any) => {
@@ -29,11 +34,22 @@ export const updateStore = () => {
 
             // Updates based on the current app
             const currentMarketPlace = getCurrentMarketPlace(state);
-            if (currentMarketPlace === MARKETPLACES.ERC20) {
-                dispatch(updateERC20Store(ethAccount));
-                dispatch(updateMarketPriceQuote());
-            } else {
-                dispatch(updateERC721Store(ethAccount));
+            switch (currentMarketPlace) {
+                case MARKETPLACES.ERC20:
+                    dispatch(updateERC20Store(ethAccount));
+                    dispatch(updateMarketPriceQuote());
+                    break;
+                case MARKETPLACES.ERC721:
+                    dispatch(updateERC721Store(ethAccount));
+                    break;
+                case MARKETPLACES.LaunchPad:
+                    dispatch(updateLaunchpadStore());
+                    break;
+                case MARKETPLACES.Margin:
+                    dispatch(updateBZXStore());
+                    break;
+                default:
+                    break;
             }
         }
     };
@@ -66,6 +82,33 @@ export const updateERC20Store = (ethAccount: string) => {
 
             dispatch(setMarketTokens({ baseToken, quoteToken }));
             dispatch(getOrderBook());
+        }
+    };
+};
+
+export const updateLaunchpadStore = () => {
+    return async (dispatch: any, _getState: any) => {
+        try {
+            dispatch(fetchLaunchpad());
+        } catch (error) {
+            logger.error('Failed to update Launchpad', error);
+        }
+    };
+};
+
+export const updateBZXStore = () => {
+    return async (dispatch: any, getState: any) => {
+        const state = getState();
+        const loading = getBZXLoadingState(state);
+
+        try {
+            if (loading !== BZXLoadingState.Done) {
+                dispatch(initBZX());
+            } else {
+                dispatch(fetchBZX());
+            }
+        } catch (error) {
+            logger.error('Failed to update Launchpad', error);
         }
     };
 };

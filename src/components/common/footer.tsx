@@ -152,7 +152,7 @@ export const Footer: React.FC<Props> = props => {
                 {poweredBySVG()}
             </HrefStyled>
             <br className="break" />
-            <HrefStyled href="https://discord.gg/t2ca2DY" target="_blank" rel="noopener noreferrer" className="link">
+            <HrefStyled href="https://discord.gg/tT5K63J" target="_blank" rel="noopener noreferrer" className="link">
                 About 0xChange
             </HrefStyled>
             </LinksContainer>

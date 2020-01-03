@@ -14,9 +14,11 @@ import * as serviceWorker from '../../serviceWorker';
 import { envUtil } from '../../util/env';
 import { buildFill } from '../../util/fills';
 import { getKnownTokens, isWeth } from '../../util/known_tokens';
+import { getKnownTokensIEO } from '../../util/known_tokens_ieo';
 import { getLogger } from '../../util/logger';
 import { buildOrderFilledNotification } from '../../util/notifications';
 import { buildDutchAuctionCollectibleOrder, buildSellCollectibleOrder } from '../../util/orders';
+import { providerFactory } from '../../util/provider_factory';
 import { getTransactionOptions } from '../../util/transactions';
 import {
     BlockchainState,
@@ -30,6 +32,8 @@ import {
     ThunkCreator,
     Token,
     TokenBalance,
+    TokenBalanceIEO,
+    TokenIEO,
     Wallet,
     Web3State,
 } from '../../util/types';
@@ -41,7 +45,13 @@ import {
     updateMarketPriceQuote,
     updateMarketPriceTokens,
 } from '../market/actions';
-import { getOrderBook, getOrderbookAndUserOrders, initializeRelayerData } from '../relayer/actions';
+import {
+    fetchAllIEOOrders,
+    fetchUserIEOOrders,
+    getOrderBook,
+    getOrderbookAndUserOrders,
+    initializeRelayerData,
+} from '../relayer/actions';
 import {
     getCurrencyPair,
     getCurrentMarketPlace,
@@ -89,6 +99,21 @@ export const setTokenBalances = createAction('blockchain/TOKEN_BALANCES_set', re
     return (tokenBalances: TokenBalance[]) => resolve(tokenBalances);
 });
 
+export const setTokenBalance = createAction('blockchain/TOKEN_BALANCE_set', resolve => {
+    return (tokenBalances: TokenBalance) => resolve(tokenBalances);
+});
+export const setBaseTokenIEO = createAction('blockchain/BASE_TOKEN_IEO_set', resolve => {
+    return (token: TokenIEO) => resolve(token);
+});
+
+export const setBaseTokenBalanceIEO = createAction('blockchain/BASE_TOKEN_BALANCE_IEO_set', resolve => {
+    return (token: TokenBalanceIEO) => resolve(token);
+});
+
+export const setTokenBalancesIEO = createAction('blockchain/TOKEN_BALANCES_IEO_set', resolve => {
+    return (tokenBalances: TokenBalanceIEO[]) => resolve(tokenBalances);
+});
+
 export const setEthBalance = createAction('blockchain/ETH_BALANCE_set', resolve => {
     return (ethBalance: BigNumber) => resolve(ethBalance);
 });
@@ -112,29 +137,60 @@ export const resetWallet = createAction('blockchain/Wallet_reset', resolve => {
     return () => resolve();
 });
 
-export const toggleTokenLock: ThunkCreator<Promise<any>> = (token: Token, isUnlocked: boolean) => {
+export const toggleTokenLock: ThunkCreator<Promise<any>> = (
+    token: Token,
+    isUnlocked: boolean,
+    address?: string,
+    isProxy: boolean = true,
+) => {
     return async (dispatch, getState, { getContractWrappers, getWeb3Wrapper }) => {
         const state = getState();
         const ethAccount = getEthAccount(state);
         const gasPrice = getGasPriceInWei(state);
-
         const contractWrappers = await getContractWrappers();
         const web3Wrapper = await getWeb3Wrapper();
 
         let tx: string;
         if (isUnlocked) {
-            tx = await contractWrappers.erc20Token.setProxyAllowanceAsync(
-                token.address,
-                ethAccount,
-                new BigNumber('0'),
-                getTransactionOptions(gasPrice),
-            );
+            if (isProxy) {
+                tx = await contractWrappers.erc20Token.setProxyAllowanceAsync(
+                    token.address,
+                    ethAccount,
+                    new BigNumber('0'),
+                    getTransactionOptions(gasPrice),
+                );
+            } else {
+                if (address) {
+                    tx = await contractWrappers.erc20Token.setAllowanceAsync(
+                        token.address,
+                        ethAccount,
+                        address,
+                        new BigNumber('0'),
+                        getTransactionOptions(gasPrice),
+                    );
+                } else {
+                    throw Error('No available path to lock token, missing address parameter');
+                }
+            }
         } else {
-            tx = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-                token.address,
-                ethAccount,
-                getTransactionOptions(gasPrice),
-            );
+            if (isProxy) {
+                tx = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+                    token.address,
+                    ethAccount,
+                    getTransactionOptions(gasPrice),
+                );
+            } else {
+                if (address) {
+                    tx = await contractWrappers.erc20Token.setUnlimitedAllowanceAsync(
+                        token.address,
+                        ethAccount,
+                        address,
+                        getTransactionOptions(gasPrice),
+                    );
+                } else {
+                    throw Error('No available path to unlock token, missing address parameter');
+                }
+            }
         }
 
         web3Wrapper.awaitTransactionSuccessAsync(tx).then(() => {
@@ -336,6 +392,28 @@ export const updateTokenBalances: ThunkCreator<Promise<any>> = (txHash?: string)
         if (wethBalance) {
             dispatch(setWethBalance(wethBalance.balance));
         }
+        dispatch(setEthBalance(ethBalance));
+        return ethBalance;
+    };
+};
+
+export const updateTokenBalance: ThunkCreator<Promise<any>> = (token: Token) => {
+    return async (dispatch, getState, { getWeb3Wrapper }) => {
+        const state = getState();
+        const ethAccount = getEthAccount(state);
+        const knownTokens = getKnownTokens();
+        const wethToken = knownTokens.getWethToken();
+        const tokenBalance = await tokensToTokenBalances([token], ethAccount);
+        const wethBalance = tokenBalance.find(b => b.token.symbol === wethToken.symbol);
+        if (wethBalance) {
+            dispatch(setWethBalance(wethBalance.balance));
+        } else {
+            dispatch(setTokenBalance(tokenBalance[0]));
+        }
+
+        const web3Wrapper = await getWeb3Wrapper();
+        const ethBalance = await web3Wrapper.getBalanceInWeiAsync(ethAccount);
+
         dispatch(setEthBalance(ethBalance));
         return ethBalance;
     };
@@ -552,13 +630,22 @@ export const initWallet: ThunkCreator<Promise<any>> = (wallet: Wallet) => {
         const currentMarketPlace = getCurrentMarketPlace(state);
         try {
             await dispatch(initWalletBeginCommon(wallet));
+            switch (currentMarketPlace) {
+                case MARKETPLACES.ERC20:
+                    // tslint:disable-next-line:no-floating-promises
+                    dispatch(initWalletERC20());
+                    break;
+                case MARKETPLACES.ERC721:
+                    // tslint:disable-next-line:no-floating-promises
+                    dispatch(initWalletERC721());
+                    break;
+                case MARKETPLACES.Margin:
+                    // tslint:disable-next-line:no-floating-promises
+                    dispatch(initWalletMargin());
+                    break;
 
-            if (currentMarketPlace === MARKETPLACES.ERC20) {
-                // tslint:disable-next-line:no-floating-promises
-                dispatch(initWalletERC20());
-            } else {
-                // tslint:disable-next-line:no-floating-promises
-                dispatch(initWalletERC721());
+                default:
+                    break;
             }
         } catch (error) {
             // Web3Error
@@ -658,6 +745,28 @@ const initWalletERC20: ThunkCreator<Promise<any>> = () => {
     };
 };
 
+const initWalletMargin: ThunkCreator<Promise<any>> = () => {
+    return async (dispatch, getState, { getWeb3Wrapper }) => {
+        const web3Wrapper = await getWeb3Wrapper();
+        if (!web3Wrapper) {
+            // tslint:disable-next-line:no-floating-promises
+            dispatch(initializeAppWallet());
+        } else {
+            const state = getState();
+            const knownTokens = getKnownTokens();
+            const ethAccount = getEthAccount(state);
+            const tokenBalances = await tokensToTokenBalances(knownTokens.getTokens(), ethAccount);
+            dispatch(setTokenBalances(tokenBalances));
+            try {
+                await dispatch(updateMarketPriceTokens());
+            } catch (error) {
+                // Relayer error
+                logger.error('The fetch markets from the relayer failed', error);
+            }
+        }
+    };
+};
+
 const initWalletERC721: ThunkCreator<Promise<any>> = () => {
     return async (dispatch, getState, { getWeb3Wrapper }) => {
         const web3Wrapper = await getWeb3Wrapper();
@@ -694,9 +803,9 @@ export const unlockCollectible: ThunkCreator<Promise<string>> = (collectible: Co
     };
 };
 
-export const unlockToken: ThunkCreator = (token: Token) => {
+export const unlockToken: ThunkCreator = (token: Token, address?: string, isProxy?: boolean) => {
     return async dispatch => {
-        return dispatch(toggleTokenLock(token, false));
+        return dispatch(toggleTokenLock(token, false, address, isProxy));
     };
 };
 
@@ -815,8 +924,8 @@ export const initializeAppNoMetamaskOrLocked: ThunkCreator = () => {
 export const initializeAppWallet: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
-
         // detect if is mobile operate system
+        // Note: need to disable service workers when inside dapp browsers
         if (envUtil.isMobileOperatingSystem()) {
             const providerType = envUtil.getProviderTypeFromWindow();
             switch (providerType) {
@@ -828,8 +937,29 @@ export const initializeAppWallet: ThunkCreator = () => {
                     serviceWorker.unregister();
                     await dispatch(initWallet(Wallet.Enjin));
                     return;
+                case ProviderType.Cipher:
+                    serviceWorker.unregister();
+                    await dispatch(initWallet(Wallet.Cipher));
+                    return;
                 default:
                     break;
+            }
+            // check if Trust wallet or other wallet is injected
+            const provider = providerFactory.getInjectedProviderIfExists();
+            if (provider) {
+                const providerT = envUtil.getProviderType(provider);
+                switch (providerT) {
+                    case ProviderType.TrustWallet:
+                        serviceWorker.unregister();
+                        await dispatch(initWallet(Wallet.Trust));
+                        return;
+                    case ProviderType.MetaMask:
+                        serviceWorker.unregister();
+                        await dispatch(initWallet(Wallet.Metamask));
+                        return;
+                    default:
+                        break;
+                }
             }
         }
         const wallet = getWallet(state);
@@ -853,21 +983,30 @@ export const initializeAppWallet: ThunkCreator = () => {
         dispatch(setMarketTokens({ baseToken, quoteToken }));
 
         const currentMarketPlace = getCurrentMarketPlace(state);
-        if (currentMarketPlace === MARKETPLACES.ERC20) {
-            // tslint:disable-next-line:no-floating-promises
-            dispatch(getOrderBook());
+        switch (currentMarketPlace) {
+            case MARKETPLACES.ERC20:
+                // tslint:disable-next-line:no-floating-promises
+                dispatch(getOrderBook());
 
-            // tslint:disable-next-line:no-floating-promises
-            await dispatch(fetchMarkets());
-            // tslint:disable-next-line:no-floating-promises
-            await dispatch(updateMarketPriceTokens());
-            // tslint:disable-next-line: no-floating-promises
-            dispatch(updateMarketPriceQuote());
-        } else {
-            // tslint:disable-next-line:no-floating-promises
-            dispatch(getAllCollectibles());
+                // tslint:disable-next-line:no-floating-promises
+                await dispatch(fetchMarkets());
+                // tslint:disable-next-line:no-floating-promises
+                await dispatch(updateMarketPriceTokens());
+                // tslint:disable-next-line: no-floating-promises
+                dispatch(updateMarketPriceQuote());
+                break;
+            case MARKETPLACES.ERC721:
+                // tslint:disable-next-line:no-floating-promises
+                dispatch(getAllCollectibles());
+                break;
+            case MARKETPLACES.Margin:
+                // tslint:disable-next-line:no-floating-promises
+                await dispatch(updateMarketPriceTokens());
+                break;
+
+            default:
+                break;
         }
-
         // tslint:disable-next-line:no-floating-promises
         dispatch(updateMarketPriceEther());
     };
@@ -894,5 +1033,46 @@ export const logoutWallet: ThunkCreator = () => {
 export const lockWallet: ThunkCreator = () => {
     return async (dispatch, getState) => {
         dispatch(setWeb3State(Web3State.Locked));
+    };
+};
+
+export const fetchBaseTokenIEO: ThunkCreator = (token: TokenIEO) => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const ethAccount = getEthAccount(state);
+        if (!ethAccount) {
+            return;
+        }
+        const wethBalance = getWethTokenBalance(state);
+        const tokenBalance = (await tokenToTokenBalance(token, ethAccount)) as TokenBalanceIEO;
+        dispatch(setBaseTokenBalanceIEO(tokenBalance));
+        dispatch(setBaseTokenIEO(token));
+        try {
+            // tslint:disable-next-line: no-floating-promises
+            dispatch(fetchUserIEOOrders(ethAccount, token, (wethBalance && wethBalance.token) || null));
+        } catch (error) {
+            logger.error('The fetch ieo orders from the relayer failed', error);
+        }
+    };
+};
+
+export const fetchLaunchpad: ThunkCreator = () => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const ethAccount = getEthAccount(state);
+        if (ethAccount) {
+            const knownTokens = getKnownTokensIEO();
+            const tokenBalances = (await tokensToTokenBalances(
+                knownTokens.getTokens(),
+                ethAccount,
+            )) as TokenBalanceIEO[];
+            dispatch(setTokenBalancesIEO(tokenBalances));
+        }
+        try {
+            // tslint:disable-next-line: no-floating-promises
+            dispatch(fetchAllIEOOrders());
+        } catch (error) {
+            logger.error('The fetch ieo orders from the relayer failed', error);
+        }
     };
 };
