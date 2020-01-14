@@ -10,9 +10,8 @@ import { Theme, themeBreakPoints } from '../../themes/commons';
 import { isMobile } from '../../util/screen';
 import { useWindowSize } from '../common/hooks/window_size_hook';
 import { CloseModalButton } from '../common/icons/close_modal_button';
-import { IconType, Tooltip } from '../common/tooltip';
-
 import { LoadingWrapper } from '../common/loading';
+import { IconType, Tooltip } from '../common/tooltip';
 
 interface Props {
     theme: Theme;
@@ -47,6 +46,19 @@ const TooltipStyled = styled(Tooltip)`
     margin-left: 5px;
 `;
 
+const ApplePayLink = styled.a`
+    align-items: center;
+    color: ${props => props.theme.componentsTheme.myWalletLinkColor};
+    display: flex;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+`;
+
 export const FiatOnRampModal: React.FC<Props> = props => {
     const { theme } = props;
     const dispatch = useDispatch();
@@ -58,18 +70,19 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     const reset = () => {
         dispatch(openFiatOnRampModal(false));
     };
-    let fiat_link;
+    let fiat_link: string = 'link';
     let description;
     const frame_width = isMobile(size.width) ? `${size.width - 10}px` : '500px';
     const frame_height = size.height < 710 ? `${size.height - 100}px` : '610px';
     switch (fiatType) {
         case 'APPLE_PAY':
-            fiat_link = `https://pay.sendwyre.com/purchase?destCurrency=ETH&&dest=${ethAccount}&paymentMethod=apple-pay&accountId=${WYRE_ID}`;
+            fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=apple-pay&accountId=${WYRE_ID}`;
             description = `Disclaimer  <br />
             Veridex now enables easy purchase of Ether using ApplePay, through Wyre!`;
+            // window.open(fiat_link);
             break;
         case 'DEBIT_CARD':
-            fiat_link = `https://pay.sendwyre.com/purchase?destCurrency=ETH&&dest=${ethAccount}&paymentMethod=debit-card&accountId=${WYRE_ID}`;
+            fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=debit-card&accountId=${WYRE_ID}`;
             description = `Disclaimer  <br />
             Veridex now enables easy purchase of Ether using Mastercad and Visa cards, through Wyre!`;
             break;
@@ -88,22 +101,32 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     const onload = () => {
         setLoading(false);
     };
+    const handleApplePay: React.EventHandler<React.MouseEvent> = e => {
+        e.preventDefault();
+        window.open(fiat_link);
+    };
 
     return (
         <Modal isOpen={isOpen} style={theme.modalTheme}>
             <CloseModalButton onClick={reset} />
             <ModalContent style={{ height: `${size.height - 10}px` }}>
                 <Title>BUY ETH {toolTip}</Title>
-                {loading && <LoadingWrapper minHeight="120px" />}
-                <iframe
-                    title="fiat_on_ramp"
-                    src={fiat_link}
-                    width={frame_width}
-                    height={frame_height}
-                    frameBorder="0"
-                    allowFullScreen={true}
-                    onLoad={onload}
-                />
+                {loading && fiatType !== 'APPLE_PAY' && <LoadingWrapper minHeight="120px" />}
+                {fiatType === 'APPLE_PAY' ? (
+                    <ApplePayLink href="/apple-pay" onClick={handleApplePay} className={'apple-pay'}>
+                        Use our Provider Wyre
+                    </ApplePayLink>
+                ) : (
+                    <iframe
+                        title="fiat_on_ramp"
+                        src={fiat_link}
+                        width={frame_width}
+                        height={frame_height}
+                        frameBorder="0"
+                        allowFullScreen={true}
+                        onLoad={onload}
+                    />
+                )}
             </ModalContent>
         </Modal>
     );

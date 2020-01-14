@@ -3,8 +3,9 @@ import Modal from 'react-modal';
 import { useDispatch, useSelector } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
+import { WYRE_ID } from '../../common/constants';
 import { openFiatOnRampChooseModal, openFiatOnRampModal, setFiatType } from '../../store/actions';
-import { getOpenFiatOnRampChooseModalState } from '../../store/selectors';
+import { getEthAccount, getOpenFiatOnRampChooseModalState } from '../../store/selectors';
 import { Theme } from '../../themes/commons';
 import { ButtonVariant } from '../../util/types';
 import { Button } from '../common/button';
@@ -46,12 +47,15 @@ const FiatChooseModal: React.FC<Props> = props => {
     const { theme } = props;
     const dispatch = useDispatch();
     const isOpen = useSelector(getOpenFiatOnRampChooseModalState);
+    const ethAccount = useSelector(getEthAccount);
     const reset = () => {
         dispatch(openFiatOnRampChooseModal(false));
     };
     const chooseApplePay = () => {
-        dispatch(setFiatType('APPLE_PAY'));
-        dispatch(openFiatOnRampModal(true));
+        // dispatch(setFiatType('APPLE_PAY'));
+        // dispatch(openFiatOnRampModal(true));
+        const fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=apple-pay&accountId=${WYRE_ID}`;
+        window.open(fiat_link);
         reset();
     };
     const chooseCreditCard = () => {

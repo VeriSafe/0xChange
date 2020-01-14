@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
-import { FEE_RECIPIENT, INSTANT_FEE_PERCENTAGE, RELAYER_URL } from '../../../common/constants';
+import { CHAIN_ID, FEE_RECIPIENT, INSTANT_FEE_PERCENTAGE, RELAYER_URL } from '../../../common/constants';
 import { getERC20ContractWrapper } from '../../../services/contract_wrappers';
 import { getAllOrders } from '../../../services/orders';
 import { getUserIEOSignedOrders } from '../../../services/relayer';
@@ -73,7 +73,7 @@ export const ZeroXInstantComponent = (props: Props) => {
         });
     }, []);
 
-    const { networkId = 1 } = props;
+    const { networkId = CHAIN_ID } = props;
 
     let orderSource: string | SignedOrder[] | undefined = RELAYER_URL;
 
@@ -204,7 +204,7 @@ export const ZeroXInstantComponent = (props: Props) => {
                 {
                     //  provider: (await getWeb3Wrapper()).getProvider(),
                     orderSource,
-                    networkId,
+                    chainId: networkId,
                     affiliateInfo: {
                         feeRecipient,
                         feePercentage,

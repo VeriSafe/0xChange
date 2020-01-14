@@ -17,6 +17,7 @@ import {
 import { Theme } from '../../../themes/commons';
 import { errorsWallet } from '../../../util/error_messages';
 import { isWeth } from '../../../util/known_tokens';
+import { joinAsMakerToPool } from '../../../util/staking';
 import { tokenAmountInUnits, tokenSymbolToDisplayString } from '../../../util/tokens';
 import { ButtonVariant, StoreState, Token, TokenBalance, Wallet, Web3State } from '../../../util/types';
 import { Button } from '../../common/button';
@@ -243,7 +244,8 @@ class IEOWalletBalance extends React.Component<Props, State> {
             totalEthBalance,
             onConnectingWallet,
             wallet,
-            onClickOpenFiatOnRampModal,
+            ethAccount,
+            // onClickOpenFiatOnRampModal,
         } = this.props;
 
         if (baseTokenBalance && quoteTokenBalance) {
@@ -266,8 +268,11 @@ class IEOWalletBalance extends React.Component<Props, State> {
             ) : null;
             const quoteTokenLabel = isWeth(quoteToken.symbol) ? 'ETH' : tokenSymbolToDisplayString(quoteToken.symbol);
 
-            const openFiatOnRamp = () => {
+            /*const openFiatOnRamp = () => {
                 onClickOpenFiatOnRampModal();
+            };*/
+            const joinAsMaker = () => {
+                joinAsMakerToPool(ethAccount);
             };
 
             content = (
@@ -283,8 +288,11 @@ class IEOWalletBalance extends React.Component<Props, State> {
                         </Label>
                         <Value>{quoteBalanceString}</Value>
                     </LabelWrapper>
-                    <ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
+                    {/*<ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
                         Buy ETH
+                    </ButtonStyled>*/}
+                    <ButtonStyled onClick={joinAsMaker} variant={ButtonVariant.Buy}>
+                        Join As Market Maker
                     </ButtonStyled>
                 </>
             );
