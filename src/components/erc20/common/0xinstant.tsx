@@ -165,7 +165,7 @@ export const ZeroXInstantComponent = (props: Props) => {
                 orderSource = RELAYER_URL;
             }
             if (makerAddresses) {
-                const addresses = makerAddresses.split(',');
+                const addresses = makerAddresses.toLowerCase().split(',');
                 if (token) {
                     const orders = await getAllOrders(token, knownTokens.getWethToken(), addresses);
                     orderSource = orders.length > 0 ? orders : RELAYER_URL;
