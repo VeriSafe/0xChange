@@ -61,6 +61,7 @@ import {
     getCurrencyPair,
     getEthAccount,
     getEthBalance,
+    getFeePercentage,
     getFeeRecipient,
     getGasPriceInWei,
     getMakerAddresses,
@@ -294,6 +295,8 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
         const baseToken = getBaseToken(state) as Token;
         const ethAccount = getEthAccount(state);
         const gasPrice = getGasPriceInWei(state);
+        const feePercentange = Number(getFeePercentage(state)) || FEE_PERCENTAGE;
+        const feeRecipient = getFeeRecipient(state) || FEE_RECIPIENT;
         const isBuy = side === OrderSide.Buy;
         const allOrders = isBuy ? getOpenSellOrders(state) : getOpenBuyOrders(state);
 
@@ -319,7 +322,7 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
             const affiliateFeeAmount = ethAmountRequired
                 .plus(protocolFee)
                 .plus(feeAmount)
-                .multipliedBy(FEE_PERCENTAGE)
+                .multipliedBy(feePercentange)
                 .integerValue(BigNumber.ROUND_CEIL);
 
             const totalEthAmount = ethAmountRequired
@@ -344,8 +347,8 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            Web3Wrapper.toBaseUnitAmount(FEE_PERCENTAGE, 18),
-                            FEE_RECIPIENT,
+                            Web3Wrapper.toBaseUnitAmount(feePercentange, 18),
+                            feeRecipient,
                         )
                         .sendTransactionAsync({
                             from: ethAccount,
@@ -409,7 +412,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
     return async (dispatch, getState, { getContractWrappers, getWeb3Wrapper }) => {
         const state = getState();
         const feeRecipient = getFeeRecipient(state) || FEE_RECIPIENT;
-        const feePercentange = Number(getFeeRecipient(state)) || FEE_PERCENTAGE;
+        const feePercentange = Number(getFeePercentage(state)) || FEE_PERCENTAGE;
         const ethAccount = getEthAccount(state);
         const gasPrice = getGasPriceInWei(state);
 
@@ -455,7 +458,6 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                 isEthBalanceEnough &&
                 contractWrappers.forwarder.address !== NULL_ADDRESS;
             const orderSignatures = ordersToFill.map(o => o.signature);
-
             let txHash;
             try {
                 if (isMarketBuyForwarder) {

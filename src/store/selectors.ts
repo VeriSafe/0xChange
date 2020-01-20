@@ -96,6 +96,7 @@ export const getFiatType = (state: StoreState) => state.ui.fiatType;
 export const getERC20Layout = (state: StoreState) => state.ui.erc20Layout;
 export const getDynamicLayout = (state: StoreState) => state.ui.isDynamicLayout;
 export const getMarketStats = (state: StoreState) => state.market.marketStats;
+export const getMarketsStats = (state: StoreState) => state.market.marketsStats;
 export const getFeeRecipient = (state: StoreState) => state.relayer.feeRecipient;
 export const getFeePercentage = (state: StoreState) => state.relayer.feePercentage;
 
@@ -140,6 +141,18 @@ export const getCurrentMarketTodayVolume = USE_RELAYER_MARKET_UPDATES
       })
     : createSelector(getCurrentMarketFills, (marketFills: Fill[]) => {
           return getTodayVolumeFromFills(marketFills);
+      });
+
+export const getCurrentMarketTodayQuoteVolume = USE_RELAYER_MARKET_UPDATES
+    ? createSelector(getMarketStats, (stats: RelayerMarketStats | null) => {
+          if (stats) {
+              return new BigNumber(stats.quote_volume_24);
+          } else {
+              return new BigNumber(0);
+          }
+      })
+    : createSelector(getCurrentMarketFills, () => {
+          return new BigNumber(0);
       });
 
 export const getCurrentMarketTodayHighPrice = USE_RELAYER_MARKET_UPDATES

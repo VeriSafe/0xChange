@@ -15,7 +15,6 @@ import {
 import { Theme } from '../../../themes/commons';
 import { errorsWallet } from '../../../util/error_messages';
 import { isWeth } from '../../../util/known_tokens';
-import { joinAsMakerToPool } from '../../../util/staking';
 import { tokenAmountInUnits, tokenSymbolToDisplayString } from '../../../util/tokens';
 import { ButtonVariant, StoreState, TokenBalance, Wallet, Web3State } from '../../../util/types';
 import { Button } from '../../common/button';
@@ -261,9 +260,9 @@ class IEOWalletEthBalance extends React.Component<Props, State> {
             /*const openFiatOnRamp = () => {
                 onClickOpenFiatOnRampModal();
             };*/
-            const joinAsMaker = () => {
+            /*const joinAsMaker = () => {
                 joinAsMakerToPool(ethAccount);
-            };
+            };*/
 
             content = (
                 <>

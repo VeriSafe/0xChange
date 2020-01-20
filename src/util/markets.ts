@@ -2,11 +2,22 @@ import { BigNumber } from '@0x/utils';
 
 import { convertDateToUTCTimestamp } from './time_utils';
 import { formatTokenSymbol } from './tokens';
-import { CurrencyPair, Fill, Market, Token } from './types';
+import { CurrencyPair, Fill, Market, RelayerMarketStats, Token } from './types';
 
 export const filterMarketsByTokenSymbol = (markets: Market[], tokenSymbol: string): Market[] => {
     return markets.filter(
         market => market.currencyPair.base === tokenSymbol || market.currencyPair.quote === tokenSymbol,
+    );
+};
+
+export const filterMarketsStatsByTokenSymbol = (
+    markets: RelayerMarketStats[],
+    tokenSymbol: string,
+): RelayerMarketStats[] => {
+    return markets.filter(
+        market =>
+            market.base.toLowerCase() === tokenSymbol.toLowerCase() ||
+            market.quote.toLowerCase() === tokenSymbol.toLowerCase(),
     );
 };
 
@@ -17,6 +28,15 @@ export const filterMarketsByString = (markets: Market[], str: string): Market[] 
         return `${baseLowerCase}/${quoteLowerCase}`.indexOf(str.toLowerCase()) !== -1;
     });
 };
+
+export const filterMarketsStatsByString = (markets: RelayerMarketStats[], str: string): RelayerMarketStats[] => {
+    return markets.filter(market => {
+        const baseLowerCase = market.base.toLowerCase();
+        const quoteLowerCase = market.quote.toLowerCase();
+        return `${baseLowerCase}/${quoteLowerCase}`.indexOf(str.toLowerCase()) !== -1;
+    });
+};
+
 /**
  * Export current market as string
  */

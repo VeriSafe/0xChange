@@ -923,6 +923,7 @@ export const initializeAppWallet: ThunkCreator = () => {
 
                 // tslint:disable-next-line:no-floating-promises
                 await dispatch(fetchMarkets());
+
                 // tslint:disable-next-line:no-floating-promises
                 await dispatch(updateMarketPriceTokens());
                 // tslint:disable-next-line: no-floating-promises

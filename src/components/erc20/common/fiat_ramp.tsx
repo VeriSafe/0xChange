@@ -54,7 +54,7 @@ export const FiatOnRampModal = (props: Props) => {
     const fiatType = query.get('fiat-type') || 'apple-pay';
     const coin = query.get('coin');
     const size = useWindowSize();
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setLoading] = useState(true);
     let fiat_link: string = 'link';
     let coinType;
     const frame_width = isMobile(size.width) ? `${size.width - 10}` : '500';
@@ -116,7 +116,7 @@ export const FiatOnRampModal = (props: Props) => {
     };
     return (
         <>
-            {loading && fiatType !== 'apple-pay' && <PageLoading text={'Fiat on Ramp Loading ...'} />}
+            {isLoading && fiatType !== 'apple-pay' && <PageLoading text={'Fiat on Ramp Loading ...'} />}
             <ModalContent>
                 {fiatType === 'apple-pay' ? (
                     <ApplePayLink href="/apple-pay" onClick={handleApplePay} className={'apple-pay'}>

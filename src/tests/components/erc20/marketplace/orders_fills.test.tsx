@@ -2,7 +2,9 @@
  * @jest-environment jsdom
  */
 
-import { assetDataUtils, BigNumber, ExchangeFillEventArgs } from '0x.js';
+import { ExchangeFillEventArgs } from '@0x/contract-wrappers';
+import { assetDataUtils } from '@0x/order-utils';
+import { BigNumber } from '@0x/utils';
 import { shallow, ShallowWrapper } from 'enzyme';
 import React from 'react';
 

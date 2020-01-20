@@ -95,8 +95,6 @@ export class ZeroXInstantWidget extends React.Component<Props, State> {
                 const knownTokens = getKnownTokens();
                 token = knownTokens.getTokenByAddress(tokenAddress);
             }
-            console.log(orderSource);
-
             const erc20TokenAssetData = zeroExInstant.assetDataForERC20TokenAddress(token.address);
             const additionalAssetMetaDataMap = {
                 [erc20TokenAssetData]: {
