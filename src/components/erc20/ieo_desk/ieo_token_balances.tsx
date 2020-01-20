@@ -1,6 +1,6 @@
 import { assetDataUtils, SignedOrder } from '@0x/order-utils';
 import { BigNumber } from '@0x/utils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
@@ -18,16 +18,24 @@ import {
     getWethTokenBalance,
 } from '../../../store/selectors';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
+import { getKnownTokensIEO } from '../../../util/known_tokens_ieo';
 import { isMobile } from '../../../util/screen';
 import { getEtherscanLinkForToken, getEtherscanLinkForTokenAndAddress, tokenAmountInUnits } from '../../../util/tokens';
-import { StoreState, Token, TokenBalance, TokenBalanceIEO, TokenPrice, Wallet, Web3State } from '../../../util/types';
-import { TransferTokenModal } from '../../account/wallet_transfer_token_modal';
+import {
+    StoreState,
+    Token,
+    TokenBalance,
+    TokenBalanceIEO,
+    TokenIEO,
+    TokenPrice,
+    Wallet,
+    Web3State,
+} from '../../../util/types';
 import { Card } from '../../common/card';
 import { EmptyContent } from '../../common/empty_content';
 import { withWindowWidth } from '../../common/hoc/withWindowWidth';
 import { SocialIcon } from '../../common/icons/social_icon';
 import { TokenIcon } from '../../common/icons/token_icon';
-import { LoadingWrapper } from '../../common/loading';
 import { CustomTD, Table, TH, THead, THLast, TR } from '../../common/table';
 import { IconType, Tooltip } from '../../common/tooltip';
 import { ZeroXInstantWidget } from '../common/0xinstant_widget';
@@ -172,30 +180,33 @@ const tokenName = parsedUrl.searchParams.get('token');
 
 const tokensPartialTable = (
     tokenBalances: TokenBalanceIEO[] | null,
+    tokens: TokenIEO[],
     props: Props,
-    setIsModalOpen: any,
-    setTokenBalanceSelected: any,
-    setIsEth: any,
     isMobileView: boolean,
 ) => {
-    const isProject = (tb: TokenBalance) => {
+    const isProject = (tb: TokenIEO) => {
         if (!tokenName) {
             return true;
         } else {
-            return tb.token.name.toLowerCase() === tokenName.toLowerCase();
+            return tb.name.toLowerCase() === tokenName.toLowerCase();
         }
     };
-    const { orders, wallet, ethAccount } = props;
+    const { orders, wallet, ethAccount, web3State } = props;
 
     return (
-        tokenBalances &&
-        tokenBalances
-            .filter(tb => tb.token.symbol !== 'weth')
+        tokens &&
+        tokens
+            .filter(tb => tb.symbol !== 'weth')
             .filter(isProject)
-            .map((tokenBalance, index) => {
-                const { token, balance } = tokenBalance;
+            .map((token, _index) => {
+                const tokenBalance = tokenBalances && tokenBalances.find(t => t.token === token);
+                let balance;
+                let formattedBalance;
+                if (tokenBalance) {
+                    balance = tokenBalance.balance;
+                    formattedBalance = tokenAmountInUnits(balance, token.decimals, token.displayDecimals);
+                }
                 const { symbol } = token;
-                const formattedBalance = tokenAmountInUnits(balance, token.decimals, token.displayDecimals);
 
                 /* const openTransferModal = () => {
                     setIsModalOpen(true);
@@ -280,12 +291,16 @@ const tokensPartialTable = (
                             <TR>
                                 <TH>Balance</TH>
                                 <CustomTD styles={{ borderBottom: true, textAlign: 'center' }}>
-                                    <QuantityEtherscanLink
-                                        href={getEtherscanLinkForTokenAndAddress(token, ethAccount)}
-                                        target={'_blank'}
-                                    >
-                                        {formattedBalance}
-                                    </QuantityEtherscanLink>
+                                    {formattedBalance ? (
+                                        <QuantityEtherscanLink
+                                            href={getEtherscanLinkForTokenAndAddress(token, ethAccount)}
+                                            target={'_blank'}
+                                        >
+                                            {formattedBalance}
+                                        </QuantityEtherscanLink>
+                                    ) : (
+                                        'Connect wallet'
+                                    )}
                                 </CustomTD>
                             </TR>
                             <TR>
@@ -324,7 +339,7 @@ const tokensPartialTable = (
                                     {/*<Button onClick={openTransferModal} variant={ButtonVariant.Primary}>
                                         Send
                                     </Button>*/}
-                                    {hasOrders && (
+                                    {hasOrders && web3State === Web3State.Done && (
                                         <ZeroXInstantWidget
                                             orderSource={orderSource}
                                             tokenAddress={token.address}
@@ -334,17 +349,22 @@ const tokensPartialTable = (
                                             isIEO={true}
                                         />
                                     )}
-                                    {!hasOrders && 'No Orders'}
+                                    {!hasOrders && web3State === Web3State.Done && 'No Orders'}
+                                    {web3State !== Web3State.Done && 'Connect Wallet'}
                                 </ButtonsContainer>
                             </CustomTD>
                             <CustomTD styles={{ borderBottom: true, textAlign: 'center' }}>{website}</CustomTD>
                             <CustomTD styles={{ borderBottom: true, textAlign: 'center' }}>
-                                <QuantityEtherscanLink
-                                    href={getEtherscanLinkForTokenAndAddress(token, ethAccount)}
-                                    target={'_blank'}
-                                >
-                                    {formattedBalance}
-                                </QuantityEtherscanLink>
+                                {formattedBalance ? (
+                                    <QuantityEtherscanLink
+                                        href={getEtherscanLinkForTokenAndAddress(token, ethAccount)}
+                                        target={'_blank'}
+                                    >
+                                        {formattedBalance}
+                                    </QuantityEtherscanLink>
+                                ) : (
+                                    'Connect wallet'
+                                )}
                             </CustomTD>
                             <CustomTD styles={{ borderBottom: true, textAlign: 'center' }}>
                                 <SocialsContainer>{socialButtons()}</SocialsContainer>
@@ -357,42 +377,41 @@ const tokensPartialTable = (
 };
 
 const IEOTokenBalances = (props: Props) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    /*const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEth, setIsEth] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [tokenBalanceSelected, setTokenBalanceSelected] = useState();
+    const [tokenBalanceSelected, setTokenBalanceSelected] = useState();*/
     let content: React.ReactNode;
     const {
-        ethBalance,
-        tokenBalances,
+        /*ethBalance,
         web3State,
         wethTokenBalance,
-        theme,
+        theme,*/
+        tokenBalances,
         ethAccount,
         onFetchLaunchpad,
         windowWidth,
     } = props;
 
-    let wethToken = null;
-    if (!wethTokenBalance) {
+    const knownTokens = getKnownTokensIEO();
+    const tokensIEO = knownTokens.getTokens();
+    //const wethToken = null;
+
+    /* if (!wethTokenBalance) {
         content = <EmptyContent alignAbsoluteCenter={true} text="There are no orders to show" />;
     } else {
         wethToken = wethTokenBalance.token;
-    }
+    }*/
 
     useEffect(() => {
         // tslint:disable-next-line: no-floating-promises
         onFetchLaunchpad();
     }, [ethAccount]);
 
-    if (!wethTokenBalance) {
-        content = <LoadingWrapper />;
-    } else if (web3State === Web3State.Loading || !tokenBalances) {
-        content = <LoadingWrapper />;
-    } else if (tokenBalances.length === 0) {
-        content = <EmptyContent alignAbsoluteCenter={true} text="There are no tokens to show" />;
+    if (tokensIEO.length === 0) {
+        content = <EmptyContent alignAbsoluteCenter={true} text="There are no listed tokens to show" />;
     } else {
-        const closeModal = () => setIsModalOpen(false);
+        /*  const closeModal = () => setIsModalOpen(false);
 
         const handleSubmit = async (amount: BigNumber, token: Token, address: string, isETH: boolean) => {
             setIsSubmitting(true);
@@ -403,8 +422,8 @@ const IEOTokenBalances = (props: Props) => {
                 setIsModalOpen(false);
                 fetchLaunchpad();
             }
-        };
-        const transferTokenModal = wethToken ? (
+        };*/
+        /*  const transferTokenModal = wethToken ? (
             <TransferTokenModal
                 isOpen={isModalOpen}
                 tokenBalance={tokenBalanceSelected as TokenBalance}
@@ -416,23 +435,16 @@ const IEOTokenBalances = (props: Props) => {
                 isEth={isEth}
                 wethToken={wethToken}
             />
-        ) : null;
+        ) : null;*/
 
         const isMobileView = isMobile(windowWidth);
         if (isMobileView) {
             content = (
                 <>
                     <Table isResponsive={true}>
-                        {tokensPartialTable(
-                            tokenBalances,
-                            props,
-                            setIsModalOpen,
-                            setTokenBalanceSelected,
-                            setIsEth,
-                            isMobileView,
-                        )}
+                        {tokensPartialTable(tokenBalances, tokensIEO, props, isMobileView)}
                     </Table>
-                    {transferTokenModal}
+                    {/*transferTokenModal*/}
                 </>
             );
         } else {
@@ -449,18 +461,9 @@ const IEOTokenBalances = (props: Props) => {
                                 <THStyled styles={{ textAlign: 'center' }}>Links</THStyled>
                             </TR>
                         </THead>
-                        <TBody>
-                            {tokensPartialTable(
-                                tokenBalances,
-                                props,
-                                setIsModalOpen,
-                                setTokenBalanceSelected,
-                                setIsEth,
-                                isMobileView,
-                            )}
-                        </TBody>
+                        <TBody>{tokensPartialTable(tokenBalances, tokensIEO, props, isMobileView)}</TBody>
                     </Table>
-                    {transferTokenModal}
+                    {/*transferTokenModal*/}
                 </>
             );
         }

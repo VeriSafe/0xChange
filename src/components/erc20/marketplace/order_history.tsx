@@ -21,6 +21,7 @@ const OrderHistoryCard = styled(Card)`
     overflow: auto;
     @media (max-width: ${themeBreakPoints.sm}) {
         margin-top: 10px;
+        max-height: 400px;
     }
 `;
 

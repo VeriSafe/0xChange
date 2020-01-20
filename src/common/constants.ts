@@ -157,6 +157,8 @@ export const MAKER_FEE_PERCENTAGE: string = process.env.REACT_APP_MAKER_FEE_PERC
 export const USE_RELAYER_ORDER_CONFIG: boolean =
     process.env.REACT_APP_USE_RELAYER_ORDER_CONFIG === 'true' ? true : false;
 
+export const USE_ORDERBOOK_PRICES: boolean = process.env.USE_ORDERBOOK_PRICES === 'true' ? true : false;
+
 export const PROVIDER_TYPE_TO_NAME: { [key in ProviderType]: string } = {
     [ProviderType.Cipher]: 'Cipher',
     [ProviderType.EnjinWallet]: 'Enjin Wallet',

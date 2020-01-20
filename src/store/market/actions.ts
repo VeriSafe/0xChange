@@ -3,10 +3,10 @@ import { push } from 'connected-react-router';
 import queryString from 'query-string';
 import { createAction } from 'typesafe-actions';
 
-import { ERC20_APP_BASE_PATH, USE_RELAYER_MARKET_UPDATES } from '../../common/constants';
+import { ERC20_APP_BASE_PATH, USE_ORDERBOOK_PRICES, USE_RELAYER_MARKET_UPDATES } from '../../common/constants';
 import { getAvailableMarkets } from '../../common/markets';
 import { getMarketPriceEther, getMarketPriceQuote, getMarketPriceTokens } from '../../services/markets';
-import { getMarketStatsFromRelayer, getRelayer } from '../../services/relayer';
+import { getAllMarketsStatsFromRelayer, getMarketStatsFromRelayer, getRelayer } from '../../services/relayer';
 import { getKnownTokens } from '../../util/known_tokens';
 import { getLogger } from '../../util/logger';
 import { marketToString } from '../../util/markets';
@@ -38,8 +38,12 @@ export const setMarkets = createAction('market/MARKETS_set', resolve => {
     return (markets: Market[]) => resolve(markets);
 });
 
-export const setMarketStats = createAction('market/MARKETS_STATS_set', resolve => {
+export const setMarketStats = createAction('market/MARKET_STATS_set', resolve => {
     return (marketStats: RelayerMarketStats) => resolve(marketStats);
+});
+
+export const setMarketsStats = createAction('market/MARKETS_STATS_set', resolve => {
+    return (marketStats: RelayerMarketStats[] | null) => resolve(marketStats);
 });
 
 // Market Price Ether Actions
@@ -139,17 +143,29 @@ export const fetchMarkets: ThunkCreator = () => {
     return async dispatch => {
         const knownTokens = getKnownTokens();
         const relayer = getRelayer();
+        if (!USE_ORDERBOOK_PRICES) {
+            const marketsStats = await getAllMarketsStatsFromRelayer();
+            dispatch(setMarketsStats(marketsStats));
+        }
         let markets: any[] = await Promise.all(
             getAvailableMarkets().map(async availableMarket => {
                 try {
                     const baseToken = knownTokens.getTokenBySymbol(availableMarket.base);
                     const quoteToken = knownTokens.getTokenBySymbol(availableMarket.quote);
-
-                    const marketData = await relayer.getCurrencyPairMarketDataAsync(baseToken, quoteToken);
-                    return {
-                        currencyPair: availableMarket,
-                        ...marketData,
-                    };
+                    if (USE_ORDERBOOK_PRICES) {
+                        const marketData = await relayer.getCurrencyPairMarketDataAsync(baseToken, quoteToken);
+                        return {
+                            currencyPair: availableMarket,
+                            ...marketData,
+                        };
+                    } else {
+                        return {
+                            currencyPair: availableMarket,
+                            bestAsk: null,
+                            bestBid: null,
+                            spreadInPercentage: null,
+                        };
+                    }
                 } catch (err) {
                     logger.error(
                         `Failed to get price of currency pair ${availableMarket.base}/${availableMarket.quote}`,

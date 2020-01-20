@@ -12,7 +12,7 @@ import {
     getCurrentMarketTodayClosedOrders,
     getCurrentMarketTodayHighPrice,
     getCurrentMarketTodayLowerPrice,
-    getCurrentMarketTodayVolume,
+    getCurrentMarketTodayQuoteVolume,
     getQuoteToken,
     getWeb3State,
 } from '../../../store/selectors';
@@ -70,7 +70,7 @@ interface MarketStats {
     lastPrice: string | null;
 }
 
-const statsToRow = (marketStats: MarketStats, baseToken: Token, currencyPair: CurrencyPair) => {
+const statsToRow = (marketStats: MarketStats, baseToken: Token, quoteToken: Token, currencyPair: CurrencyPair) => {
     const lastPrice = marketStats.lastPrice
         ? new BigNumber(marketStats.lastPrice).toFixed(currencyPair.config.pricePrecision)
         : '-';
@@ -78,16 +78,16 @@ const statsToRow = (marketStats: MarketStats, baseToken: Token, currencyPair: Cu
     if (USE_RELAYER_MARKET_UPDATES) {
         volume =
             (marketStats.volume &&
-                `${marketStats.volume.toFixed(baseToken.displayDecimals)} ${formatTokenSymbol(baseToken.symbol)}`) ||
+                `${marketStats.volume.toFixed(quoteToken.displayDecimals)} ${formatTokenSymbol(quoteToken.symbol)}`) ||
             '- ';
     } else {
         volume =
             (marketStats.volume &&
                 `${tokenAmountInUnits(
                     marketStats.volume,
-                    baseToken.decimals,
-                    baseToken.displayDecimals,
-                ).toString()} ${formatTokenSymbol(baseToken.symbol)}`) ||
+                    quoteToken.decimals,
+                    quoteToken.displayDecimals,
+                ).toString()} ${formatTokenSymbol(quoteToken.symbol)}`) ||
             '- ';
     }
 
@@ -107,7 +107,7 @@ const statsToRow = (marketStats: MarketStats, baseToken: Token, currencyPair: Cu
     );
 };
 
-const DesktopTable = (marketStats: MarketStats, baseToken: Token, currencyPair: CurrencyPair) => {
+const DesktopTable = (marketStats: MarketStats, baseToken: Token, quoteToken: Token, currencyPair: CurrencyPair) => {
     return (
         <Table isResponsive={true}>
             <THead>
@@ -120,12 +120,12 @@ const DesktopTable = (marketStats: MarketStats, baseToken: Token, currencyPair: 
                     <TH styles={{ textAlign: 'right' }}>Orders Closed</TH>
                 </TR>
             </THead>
-            <tbody>{statsToRow(marketStats, baseToken, currencyPair)}</tbody>
+            <tbody>{statsToRow(marketStats, baseToken, quoteToken, currencyPair)}</tbody>
         </Table>
     );
 };
 
-const MobileTable = (marketStats: MarketStats, baseToken: Token, currencyPair: CurrencyPair) => {
+const MobileTable = (marketStats: MarketStats, baseToken: Token, quoteToken: Token, currencyPair: CurrencyPair) => {
     const lastPrice = marketStats.lastPrice
         ? new BigNumber(marketStats.lastPrice).toFixed(currencyPair.config.pricePrecision)
         : '-';
@@ -164,9 +164,9 @@ const MobileTable = (marketStats: MarketStats, baseToken: Token, currencyPair: C
                         {(marketStats.volume &&
                             `${tokenAmountInUnits(
                                 marketStats.volume,
-                                baseToken.decimals,
-                                baseToken.displayDecimals,
-                            ).toString()} ${formatTokenSymbol(baseToken.symbol)}`) ||
+                                quoteToken.decimals,
+                                quoteToken.displayDecimals,
+                            ).toString()} ${formatTokenSymbol(quoteToken.symbol)}`) ||
                             '-'}{' '}
                     </CustomTD>
                 </TR>
@@ -203,8 +203,8 @@ class MarketDetails extends React.Component<Props> {
                 let tableMarketDetails;
 
                 isMobile(windowWidth)
-                    ? (tableMarketDetails = MobileTable(marketStats, baseToken, currencyPair))
-                    : (tableMarketDetails = DesktopTable(marketStats, baseToken, currencyPair));
+                    ? (tableMarketDetails = MobileTable(marketStats, baseToken, quoteToken, currencyPair))
+                    : (tableMarketDetails = DesktopTable(marketStats, baseToken, quoteToken, currencyPair));
 
                 content = (
                     <>
@@ -252,7 +252,7 @@ const mapStateToProps = (state: StoreState): StateProps => {
         currencyPair: getCurrencyPair(state),
         highPrice: getCurrentMarketTodayHighPrice(state),
         lowerPrice: getCurrentMarketTodayLowerPrice(state),
-        volume: getCurrentMarketTodayVolume(state),
+        volume: getCurrentMarketTodayQuoteVolume(state),
         closedOrders: getCurrentMarketTodayClosedOrders(state),
         lastPrice: getCurrentMarketLastPrice(state),
     };

@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { USE_RELAYER_MARKET_UPDATES } from '../../../common/constants';
 import { changeMarket, goToHome } from '../../../store/actions';
 import { getBaseToken, getFills, getQuoteToken, getWeb3State } from '../../../store/selectors';
+import { themeBreakPoints } from '../../../themes/commons';
 import { getCurrencyPairByTokensSymbol } from '../../../util/known_currency_pairs';
 import { isWeth } from '../../../util/known_tokens';
 import { tokenAmountInUnits } from '../../../util/tokens';
@@ -18,6 +19,9 @@ import { CustomTD, Table, TH, THead, TR } from '../../common/table';
 const DexTradesList = styled(Card)`
     height: 100%;
     overflow: auto;
+    @media (max-width: ${themeBreakPoints.sm}) {
+        max-height: 300px;
+    }
 `;
 
 interface StateProps {

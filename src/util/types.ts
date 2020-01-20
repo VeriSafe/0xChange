@@ -186,6 +186,7 @@ export interface MarketState {
     readonly tokensPrice: TokenPrice[] | null;
     readonly marketStats: RelayerMarketStats | null;
     readonly makerAddresses: string[] | null;
+    readonly marketsStats?: RelayerMarketStats[] | null;
 }
 
 export interface StoreState {
@@ -458,6 +459,7 @@ export interface RelayerMarketStats {
     utc_date: string;
     utc_timestamp: number;
     updated_at: number;
+    quote_volume_24: number;
     resolution: 'D';
 }
 
