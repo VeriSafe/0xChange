@@ -1,9 +1,9 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { IS_ORDER_LIMIT_MATCHING } from '../../../common/constants';
+import { IS_ORDER_LIMIT_MATCHING, ZERO } from '../../../common/constants';
 import {
     initWallet,
     startBuySellLimitMatchingSteps,
@@ -11,17 +11,26 @@ import {
     startBuySellMarketSteps,
 } from '../../../store/actions';
 import { fetchTakerAndMakerFee } from '../../../store/relayer/actions';
-import { getCurrencyPair, getOrderPriceSelected, getWeb3State } from '../../../store/selectors';
+import {
+    getBaseTokenBalance,
+    getCurrencyPair,
+    getOrderPriceSelected,
+    getQuoteTokenBalance,
+    getTotalEthBalance,
+    getWeb3State,
+} from '../../../store/selectors';
 import { themeDimensions } from '../../../themes/commons';
-import { getKnownTokens } from '../../../util/known_tokens';
-import { tokenSymbolToDisplayString, unitsInTokenAmount } from '../../../util/tokens';
+import { getKnownTokens, isWeth } from '../../../util/known_tokens';
+import { formatTokenSymbol, tokenAmountInUnits, unitsInTokenAmount } from '../../../util/tokens';
 import {
     ButtonIcons,
     ButtonVariant,
     CurrencyPair,
+    OrderFeeData,
     OrderSide,
     OrderType,
     StoreState,
+    TokenBalance,
     Web3State,
 } from '../../../util/types';
 import { BigNumberInput } from '../../common/big_number_input';
@@ -36,19 +45,27 @@ interface StateProps {
     web3State: Web3State;
     currencyPair: CurrencyPair;
     orderPriceSelected: BigNumber | null;
+    baseTokenBalance: TokenBalance | null;
+    quoteTokenBalance: TokenBalance | null;
+    totalEthBalance: BigNumber;
 }
 
 interface DispatchProps {
-    onSubmitLimitOrder: (amount: BigNumber, price: BigNumber, side: OrderSide, makerFee: BigNumber) => Promise<any>;
+    onSubmitLimitOrder: (
+        amount: BigNumber,
+        price: BigNumber,
+        side: OrderSide,
+        orderFeeData: OrderFeeData,
+    ) => Promise<any>;
     onSubmitLimitOrderMatching: (
         amount: BigNumber,
         price: BigNumber,
         side: OrderSide,
-        makerFee: BigNumber,
+        orderFeeData: OrderFeeData,
     ) => Promise<any>;
-    onSubmitMarketOrder: (amount: BigNumber, side: OrderSide, takerFee: BigNumber) => Promise<any>;
+    onSubmitMarketOrder: (amount: BigNumber, side: OrderSide, orderFeeData: OrderFeeData) => Promise<any>;
     onConnectWallet: () => any;
-    onFetchTakerAndMakerFee: (amount: BigNumber, price: BigNumber, side: OrderSide) => Promise<any>;
+    onFetchTakerAndMakerFee: (amount: BigNumber, price: BigNumber, side: OrderSide) => Promise<OrderFeeData>;
 }
 
 type Props = StateProps & DispatchProps;
@@ -123,10 +140,25 @@ const LabelContainer = styled.div`
     margin-bottom: 10px;
 `;
 
+const LabelAvailableContainer = styled.div`
+    align-items: flex-end;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+`;
+
 const Label = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
     font-size: 14px;
     font-weight: 500;
+    line-height: normal;
+    margin: 0;
+`;
+
+const LabelAvaible = styled.label<{ color?: string }>`
+    color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
+    font-size: 12px;
+    font-weight: normal;
     line-height: normal;
     margin: 0;
 `;
@@ -146,6 +178,12 @@ const InnerTabs = styled(CardTabSelector)`
 const FieldContainer = styled.div`
     height: ${themeDimensions.fieldHeight};
     margin-bottom: 25px;
+    position: relative;
+`;
+
+const FieldAmountContainer = styled.div`
+    height: ${themeDimensions.fieldHeight};
+    margin-bottom: 5px;
     position: relative;
 `;
 
@@ -183,7 +221,7 @@ const TokenText = styled.span`
 
 const BigInputNumberTokenLabel = (props: { tokenSymbol: string }) => (
     <TokenContainer>
-        <TokenText>{tokenSymbolToDisplayString(props.tokenSymbol)}</TokenText>
+        <TokenText>{formatTokenSymbol(props.tokenSymbol)}</TokenText>
     </TokenContainer>
 );
 
@@ -247,9 +285,9 @@ class BuySell extends React.Component<Props, State> {
         const isOrderTypeLimitIsEmpty =
             orderType === OrderType.Limit && (isMakerAmountEmpty || isPriceEmpty || isPriceMin);
         const isOrderTypeMarketIsEmpty = orderType === OrderType.Market && (isMakerAmountEmpty || isMakerAmountMin);
-
+        const baseSymbol = formatTokenSymbol(currencyPair.base);
         const btnPrefix = tab === OrderSide.Buy ? 'Buy ' : 'Sell ';
-        const btnText = error && error.btnMsg ? 'Error' : btnPrefix + tokenSymbolToDisplayString(currencyPair.base);
+        const btnText = error && error.btnMsg ? 'Error' : btnPrefix + baseSymbol;
 
         return (
             <>
@@ -277,10 +315,10 @@ class BuySell extends React.Component<Props, State> {
                             </Label>
                             <InnerTabs tabs={buySellInnerTabs} />
                         </LabelContainer>
-                        <FieldContainer>
+                        <FieldAmountContainer>
                             <BigInputNumberStyled
                                 decimals={decimals}
-                                min={new BigNumber(0)}
+                                min={ZERO}
                                 onChange={this.updateMakerAmount}
                                 value={amount}
                                 step={stepAmountUnits}
@@ -288,7 +326,10 @@ class BuySell extends React.Component<Props, State> {
                                 valueFixedDecimals={basePrecision}
                             />
                             <BigInputNumberTokenLabel tokenSymbol={currencyPair.base} />
-                        </FieldContainer>
+                        </FieldAmountContainer>
+                        <LabelAvailableContainer>
+                            <LabelAvaible>{this.getAmountAvailableLabel()}</LabelAvaible>
+                        </LabelAvailableContainer>
                         {orderType === OrderType.Limit && (
                             <>
                                 <LabelContainer>
@@ -297,7 +338,7 @@ class BuySell extends React.Component<Props, State> {
                                 <FieldContainer>
                                     <BigInputNumberStyled
                                         decimals={0}
-                                        min={new BigNumber(0)}
+                                        min={ZERO}
                                         onChange={this.updatePrice}
                                         value={price}
                                         step={new BigNumber(1).div(new BigNumber(10).pow(pricePrecision))}
@@ -350,6 +391,42 @@ class BuySell extends React.Component<Props, State> {
         });
     };
 
+    public getAmountAvailableLabel = () => {
+        const { baseTokenBalance, quoteTokenBalance, totalEthBalance } = this.props;
+        const { tab } = this.state;
+        if (tab === OrderSide.Sell) {
+            if (baseTokenBalance) {
+                const tokenBalanceAmount = isWeth(baseTokenBalance.token.symbol)
+                    ? totalEthBalance
+                    : baseTokenBalance.balance;
+                const baseBalanceString = tokenAmountInUnits(
+                    tokenBalanceAmount,
+                    baseTokenBalance.token.decimals,
+                    baseTokenBalance.token.displayDecimals,
+                );
+                const symbol = formatTokenSymbol(baseTokenBalance.token.symbol);
+                return `Available: ${baseBalanceString}  ${symbol}`;
+            } else {
+                return null;
+            }
+        } else {
+            if (quoteTokenBalance) {
+                const tokenBalanceAmount = isWeth(quoteTokenBalance.token.symbol)
+                    ? totalEthBalance
+                    : quoteTokenBalance.balance;
+                const quoteBalanceString = tokenAmountInUnits(
+                    tokenBalanceAmount,
+                    quoteTokenBalance.token.decimals,
+                    quoteTokenBalance.token.displayDecimals,
+                );
+                const symbol = formatTokenSymbol(quoteTokenBalance.token.symbol);
+                return `Available: ${quoteBalanceString}  ${symbol}`;
+            } else {
+                return null;
+            }
+        }
+    };
+
     public updatePrice = (price: BigNumber) => {
         this.setState({ price });
     };
@@ -364,19 +441,19 @@ class BuySell extends React.Component<Props, State> {
         const makerAmount = this.state.makerAmount || minAmountUnits;
         const price = this.state.price || new BigNumber(0);
 
-        const { makerFee, takerFee } = await this.props.onFetchTakerAndMakerFee(makerAmount, price, this.state.tab);
+        const orderFeeData = await this.props.onFetchTakerAndMakerFee(makerAmount, price, this.state.tab);
         if (this.state.orderType === OrderType.Limit) {
             if (IS_ORDER_LIMIT_MATCHING) {
-                const result = await this.props.onSubmitLimitOrderMatching(makerAmount, price, orderSide, takerFee);
+                const result = await this.props.onSubmitLimitOrderMatching(makerAmount, price, orderSide, orderFeeData);
                 if (result === 0) {
-                    await this.props.onSubmitLimitOrder(makerAmount, price, orderSide, makerFee);
+                    await this.props.onSubmitLimitOrder(makerAmount, price, orderSide, orderFeeData);
                 }
             } else {
-                await this.props.onSubmitLimitOrder(makerAmount, price, orderSide, makerFee);
+                await this.props.onSubmitLimitOrder(makerAmount, price, orderSide, orderFeeData);
             }
         } else {
             try {
-                await this.props.onSubmitMarketOrder(makerAmount, orderSide, takerFee);
+                await this.props.onSubmitMarketOrder(makerAmount, orderSide, orderFeeData);
             } catch (error) {
                 this.setState(
                     {
@@ -435,26 +512,30 @@ const mapStateToProps = (state: StoreState): StateProps => {
         web3State: getWeb3State(state),
         currencyPair: getCurrencyPair(state),
         orderPriceSelected: getOrderPriceSelected(state),
+        quoteTokenBalance: getQuoteTokenBalance(state),
+        baseTokenBalance: getBaseTokenBalance(state),
+        totalEthBalance: getTotalEthBalance(state),
     };
 };
 
 const mapDispatchToProps = (dispatch: any): DispatchProps => {
     return {
-        onSubmitLimitOrder: (amount: BigNumber, price: BigNumber, side: OrderSide, makerFee: BigNumber) =>
-            dispatch(startBuySellLimitSteps(amount, price, side, makerFee)),
-        onSubmitLimitOrderMatching: (amount: BigNumber, price: BigNumber, side: OrderSide, takerFee: BigNumber) =>
-            dispatch(startBuySellLimitMatchingSteps(amount, price, side, takerFee)),
-        onSubmitMarketOrder: (amount: BigNumber, side: OrderSide, takerFee: BigNumber) =>
-            dispatch(startBuySellMarketSteps(amount, side, takerFee)),
+        onSubmitLimitOrder: (amount: BigNumber, price: BigNumber, side: OrderSide, orderFeeData: OrderFeeData) =>
+            dispatch(startBuySellLimitSteps(amount, price, side, orderFeeData)),
+        onSubmitLimitOrderMatching: (
+            amount: BigNumber,
+            price: BigNumber,
+            side: OrderSide,
+            orderFeeData: OrderFeeData,
+        ) => dispatch(startBuySellLimitMatchingSteps(amount, price, side, orderFeeData)),
+        onSubmitMarketOrder: (amount: BigNumber, side: OrderSide, orderFeeData: OrderFeeData) =>
+            dispatch(startBuySellMarketSteps(amount, side, orderFeeData)),
         onConnectWallet: () => dispatch(initWallet()),
         onFetchTakerAndMakerFee: (amount: BigNumber, price: BigNumber, side: OrderSide) =>
             dispatch(fetchTakerAndMakerFee(amount, price, side)),
     };
 };
 
-const BuySellContainer = connect(
-    mapStateToProps,
-    mapDispatchToProps,
-)(BuySell);
+const BuySellContainer = connect(mapStateToProps, mapDispatchToProps)(BuySell);
 
 export { BuySell, BuySellContainer };

@@ -108,6 +108,7 @@ const Toolbar = (props: Props) => {
             case Web3State.Connect:
                 return (
                     <ErrorPointer
+                        className={'connect-wallet'}
                         onClick={onConnectWallet}
                         fontSize={FontSize.Large}
                         text={'Connect Wallet'}
@@ -117,7 +118,14 @@ const Toolbar = (props: Props) => {
             case Web3State.Connecting:
                 return <ErrorCard fontSize={FontSize.Large} text={'Connecting Wallet'} icon={ErrorIcons.Lock} />;
             case Web3State.Loading:
-                return <ErrorCard fontSize={FontSize.Large} text={errorsWallet.mmLoading} icon={ErrorIcons.Wallet} />;
+                return (
+                    <ErrorCard
+                        fontSize={FontSize.Large}
+                        text={errorsWallet.mmLoading}
+                        icon={ErrorIcons.Wallet}
+                        onClick={onConnectWallet}
+                    />
+                );
             case Web3State.Error:
                 return (
                     <ErrorCard fontSize={FontSize.Large} text={errorsWallet.mmWrongNetwork} icon={ErrorIcons.Warning} />
@@ -154,9 +162,6 @@ const mapDispatchToProps = (dispatch: any) => {
     };
 };
 
-const ToolbarContainer = connect(
-    mapStateToProps,
-    mapDispatchToProps,
-)(Toolbar);
+const ToolbarContainer = connect(mapStateToProps, mapDispatchToProps)(Toolbar);
 
 export { Toolbar, ToolbarContainer };

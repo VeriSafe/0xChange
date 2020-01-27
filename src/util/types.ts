@@ -1,5 +1,6 @@
-import { BigNumber, OrderStatus } from '0x.js';
 import { SignedOrder } from '@0x/connect';
+import { OrderStatus } from '@0x/types';
+import { BigNumber } from '@0x/utils';
 import { RouterState } from 'connected-react-router';
 import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
@@ -7,7 +8,7 @@ import { ThunkAction } from 'redux-thunk';
 import { TokenMetaData } from '../common/tokens_meta_data';
 import { TokenIEOMetaData } from '../common/tokens_meta_data_ieo';
 import { ExtraArgument } from '../store/index';
-import { ThemeModalStyle, ThemeProperties } from '../themes/commons';
+import { Theme, ThemeModalStyle, ThemeProperties } from '../themes/commons';
 
 export interface TabItem {
     active: boolean;
@@ -90,6 +91,12 @@ export interface TokenBalance {
     token: Token;
 }
 
+export interface OrderFeeData {
+    makerFee: BigNumber;
+    takerFee: BigNumber;
+    makerFeeAssetData: string;
+    takerFeeAssetData: string;
+}
 export interface TokenBalanceIEO {
     balance: BigNumber;
     isUnlocked: boolean;
@@ -144,6 +151,8 @@ export interface RelayerState {
     readonly userIEOOrders?: UIOrder[];
     readonly ieoOrders?: SignedOrder[];
     readonly accountMarketStats?: AccountMarketStat[];
+    readonly feeRecipient?: string;
+    readonly feePercentage?: number;
 }
 
 export interface UIState {
@@ -157,6 +166,14 @@ export interface UIState {
     readonly orderPriceSelected: BigNumber | null;
     readonly sidebarOpen: boolean;
     readonly openFiatOnRampModal: boolean;
+    readonly openFiatOnRampChooseModal: boolean;
+    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD';
+    readonly erc20Theme: Theme;
+    readonly erc20Layout: string;
+    readonly isDynamicLayout: boolean;
+    readonly themeName: string;
+    readonly generalConfig?: GeneralConfig;
+    readonly configData?: ConfigData | null;
 }
 
 export interface MarketState {
@@ -167,6 +184,8 @@ export interface MarketState {
     readonly quoteInUsd?: BigNumber | null;
     readonly markets: Market[] | null;
     readonly tokensPrice: TokenPrice[] | null;
+    readonly marketStats: RelayerMarketStats | null;
+    readonly makerAddresses: string[] | null;
 }
 
 export interface StoreState {
@@ -192,6 +211,7 @@ export enum StepKind {
     UnlockCollectibles = 'UnlockCollectibles',
     SellCollectible = 'SellCollectible',
     BuyCollectible = 'BuyCollectible',
+    SubmitConfig = 'SubmitConfig',
 }
 
 export interface StepWrapEth {
@@ -288,6 +308,11 @@ export interface StepBuyCollectible {
     collectible: Collectible;
 }
 
+export interface StepSubmitConfig {
+    kind: StepKind.SubmitConfig;
+    config: ConfigFile;
+}
+
 export type Step =
     | StepWrapEth
     | StepToggleTokenLock
@@ -301,7 +326,8 @@ export type Step =
     | StepTransferToken
     | StepTransferToken
     | StepLendingToken
-    | StepUnLendingToken;
+    | StepUnLendingToken
+    | StepSubmitConfig;
 
 export interface StepsModalState {
     readonly doneSteps: Step[];
@@ -321,8 +347,6 @@ export interface UIOrder {
     filled: BigNumber | null;
     price: BigNumber;
     status: OrderStatus | null;
-    makerFillableAmountInTakerAsset: BigNumber;
-    remainingTakerAssetFillAmount: BigNumber;
 }
 
 export interface OrderBookItem {
@@ -398,8 +422,83 @@ export interface Fill {
     market: string;
 }
 
+export interface RelayerFill {
+    id: string;
+    tradeId: number;
+    order_hash: string;
+    senderAddress: string;
+    makerAddress: string;
+    takerAddress: string;
+    tokenBaseAddress: string;
+    tokenQuoteAddress: string;
+    exchangeAddress: string;
+    feeRecipientAddress: string;
+    makerFee: string;
+    takerFee: string;
+    filledTokenBaseAmount: string;
+    filledTokenQuoteAmount: string;
+    price: string;
+    signature: string;
+    from: string;
+    created_at: number;
+    side: 'BUY' | 'SELL';
+    pair: string;
+    blockNumber: number;
+}
+
+export interface PaginatedRelayerCollection<T> {
+    total: number;
+    page: number;
+    perPage: number;
+    records: T;
+}
+
+export interface RelayerMarketStats {
+    base: string;
+    quote: string;
+    pair: string;
+    volume_24: number;
+    total_orders: number;
+    price_max_24: number;
+    open_price: number;
+    close_price: number;
+    price_min_24: number;
+    last_price: number;
+    last_price_change: number;
+    last_price_usd: string;
+    utc_date: string;
+    utc_timestamp: number;
+    updated_at: number;
+    resolution: 'D';
+}
+
 export interface MarketFill {
     [market: string]: Fill[];
+}
+
+export interface OrderFilledMessage {
+    action: 'FILL';
+    event: {
+        id: string;
+        baseTokenAddress: string;
+        quoteTokenAddress: string;
+        transactionHash: string;
+        type: 'SELL' | 'BUY';
+        blockNumber: number;
+        makerAddress: string;
+        takerAddress: string;
+        feeRecipientAddress: string;
+        makerFeePaid: string;
+        takerFeePaid: string;
+        filledBaseTokenAmount: string;
+        filledQuoteTokenAmount: string;
+        orderHash: string;
+        timestamp: number;
+        outlier: boolean;
+        price: string;
+        pair: string;
+    };
+    requestId: string;
 }
 
 export interface MarketData {
@@ -503,6 +602,8 @@ export enum MARKETPLACES {
     ERC721 = 'ERC721',
     LaunchPad = 'LAUNCHPAD',
     Margin = 'MARGIN',
+    Instant = 'INSTANT',
+    FiatRamp = 'FiatRamp',
 }
 
 export enum Wallet {
@@ -584,6 +685,9 @@ export interface PartialTheme {
 export interface GeneralConfig {
     title?: string;
     icon?: string;
+    domain?: string;
+    feeRecipient?: string;
+    feePercentage?: number;
     social?: {
         facebook_url?: string;
         reddit_url?: string;
@@ -608,12 +712,46 @@ export interface ConfigFile {
     pairs: CurrencyPairMetaData[];
     marketFilters?: Filter[];
     wallets?: WalletsConfig;
+    theme_name?: string;
     theme?: PartialTheme;
+    theme_light?: PartialTheme;
+    theme_dark?: PartialTheme;
     general?: GeneralConfig;
+}
+
+export interface ConfigData {
+    config: ConfigFile;
+    owner: string;
+    signature: string;
+    message: string;
+    slug?: string;
+    createdAt?: number;
+}
+
+export interface ConfigRelayerData {
+    config: string;
+    owner: string;
+    signature: string;
+    message: string;
+    slug?: string;
+    createdAt?: number;
 }
 
 export interface ConfigFileIEO {
     tokens: TokenIEOMetaData[];
+}
+
+export interface ConfigFileTipBot {
+    tokens: AssetBot[];
+}
+
+export interface AssetBot {
+    ticker: string;
+    name: string;
+    contract: string;
+    decimals: number;
+    whitelistAddresses: string[];
+    feePercentage: string;
 }
 
 export enum Browser {
@@ -683,7 +821,6 @@ export interface iTokenData {
     price: BigNumber;
     checkpointPrice: BigNumber;
     avgBorrowInterestRate: BigNumber;
-    totalReservedSupply: BigNumber;
     marketLiquidity: BigNumber;
     balance: BigNumber;
     supplyInterestRate: BigNumber;

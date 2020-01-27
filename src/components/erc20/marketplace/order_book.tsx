@@ -1,9 +1,9 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
-import { UI_DECIMALS_DISPLAYED_PRICE_ETH, UI_DECIMALS_DISPLAYED_SPREAD_PERCENT } from '../../../common/constants';
+import { UI_DECIMALS_DISPLAYED_PRICE_ETH, UI_DECIMALS_DISPLAYED_SPREAD_PERCENT, ZERO } from '../../../common/constants';
 import {
     getBaseToken,
     getCurrencyPair,
@@ -16,7 +16,7 @@ import {
 } from '../../../store/selectors';
 import { setOrderPriceSelected } from '../../../store/ui/actions';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
-import { tokenAmountInUnits } from '../../../util/tokens';
+import { formatTokenSymbol, tokenAmountInUnits } from '../../../util/tokens';
 import {
     CurrencyPair,
     OrderBook,
@@ -63,8 +63,7 @@ const OrderbookCard = styled(Card)`
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    max-height: 700px;
-
+    height: 100%;
     > div:first-child {
         flex-grow: 0;
         flex-shrink: 0;
@@ -84,6 +83,26 @@ const OrderbookCard = styled(Card)`
 const GridRow = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
+`;
+
+interface TotalProps {
+    isBottom?: boolean;
+    isTop?: boolean;
+}
+
+const THTotal = styled(TH)`
+    text-transform: none;
+    padding-left: 5px;
+`;
+
+const TotalRow = styled.div<TotalProps>`
+    background-color: 'transparent';
+    padding-right: 5px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: ${props =>
+        props && props.isBottom ? `1px solid ${props.theme.componentsTheme.tableBorderColor}` : 'none'};
+    border-top: ${props => (props.isTop ? `1px solid ${props.theme.componentsTheme.tableBorderColor}` : 'none')};
 `;
 
 const GridRowInner = styled(GridRow)`
@@ -189,7 +208,7 @@ class OrderToRow extends React.Component<OrderToRowProps> {
                 return sumSize.plus(mySizeItem.size);
             }
             return sumSize;
-        }, new BigNumber(0));
+        }, ZERO);
 
         const mySizeConverted = tokenAmountInUnits(mySize, baseToken.decimals, basePrecision);
         const isMySizeEmpty = mySize.eq(new BigNumber(0));
@@ -235,10 +254,7 @@ const mapOrderToRowDispatchToProps = (dispatch: any): OrderToRowDispatchProps =>
     };
 };
 
-const OrderToRowContainer = connect(
-    null,
-    mapOrderToRowDispatchToProps,
-)(OrderToRow);
+const OrderToRowContainer = connect(null, mapOrderToRowDispatchToProps)(OrderToRow);
 
 class OrderBookTable extends React.Component<Props> {
     private readonly _spreadRowScrollable: React.RefObject<HTMLDivElement>;
@@ -294,9 +310,34 @@ class OrderBookTable extends React.Component<Props> {
 
             const spreadAbsFixed = absoluteSpread.toFixed(UI_DECIMALS_DISPLAYED_PRICE_ETH);
             const spreadPercentFixed = percentageSpread.toFixed(UI_DECIMALS_DISPLAYED_SPREAD_PERCENT);
+            const basePrecision = currencyPair.config.basePrecision;
 
+            const totalBase = tokenAmountInUnits(
+                sellOrders.length > 1 ? sellOrders.map(o => o.size).reduce((p, c) => p.plus(c)) : new BigNumber(0),
+                baseToken.decimals,
+                basePrecision,
+            );
+
+            const totalQuote =
+                buyOrders.length > 1
+                    ? buyOrders
+                          .map(o =>
+                              new BigNumber(tokenAmountInUnits(o.size, baseToken.decimals, basePrecision)).multipliedBy(
+                                  o.price,
+                              ),
+                          )
+                          .reduce((p, c) => p.plus(c))
+                          .toFixed(2)
+                    : new BigNumber(0).toFixed(2);
+
+            const baseSymbol = formatTokenSymbol(baseToken.symbol);
+            const quoteSymbol = formatTokenSymbol(quoteToken.symbol);
             content = (
                 <>
+                    <TotalRow isBottom={true}>
+                        <THTotal as="div" styles={{ textAlign: 'left' }}>{`Asks`}</THTotal>
+                        <TH as="div" styles={{ textAlign: 'right' }}>{`Total: ${totalBase} ${baseSymbol}`}</TH>
+                    </TotalRow>
                     <GridRowTop as="div">
                         <TH as="div" styles={{ textAlign: 'right', borderBottom: true }}>
                             Trade size
@@ -356,6 +397,10 @@ class OrderBookTable extends React.Component<Props> {
                             </BottomItems>
                         </ItemsMainContainer>
                     </ItemsScroll>
+                    <TotalRow isTop={true}>
+                        <THTotal as="div" styles={{ textAlign: 'left' }}>{`Bids`}</THTotal>
+                        <TH as="div" styles={{ textAlign: 'right' }}>{`Total: ${totalQuote} ${quoteSymbol}`}</TH>{' '}
+                    </TotalRow>
                 </>
             );
         }

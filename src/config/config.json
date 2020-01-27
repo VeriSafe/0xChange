@@ -93,7 +93,7 @@
             "displayDecimals": 2,
             "website": "https://0x.org",
             "description": "0x is an open protocol that enables the peer-to-peer exchange of assets on the Ethereum blockchain.",
-            "c_id": "0x"      
+            "c_id": "0x"
         },
 
         {
@@ -160,7 +160,7 @@
                 "50": "0x34d402f14d58e001d8efbe6585051bf9706aa064"
             },
             "website": "https://makerdao.com/",
-            "c_id":"maker",
+            "c_id": "maker",
             "description": "Maker is comprised of a decentralized stablecoin, collateral loans, and community governance.",
             "id": "maker"
         },
@@ -175,10 +175,10 @@
                 "1": "0x58b6a8a3302369daec383334672404ee733ab239"
             },
             "website": "https://livepeer.org/",
-            "c_id":"livepeer",
+            "c_id": "livepeer",
             "description": "Open Source Video Infrastructure Services, Built On The Ethereum Blockchain..",
             "id": "livepeer"
-        }       
+        }
     ],
     "pairs": [
         {

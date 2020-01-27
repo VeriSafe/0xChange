@@ -1,15 +1,29 @@
+import queryString from 'query-string';
 import { getType } from 'typesafe-actions';
 
-import { availableMarkets } from '../../common/markets';
+import { getAvailableMarkets } from '../../common/markets';
 import { getCurrencyPairByTokensSymbol } from '../../util/known_currency_pairs';
 import { MarketState } from '../../util/types';
 import * as actions from '../actions';
 import { RootAction } from '../reducers';
 
 const parsedUrl = new URL(window.location.href.replace('#/', ''));
-const base = parsedUrl.searchParams.get('base') || availableMarkets[0].base;
-const quote = parsedUrl.searchParams.get('quote') || availableMarkets[0].quote;
-const currencyPair = getCurrencyPairByTokensSymbol(base, quote);
+const base = parsedUrl.searchParams.get('base') || getAvailableMarkets()[0].base;
+const quote = parsedUrl.searchParams.get('quote') || getAvailableMarkets()[0].quote;
+let currencyPair;
+try {
+    currencyPair = getCurrencyPairByTokensSymbol(base, quote);
+} catch (e) {
+    currencyPair = getCurrencyPairByTokensSymbol(getAvailableMarkets()[0].base, getAvailableMarkets()[0].quote);
+}
+const getMakerAddresses = () => {
+    const makerAddressesString = queryString.parse(queryString.extract(window.location.hash)).makerAddresses as string;
+    if (!makerAddressesString) {
+        return null;
+    }
+    const makerAddresses = makerAddressesString.split(',');
+    return makerAddresses.map(a => a.toLowerCase());
+};
 
 const initialMarketState: MarketState = {
     currencyPair,
@@ -18,6 +32,8 @@ const initialMarketState: MarketState = {
     markets: null,
     ethInUsd: null,
     tokensPrice: null,
+    marketStats: null,
+    makerAddresses: getMakerAddresses(),
 };
 
 export function market(state: MarketState = initialMarketState, action: RootAction): MarketState {
@@ -48,6 +64,8 @@ export function market(state: MarketState = initialMarketState, action: RootActi
             return state;
         case getType(actions.fetchERC20MarketsError):
             return state;
+        case getType(actions.setMarketStats):
+            return { ...state, marketStats: action.payload };
         default:
             return state;
     }

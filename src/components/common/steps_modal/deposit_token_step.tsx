@@ -1,16 +1,16 @@
-import { BigNumber } from '0x.js';
 import React from 'react';
 import { connect } from 'react-redux';
 
 import { getWeb3Wrapper } from '../../../services/web3_wrapper';
 import { transferToken, depositToken } from '../../../store/actions';
 import { getEstimatedTxTimeMs, getStepsModalCurrentStep, getWallet } from '../../../store/selectors';
-import {  addDepositTokenNotification } from '../../../store/ui/actions';
+import { addDepositTokenNotification } from '../../../store/ui/actions';
 import { tokenAmountInUnits, tokenSymbolToDisplayString } from '../../../util/tokens';
 import { StepTransferToken, StoreState, Token, Wallet } from '../../../util/types';
 
 import { BaseStepModal } from './base_step_modal';
 import { StepItem } from './steps_progress';
+import { BigNumber } from '@0x/utils';
 
 interface OwnProps {
     buildStepsProgress: (currentStepItem: StepItem) => StepItem[];
@@ -100,16 +100,13 @@ const mapStateToProps = (state: StoreState): StateProps => {
     };
 };
 
-const DepositTokenStepContainer = connect(
-    mapStateToProps,
-    (dispatch: any) => {
-        return {
-            onSubmitTransferToken: (token: Token, amount: BigNumber, address: string, isEth: boolean) =>
-                dispatch(depositToken(token, amount, address, isEth)),
-            notifyTransferToken: (id: string, amount: BigNumber, token: Token, address: string, tx: Promise<any>) =>
-                dispatch(addDepositTokenNotification(id, amount, token, address, tx)),
-        };
-    },
-)(DepositTokenStep);
+const DepositTokenStepContainer = connect(mapStateToProps, (dispatch: any) => {
+    return {
+        onSubmitTransferToken: (token: Token, amount: BigNumber, address: string, isEth: boolean) =>
+            dispatch(depositToken(token, amount, address, isEth)),
+        notifyTransferToken: (id: string, amount: BigNumber, token: Token, address: string, tx: Promise<any>) =>
+            dispatch(addDepositTokenNotification(id, amount, token, address, tx)),
+    };
+})(DepositTokenStep);
 
 export { DepositTokenStep, DepositTokenStepContainer };

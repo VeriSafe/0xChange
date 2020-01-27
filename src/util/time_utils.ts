@@ -1,4 +1,4 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 
 export const tomorrow = () => {
     return new BigNumber(Math.floor(new Date().valueOf() / 1000) + 3600 * 24);
@@ -8,6 +8,11 @@ export const getExpirationTimeOrdersFromConfig = () => {
     return new BigNumber(
         Math.floor(new Date().valueOf() / 1000) + (Number(process.env.REACT_APP_EXPIRE_ORDERS_TIME) || 3600 * 24 * 7),
     );
+};
+
+// Default to 120 days
+export const getExpirationTimeToBotOrders = () => {
+    return new BigNumber(Math.floor(new Date().valueOf() / 1000) + 3600 * 24 * 120);
 };
 
 export const getExpirationTimeFromDate = (timestamp: number | string) => {
@@ -28,6 +33,10 @@ export const convertTimeInSecondsToDaysAndHours = (timeInSeconds: BigNumber) => 
         hours,
     };
 };
+
+/*export const getExpirationTimeOrdersFromConfig = () => {
+    return new BigNumber(todayInSeconds()).plus(DEFAULT_ORDER_EXPIRY_SECONDS);
+};*/
 
 export const getEndDateStringFromTimeInSeconds = (timeInSeconds: BigNumber) => {
     const currentDate = new Date(timeInSeconds.toNumber() * 1000);

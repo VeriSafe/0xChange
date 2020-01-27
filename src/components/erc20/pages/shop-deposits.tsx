@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import {  WalletWethBalanceContainer } from '../../account';
+import { WalletWethBalanceContainer } from '../../account';
 import { DepositTokenBalancesContainer } from '../../account/deposit_token_balances';
 import { FiatOnRampModalContainer } from '../../account/fiat_modal';
 import { CheckWalletStateModalContainer } from '../../common/check_wallet_state_modal_container';
@@ -16,17 +16,18 @@ const ColumnWideMyWallet = styled(ColumnWide)`
         margin-left: 0;
     }
 `;
-
-export const ShopDeposits = () => (
+const ShopDeposits = () => (
     <Content>
         <CheckWalletStateModalContainer>
-           <ColumnWideMyWallet>
-              <DepositTokenBalancesContainer />
+            <ColumnWideMyWallet>
+                <DepositTokenBalancesContainer />
             </ColumnWideMyWallet>
             <ColumnNarrow>
-              <WalletWethBalanceContainer />
-              </ColumnNarrow>
+                <WalletWethBalanceContainer />
+            </ColumnNarrow>
         </CheckWalletStateModalContainer>
         <FiatOnRampModalContainer />
     </Content>
 );
+
+export { ShopDeposits as default };

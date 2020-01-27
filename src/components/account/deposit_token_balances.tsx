@@ -1,10 +1,14 @@
-import { BigNumber } from '0x.js';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
 import { NETWORK_ID, RELAYER_URL } from '../../common/constants';
-import { openFiatOnRampModal, startToggleTokenLockSteps, startTranferTokenSteps, startDepositTokenSteps } from '../../store/actions';
+import {
+    openFiatOnRampModal,
+    startToggleTokenLockSteps,
+    startTranferTokenSteps,
+    startDepositTokenSteps,
+} from '../../store/actions';
 import {
     getEthAccount,
     getEthBalance,
@@ -25,7 +29,7 @@ import { LoadingWrapper } from '../common/loading';
 import { CustomTD, Table, TH, THead, THLast, TR } from '../common/table';
 
 import { DepositTokenModal } from './wallet_deposit_token_modal';
-
+import { BigNumber } from '@0x/utils';
 
 interface StateProps {
     ethBalance: BigNumber;
@@ -163,9 +167,6 @@ const ButtonsContainer = styled.span`
     }
 `;
 
-
-
-
 class DepositTokenBalances extends React.PureComponent<Props, State> {
     public readonly state: State = {
         modalIsOpen: false,
@@ -204,7 +205,6 @@ class DepositTokenBalances extends React.PureComponent<Props, State> {
             });
         };
 
-
         const totalEthRow = (
             <TR>
                 <TokenTD>
@@ -223,7 +223,7 @@ class DepositTokenBalances extends React.PureComponent<Props, State> {
                 <CustomTD styles={{ borderBottom: true, textAlign: 'left' }}>
                     <ButtonsContainer>
                         <Button onClick={openTransferEthModal} variant={ButtonVariant.Primary}>
-                           Deposit
+                            Deposit
                         </Button>
                     </ButtonsContainer>
                 </CustomTD>
@@ -241,7 +241,6 @@ class DepositTokenBalances extends React.PureComponent<Props, State> {
                     isEth: false,
                 });
             };
-
 
             return (
                 <TR key={symbol}>
@@ -273,7 +272,6 @@ class DepositTokenBalances extends React.PureComponent<Props, State> {
                 </TR>
             );
         });
-     
 
         let content: React.ReactNode;
         if (web3State === Web3State.Loading) {
@@ -357,12 +355,7 @@ const mapDispatchToProps = {
     onClickOpenFiatOnRampModal: openFiatOnRampModal,
 };
 
-const DepositTokenBalancesContainer = withTheme(
-    connect(
-        mapStateToProps,
-        mapDispatchToProps,
-    )(DepositTokenBalances),
-);
+const DepositTokenBalancesContainer = withTheme(connect(mapStateToProps, mapDispatchToProps)(DepositTokenBalances));
 
 // tslint:disable-next-line: max-file-line-count
 export { DepositTokenBalances, DepositTokenBalancesContainer };

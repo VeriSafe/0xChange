@@ -1,10 +1,10 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
 import { METAMASK_EXTENSION_URL } from '../../../common/constants';
-import { initWallet, openFiatOnRampModal, setWeb3State } from '../../../store/actions';
+import { initWallet, openFiatOnRampChooseModal, setWeb3State } from '../../../store/actions';
 import {
     getBaseToken,
     getBaseTokenBalance,
@@ -213,6 +213,10 @@ const openMetamaskExtensionUrl = () => {
     }
 };
 
+const WalletCard = styled(Card)`
+    height: 100%;
+`;
+
 class WalletBalance extends React.Component<Props, State> {
     public readonly state: State = {
         modalBuyEthIsOpen: false,
@@ -222,9 +226,9 @@ class WalletBalance extends React.Component<Props, State> {
         const { web3State, wallet } = this.props;
         const walletContent = this._getWalletContent();
         return (
-            <Card title={getWalletTitle(web3State)} action={getWalletContent(web3State, wallet)} minHeightBody={'0px'}>
+            <WalletCard title={getWalletTitle(web3State)} action={getWalletContent(web3State, wallet)}>
                 {walletContent}
-            </Card>
+            </WalletCard>
         );
     };
 
@@ -241,7 +245,7 @@ class WalletBalance extends React.Component<Props, State> {
             totalEthBalance,
             onConnectingWallet,
             wallet,
-            onClickOpenFiatOnRampModal,
+            // onClickOpenFiatOnRampModal,
         } = this.props;
 
         if (quoteToken && baseTokenBalance && quoteTokenBalance) {
@@ -261,9 +265,9 @@ class WalletBalance extends React.Component<Props, State> {
             ) : null;
             const quoteTokenLabel = isWeth(quoteToken.symbol) ? 'ETH' : tokenSymbolToDisplayString(currencyPair.quote);
 
-            const openFiatOnRamp = () => {
+            /*const openFiatOnRamp = () => {
                 onClickOpenFiatOnRampModal();
-            };
+            };*/
 
             content = (
                 <>
@@ -278,9 +282,9 @@ class WalletBalance extends React.Component<Props, State> {
                         </Label>
                         <Value>{quoteBalanceString}</Value>
                     </LabelWrapper>
-                    <ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
+                    {/*<ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
                         Buy ETH
-                    </ButtonStyled>
+                    </ButtonStyled>*/}
                 </>
             );
         }
@@ -409,15 +413,10 @@ const mapDispatchToProps = (dispatch: any) => {
         onChooseWallet: () => dispatch(setWeb3State(Web3State.Connect)),
         onConnectingWallet: () => dispatch(setWeb3State(Web3State.Connecting)),
         onConnectWallet: () => dispatch(initWallet()),
-        onClickOpenFiatOnRampModal: () => dispatch(openFiatOnRampModal(true)),
+        onClickOpenFiatOnRampModal: () => dispatch(openFiatOnRampChooseModal(true)),
     };
 };
 
-const WalletBalanceContainer = withTheme(
-    connect(
-        mapStateToProps,
-        mapDispatchToProps,
-    )(WalletBalance),
-);
+const WalletBalanceContainer = withTheme(connect(mapStateToProps, mapDispatchToProps)(WalletBalance));
 
 export { WalletBalance, WalletBalanceContainer };

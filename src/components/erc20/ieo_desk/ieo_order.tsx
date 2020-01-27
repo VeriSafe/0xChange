@@ -1,4 +1,4 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
@@ -21,6 +21,7 @@ import {
     ButtonIcons,
     ButtonVariant,
     CurrencyPair,
+    OrderFeeData,
     OrderSide,
     OrderType,
     StoreState,
@@ -55,7 +56,7 @@ interface DispatchProps {
         amount: BigNumber,
         price: BigNumber,
         side: OrderSide,
-        makerFee: BigNumber,
+        orderFeeData: OrderFeeData,
         baseToken: Token,
         quoteToken: Token,
     ) => Promise<any>;
@@ -202,6 +203,8 @@ const BigInputNumberTokenLabel = (props: { tokenSymbol: string }) => (
 
 const parsedUrl = new URL(window.location.href.replace('#/', ''));
 const tokenName = parsedUrl.searchParams.get('token');
+const symbol = parsedUrl.searchParams.get('symbol');
+const bot = parsedUrl.searchParams.get('bot');
 
 class IEOOrder extends React.Component<Props, State> {
     public state: State = {
@@ -217,10 +220,19 @@ class IEOOrder extends React.Component<Props, State> {
 
     public componentDidMount = async () => {
         const known_tokens = getKnownTokensIEO();
+        let token;
         if (tokenName) {
-            const token = known_tokens.getTokenByName(tokenName);
+            bot
+                ? (token = known_tokens.getTokenBotByName(tokenName))
+                : (token = known_tokens.getTokenByName(tokenName));
             await this.props.onFetchBaseTokenIEO(token);
-        } else {
+        }
+        if (symbol) {
+            bot ? (token = known_tokens.getTokenBotBySymbol(symbol)) : (token = known_tokens.getTokenBySymbol(symbol));
+            await this.props.onFetchBaseTokenIEO(token);
+        }
+
+        if (!token) {
             const tokens = known_tokens.getTokens();
             await this.props.onFetchBaseTokenIEO(tokens[0]);
         }
@@ -235,10 +247,21 @@ class IEOOrder extends React.Component<Props, State> {
         }
         if (newProps.ethAccount !== prevProps.ethAccount) {
             const known_tokens = getKnownTokensIEO();
+            let token;
             if (tokenName) {
-                const token = known_tokens.getTokenByName(tokenName);
+                bot
+                    ? (token = known_tokens.getTokenBotByName(tokenName))
+                    : (token = known_tokens.getTokenByName(tokenName));
                 await this.props.onFetchBaseTokenIEO(token);
-            } else {
+            }
+            if (symbol) {
+                bot
+                    ? (token = known_tokens.getTokenBotBySymbol(symbol))
+                    : (token = known_tokens.getTokenBySymbol(symbol));
+                await this.props.onFetchBaseTokenIEO(token);
+            }
+
+            if (!token) {
                 const tokens = known_tokens.getTokens();
                 await this.props.onFetchBaseTokenIEO(tokens[0]);
             }
@@ -246,7 +269,7 @@ class IEOOrder extends React.Component<Props, State> {
     };
 
     public render = () => {
-        const { web3State, wethTokenBalance, baseToken, ethAccount } = this.props;
+        const { web3State, wethTokenBalance, baseToken, ethAccount, currencyPair } = this.props;
         const { makerAmount, price, tab, orderType, error } = this.state;
         if (!wethTokenBalance || !baseToken) {
             return (
@@ -274,10 +297,9 @@ class IEOOrder extends React.Component<Props, State> {
         const decimals = baseToken.decimals;
         // Configs Hardcoded for now
         const pricePrecision = 12;
-        const minAmount = new BigNumber(1).div(new BigNumber(10).pow(pricePrecision)).toString();
+        const basePrecision = 8;
+        const minAmount = new BigNumber(1).div(new BigNumber(10).pow(basePrecision)).toString();
         const minAmountUnits = unitsInTokenAmount(minAmount, decimals);
-
-        const basePrecision = 12;
         const stepAmount = new BigNumber(1).div(new BigNumber(10).pow(basePrecision));
         const stepAmountUnits = unitsInTokenAmount(String(stepAmount), decimals);
 
@@ -340,6 +362,7 @@ class IEOOrder extends React.Component<Props, State> {
                             <BigInputNumberTokenLabel tokenSymbol={quoteToken.symbol} />
                         </FieldContainer>
                         <IEOOrderDetailsContainer
+                            currencyPair={currencyPair}
                             orderType={orderType}
                             orderSide={tab}
                             tokenAmount={amount}
@@ -391,8 +414,8 @@ class IEOOrder extends React.Component<Props, State> {
         const orderSide = this.state.tab;
         const makerAmount = this.state.makerAmount || new BigNumber(0.000001);
         const price = this.state.price || new BigNumber(0);
-        const { makerFee } = await this.props.onFetchTakerAndMakerFee(makerAmount, price, this.state.tab);
-        await this.props.onSubmitLimitOrder(makerAmount, price, orderSide, makerFee, baseToken, quoteToken);
+        const orderFeeData = await this.props.onFetchTakerAndMakerFee(makerAmount, price, this.state.tab);
+        await this.props.onSubmitLimitOrder(makerAmount, price, orderSide, orderFeeData, baseToken, quoteToken);
         this._reset();
     };
 
@@ -428,10 +451,10 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
             amount: BigNumber,
             price: BigNumber,
             side: OrderSide,
-            makerFee: BigNumber,
+            orderFeeData: OrderFeeData,
             baseToken: Token,
             quoteToken: Token,
-        ) => dispatch(startBuySellLimitIEOSteps(amount, price, side, makerFee, baseToken, quoteToken)),
+        ) => dispatch(startBuySellLimitIEOSteps(amount, price, side, orderFeeData, baseToken, quoteToken)),
         onConnectWallet: () => dispatch(initWallet()),
         onFetchBaseTokenIEO: (token: TokenIEO) => dispatch(fetchBaseTokenIEO(token)),
         onFetchTakerAndMakerFee: (amount: BigNumber, price: BigNumber, side: OrderSide) =>
@@ -439,9 +462,6 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
     };
 };
 
-const IEOOrderContainer = connect(
-    mapStateToProps,
-    mapDispatchToProps,
-)(IEOOrder);
+const IEOOrderContainer = connect(mapStateToProps, mapDispatchToProps)(IEOOrder);
 
 export { IEOOrder, IEOOrderContainer };

@@ -51,10 +51,10 @@ class WalletConnectionContent extends React.PureComponent<Props> {
                 </CopyToClipboard>
                 <DropdownTextItem onClick={viewAccountExplorer} text="View Address on Etherscan" />
                 <DropdownTextItem onClick={connectToExplorer} text="Track DEX volume" />
-              {/*  <DropdownTextItem onClick={viewOnFabrx} text="Set Alerts" /> 
+                {/*  <DropdownTextItem onClick={viewOnFabrx} text="Set Alerts" /> 
                 <DropdownTextItem onClick={openFabrx} text="Set Alerts" />
-                  <DropdownTextItem onClick={onGoToHomeLaunchpad} text="Launchpad" />*/}
-                <DropdownTextItem onClick={onGoToHomeMarginLend} text="Lend" />
+                  <DropdownTextItem onClick={onGoToHomeLaunchpad} text="Launchpad" />
+                <DropdownTextItem onClick={onGoToHomeMarginLend} text="Lend" />*/}
                 <DropdownTextItem onClick={onLogoutWallet} text="Logout Wallet" />
             </DropdownItems>
         );
@@ -83,9 +83,6 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
     };
 };
 
-const WalletConnectionContentContainer = connect(
-    mapStateToProps,
-    mapDispatchToProps,
-)(WalletConnectionContent);
+const WalletConnectionContentContainer = connect(mapStateToProps, mapDispatchToProps)(WalletConnectionContent);
 
 export { WalletConnectionContent, WalletConnectionContentContainer };

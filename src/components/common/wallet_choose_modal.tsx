@@ -114,12 +114,14 @@ const WalletChooseModalContainer: React.FC<Props> = props => {
             <ButtonStyled onClick={choosePortis} variant={ButtonVariant.Portis}>
                 <LinkButton>{'Portis'}</LinkButton>
             </ButtonStyled>
-            {<ButtonStyled onClick={chooseFortmatic} variant={ButtonVariant.Fortmatic}>
-                <LinkButton>{'Fortmatic'}</LinkButton>
-            </ButtonStyled>
-           /* <ButtonStyled  onClick={chooseWalletTorus} variant={ButtonVariant.Torus}>
+            {
+                <ButtonStyled onClick={chooseFortmatic} variant={ButtonVariant.Fortmatic}>
+                    <LinkButton>{'Fortmatic'}</LinkButton>
+                </ButtonStyled>
+                /* <ButtonStyled  onClick={chooseWalletTorus} variant={ButtonVariant.Torus}>
                 <LinkButton>{'Torus'}</LinkButton>
-               </ButtonStyled>*/}
+               </ButtonStyled>*/
+            }
             {/*isMMInstalled() ? <ModalTextLink>Torus not work with Metamask installed! </ModalTextLink> : ''*/}
             {!isMobile && (
                 <ButtonStyled disabled={!isMMInstalled()} onClick={chooseMetamask} variant={ButtonVariant.Tertiary}>

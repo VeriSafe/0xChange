@@ -1,4 +1,4 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
@@ -198,7 +198,6 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
         if (web3State === Web3State.Loading) {
             content = <LoadingWrapper />;
         } else if (ethBalance && wethBalance) {
-
             const openFiatOnRamp = () => {
                 onClickOpenFiatOnRampModal();
             };
@@ -238,14 +237,13 @@ class WalletWethBalance extends React.PureComponent<Props, State> {
                         wethBalance={wethBalance}
                     />
                     <Row>
-                        <ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
-                                Buy ETH
-                        </ButtonStyled>
+                      {/*  <ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
+                            Buy ETH
+                        </ButtonStyled>*/}
                     </Row>
                 </>
             );
         }
-
 
         return (
             <>
@@ -307,7 +305,6 @@ const mapStateToProps = (state: StoreState): StateProps => {
         ethInUsd: getEthInUsd(state),
         ethAccount: getEthAccount(state),
         convertBalanceState: getConvertBalanceState(state),
-       
     };
 };
 
@@ -318,17 +315,6 @@ const mapDispatchToProps = (dispatch: any) => {
     };
 };
 
-
-/*const mapDispatchToProps = {
-    onStartWrapEtherSteps: startWrapEtherSteps,
-    onClickOpenFiatOnRampModal:  openFiatOnRampModal(true),
-};*/
-
-const WalletWethBalanceContainer = withTheme(
-    connect(
-        mapStateToProps,
-        mapDispatchToProps,
-    )(WalletWethBalance),
-);
+const WalletWethBalanceContainer = withTheme(connect(mapStateToProps, mapDispatchToProps)(WalletWethBalance));
 
 export { WalletWethBalance, WalletWethBalanceContainer };

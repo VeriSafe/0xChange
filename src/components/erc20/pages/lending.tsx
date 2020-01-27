@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { FiatOnRampModalContainer } from '../../account/fiat_modal';
+import { FiatChooseModalContainer } from '../../account/fiat_onchoose_modal';
 import { WalletLendingBalancesContainer } from '../../account/wallet_lending_balances';
 import { CheckWalletStateModalContainer } from '../../common/check_wallet_state_modal_container';
 import { ColumnWide } from '../../common/column_wide';
@@ -15,7 +16,7 @@ const ColumnWideMyWallet = styled(ColumnWide)`
     }
 `;
 
-export const LendingPage = () => (
+const LendingPage = () => (
     <Content>
         <CheckWalletStateModalContainer>
             <ColumnWideMyWallet>
@@ -23,5 +24,8 @@ export const LendingPage = () => (
             </ColumnWideMyWallet>
         </CheckWalletStateModalContainer>
         <FiatOnRampModalContainer />
+        <FiatChooseModalContainer />
     </Content>
 );
+
+export { LendingPage as default };

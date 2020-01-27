@@ -1,17 +1,28 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 import { push } from 'connected-react-router';
 import queryString from 'query-string';
 import { createAction } from 'typesafe-actions';
 
-import { ERC20_APP_BASE_PATH } from '../../common/constants';
-import { availableMarkets } from '../../common/markets';
+import { ERC20_APP_BASE_PATH, USE_RELAYER_MARKET_UPDATES } from '../../common/constants';
+import { getAvailableMarkets } from '../../common/markets';
 import { getMarketPriceEther, getMarketPriceQuote, getMarketPriceTokens } from '../../services/markets';
-import { getRelayer } from '../../services/relayer';
+import { getMarketStatsFromRelayer, getRelayer } from '../../services/relayer';
 import { getKnownTokens } from '../../util/known_tokens';
 import { getLogger } from '../../util/logger';
-import { CurrencyPair, Market, StoreState, ThunkCreator, Token, TokenBalance, TokenPrice } from '../../util/types';
-import { getOrderbookAndUserOrders } from '../actions';
-import { getWethTokenBalance } from '../selectors';
+import { marketToString } from '../../util/markets';
+import {
+    CurrencyPair,
+    Market,
+    MARKETPLACES,
+    RelayerMarketStats,
+    StoreState,
+    ThunkCreator,
+    Token,
+    TokenBalance,
+    TokenPrice,
+} from '../../util/types';
+import { fetchPastMarketFills, getOrderbookAndUserOrders, updateBZXStore } from '../actions';
+import { getCurrencyPair, getCurrentMarketPlace, getWethTokenBalance } from '../selectors';
 
 const logger = getLogger('Market::Actions');
 
@@ -25,6 +36,10 @@ export const setCurrencyPair = createAction('market/CURRENCY_PAIR_set', resolve 
 
 export const setMarkets = createAction('market/MARKETS_set', resolve => {
     return (markets: Market[]) => resolve(markets);
+});
+
+export const setMarketStats = createAction('market/MARKETS_STATS_set', resolve => {
+    return (marketStats: RelayerMarketStats) => resolve(marketStats);
 });
 
 // Market Price Ether Actions
@@ -73,25 +88,36 @@ export const changeMarket: ThunkCreator = (currencyPair: CurrencyPair) => {
         const state = getState() as StoreState;
         const oldQuoteToken = state.market.quoteToken;
         const knownTokens = getKnownTokens();
-        const newQuoteToken = knownTokens.getTokenBySymbol(currencyPair.quote);
-        dispatch(
-            setMarketTokens({
-                baseToken: knownTokens.getTokenBySymbol(currencyPair.base),
-                quoteToken: newQuoteToken,
-            }),
-        );
-        dispatch(setCurrencyPair(currencyPair));
+        try {
+            const newQuoteToken = knownTokens.getTokenBySymbol(currencyPair.quote);
+            dispatch(
+                setMarketTokens({
+                    baseToken: knownTokens.getTokenBySymbol(currencyPair.base),
+                    quoteToken: newQuoteToken,
+                }),
+            );
+            dispatch(setCurrencyPair(currencyPair));
+
+            // if quote token changed, update quote price
+            if (oldQuoteToken !== newQuoteToken) {
+                try {
+                    await dispatch(updateMarketPriceQuote());
+                } catch (e) {
+                    logger.error(`Failed to get Quote price`);
+                }
+            }
+        } catch (e) {
+            logger.error(`Failed to set token market ${e}`);
+        }
+        if (USE_RELAYER_MARKET_UPDATES) {
+            // tslint:disable-next-line:no-floating-promises
+            dispatch(fetchPastMarketFills());
+            // tslint:disable-next-line:no-floating-promises
+            dispatch(updateMarketStats());
+        }
 
         // tslint:disable-next-line:no-floating-promises
         dispatch(getOrderbookAndUserOrders());
-        // if quote token changed, update quote price
-        if (oldQuoteToken !== newQuoteToken) {
-            try {
-                await dispatch(updateMarketPriceQuote());
-            } catch (e) {
-                logger.error(`Failed to get Quote price`);
-            }
-        }
 
         const newSearch = queryString.stringify({
             ...queryString.parse(state.router.location.search),
@@ -113,9 +139,8 @@ export const fetchMarkets: ThunkCreator = () => {
     return async dispatch => {
         const knownTokens = getKnownTokens();
         const relayer = getRelayer();
-
         let markets: any[] = await Promise.all(
-            availableMarkets.map(async availableMarket => {
+            getAvailableMarkets().map(async availableMarket => {
                 try {
                     const baseToken = knownTokens.getTokenBySymbol(availableMarket.base);
                     const quoteToken = knownTokens.getTokenBySymbol(availableMarket.quote);
@@ -202,15 +227,40 @@ export const updateMarketPriceTokens: ThunkCreator = () => {
         } catch (err) {
             dispatch(fetchMarketPriceTokensError(err));
         }
+
+        const currentMarketPlace = getCurrentMarketPlace(state);
+        if (currentMarketPlace === MARKETPLACES.Margin) {
+            dispatch(updateBZXStore());
+        }
     };
 };
 
 export const updateERC20Markets = () => {
     return async (dispatch: any) => {
         try {
-            await dispatch(fetchMarkets());
+            // tslint:disable-next-line:no-floating-promises
+            dispatch(fetchMarkets());
+            if (USE_RELAYER_MARKET_UPDATES) {
+                dispatch(updateMarketStats());
+            }
         } catch (error) {
             dispatch(fetchERC20MarketsError(error));
+        }
+    };
+};
+
+export const updateMarketStats: ThunkCreator = () => {
+    return async (dispatch, getState) => {
+        const state = getState() as StoreState;
+        const currencyPair = getCurrencyPair(state);
+        const market = marketToString(currencyPair);
+        try {
+            const marketStats = await getMarketStatsFromRelayer(market);
+            if (marketStats) {
+                dispatch(setMarketStats(marketStats));
+            }
+        } catch (error) {
+            logger.error('Failed to update market stats', error);
         }
     };
 };

@@ -1,11 +1,12 @@
-import { SignedOrder } from '0x.js';
+import { SignedOrder } from '@0x/order-utils';
 import React from 'react';
 import styled from 'styled-components';
 
 import { FEE_RECIPIENT, INSTANT_FEE_PERCENTAGE } from '../../../common/constants';
 import { getWeb3Wrapper } from '../../../services/web3_wrapper';
 import { getKnownTokens } from '../../../util/known_tokens';
-import { ButtonVariant, Wallet } from '../../../util/types';
+import { getKnownTokensIEO } from '../../../util/known_tokens_ieo';
+import { ButtonVariant, Token, Wallet } from '../../../util/types';
 import { Button } from '../../common/button';
 
 /**
@@ -16,7 +17,7 @@ const load0xInstantScript = (callback: any) => {
 
     if (!existingScript) {
         const script = document.createElement('script');
-        script.src = 'https://instant.0x.org/instant.js';
+        script.src = 'https://instant.0xproject.com/v3/instant.js';
         script.id = 'zerox';
         document.body.appendChild(script);
 
@@ -53,6 +54,7 @@ interface Props {
     buttonVariant?: ButtonVariant;
     btnName?: string;
     feePercentage?: number;
+    isIEO?: boolean;
 }
 
 const BuyButton = styled(Button)`
@@ -81,11 +83,19 @@ export class ZeroXInstantWidget extends React.Component<Props, State> {
             buttonVariant = ButtonVariant.Buy,
             btnName = 'Buy',
             feePercentage = INSTANT_FEE_PERCENTAGE,
+            isIEO = false,
         } = this.props;
 
         const openZeroXinstantModal = async () => {
-            const knownTokens = getKnownTokens();
-            const token = knownTokens.getTokenByAddress(tokenAddress);
+            let token: Token;
+            if (isIEO) {
+                const knownTokens = getKnownTokensIEO();
+                token = knownTokens.getTokenByAddress(tokenAddress);
+            } else {
+                const knownTokens = getKnownTokens();
+                token = knownTokens.getTokenByAddress(tokenAddress);
+            }
+
             const erc20TokenAssetData = zeroExInstant.assetDataForERC20TokenAddress(token.address);
             const additionalAssetMetaDataMap = {
                 [erc20TokenAssetData]: {
@@ -102,7 +112,7 @@ export class ZeroXInstantWidget extends React.Component<Props, State> {
                 {
                     provider: (await getWeb3Wrapper()).getProvider(),
                     orderSource,
-                    networkId,
+                    chainId: networkId,
                     affiliateInfo: {
                         feeRecipient: FEE_RECIPIENT,
                         feePercentage,
@@ -121,9 +131,7 @@ export class ZeroXInstantWidget extends React.Component<Props, State> {
                     <BuyButton onClick={openZeroXinstantModal} variant={buttonVariant}>
                         {btnName}
                     </BuyButton>
-                ) : (
-                    ''
-                )}
+                ) : null}
             </>
         );
     };

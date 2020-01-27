@@ -115,7 +115,7 @@ class TokensList extends React.PureComponent {
                         </LabelWrapper>
                     </CustomTDTokenName>
                     <CustomTD styles={{ borderBottom: true, textAlign: 'left' }}>{website}</CustomTD>
-                  {/*  <CustomTD styles={{ borderBottom: true, textAlign: 'left' }}>{sticker}</CustomTD> */}
+                    {/*  <CustomTD styles={{ borderBottom: true, textAlign: 'left' }}>{sticker}</CustomTD> */}
                 </TR>
             );
         });
@@ -129,7 +129,7 @@ class TokensList extends React.PureComponent {
                         <THStyled>Token</THStyled>
                         <THStyled>{}</THStyled>
                         <THStyled styles={{ textAlign: 'left' }}>Website</THStyled>
-                     {/* <THLast styles={{ textAlign: 'left' }}>VeriSafe Approval</THLast>*/ }
+                        {/* <THLast styles={{ textAlign: 'left' }}>VeriSafe Approval</THLast>*/}
                     </TR>
                 </THead>
                 <TBody>{tokensRows}</TBody>

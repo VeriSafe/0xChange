@@ -10,13 +10,12 @@ import { IEOWalletEthBalanceContainer } from '../ieo_desk/ieo_wallet_eth_balance
 
 const ColumnWideMyWallet = styled(ColumnWide)`
     margin-left: 0;
-
     &:last-child {
         margin-left: 0;
     }
 `;
 
-export const IEOPage = () => (
+const IEOPage = () => (
     <Content>
         <CheckWalletStateModalContainer>
             <ColumnWideMyWallet>
@@ -27,3 +26,5 @@ export const IEOPage = () => (
         <FiatOnRampModalContainer />
     </Content>
 );
+
+export { IEOPage as default };

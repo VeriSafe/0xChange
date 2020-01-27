@@ -9,6 +9,7 @@ import { themeBreakPoints, themeDimensions } from '../../../themes/commons';
 import { getKnownTokens } from '../../../util/known_tokens';
 import { filterMarketsByString, filterMarketsByTokenSymbol } from '../../../util/markets';
 import { isMobile } from '../../../util/screen';
+import { formatTokenSymbol } from '../../../util/tokens';
 import { CurrencyPair, Filter, Market, StoreState, Token } from '../../../util/types';
 import { CardBase } from '../../common/card_base';
 import { Dropdown } from '../../common/dropdown';
@@ -33,7 +34,9 @@ interface PropsToken {
     baseToken: Token | null;
     currencyPair: CurrencyPair;
     markets: Market[] | null;
-  
+}
+interface OwnProps {
+    windowWidth: number;
 }
 
 type Props = PropsDivElement & PropsToken & DispatchProps & OwnProps;
@@ -55,9 +58,7 @@ interface MarketRowProps {
 
 const rowHeight = '48px';
 
-const MarketsDropdownWrapper = styled(Dropdown)`
-`;
-
+const MarketsDropdownWrapper = styled(Dropdown)``;
 
 const MarketsDropdownHeader = styled.div`
     align-items: center;
@@ -77,12 +78,11 @@ const MarketsDropdownBody = styled(CardBase)`
     max-height: 100%;
     max-width: 100%;
     width: 451px;
-    @media(max-width: ${themeBreakPoints.sm}) {
+    @media (max-width: ${themeBreakPoints.sm}) {
         position: relative;
         max-width: 340px;
-        left:-70px;
+        left: -70px;
     }
-    
 `;
 
 const MarketsFilters = styled.div`
@@ -233,14 +233,12 @@ const TokenIconAndLabel = styled.div`
 `;
 
 const FilterSearchContainer = styled.div`
- @media (max-width: ${themeBreakPoints.sm}) {
+    @media (max-width: ${themeBreakPoints.sm}) {
         display: flex;
         justify-content: space-between;
         padding: 8px 8px 8px ${themeDimensions.horizontalPadding};
     }
 `;
-
-
 
 const TokenLabel = styled.div`
     color: ${props => props.theme.componentsTheme.textColorCommon};
@@ -278,27 +276,28 @@ class MarketsDropdown extends React.Component<Props, State> {
                             icon={baseToken.icon}
                         />
                     ) : null}
-                    {currencyPair.base.toUpperCase()}/{currencyPair.quote.toUpperCase()}
+                    {formatTokenSymbol(currencyPair.base)}/{formatTokenSymbol(currencyPair.quote)}
                 </MarketsDropdownHeaderText>
                 <ChevronDownIcon />
             </MarketsDropdownHeader>
         );
 
-        const FilterSearchContent = isMobile(windowWidth) ? 
-           ( <>
-            <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
-            <FilterSearchContainer>
+        const FilterSearchContent = isMobile(windowWidth) ? (
+            <>
+                <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
+                <FilterSearchContainer>
+                    {this._getTokensFilterTabs()}
+                    {this._getSearchField()}
+                </FilterSearchContainer>
+            </>
+        ) : (
+            <>
+                <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
                 {this._getTokensFilterTabs()}
                 {this._getSearchField()}
-            </FilterSearchContainer>
-            </>) : 
-            (<>
-            <MarketsFiltersLabel>Markets</MarketsFiltersLabel>
-            {this._getTokensFilterTabs()}
-            {this._getSearchField()}
-            </>);
+            </>
+        );
 
-   
         const body = (
             <MarketsDropdownBody>
                 <MarketsFilters onMouseOver={this._setUserOnDropdown} onMouseOut={this._removeUserOnDropdown}>
@@ -393,31 +392,36 @@ class MarketsDropdown extends React.Component<Props, State> {
                             market.currencyPair.base === currencyPair.base &&
                             market.currencyPair.quote === currencyPair.quote;
                         const setSelectedMarket = () => this._setSelectedMarket(market.currencyPair);
+                        try {
+                            const token = getKnownTokens().getTokenBySymbol(market.currencyPair.base);
 
-                        const token = getKnownTokens().getTokenBySymbol(market.currencyPair.base);
+                            const baseSymbol = formatTokenSymbol(market.currencyPair.base).toUpperCase();
+                            const quoteSymbol = formatTokenSymbol(market.currencyPair.quote).toUpperCase();
 
-                        const baseSymbol = market.currencyPair.base.toUpperCase();
-                        const quoteSymbol = market.currencyPair.quote.toUpperCase();
-
-                        return (
-                            <TRStyled active={isActive} key={index} onClick={setSelectedMarket}>
-                                <CustomTDFirstStyled styles={{ textAlign: 'left', borderBottom: true }}>
-                                    <TokenIconAndLabel>
-                                        <TokenIcon
-                                            symbol={token.symbol}
-                                            primaryColor={token.primaryColor}
-                                            icon={token.icon}
-                                        />
-                                        <TokenLabel>
-                                            {baseSymbol} / {quoteSymbol}
-                                        </TokenLabel>
-                                    </TokenIconAndLabel>
-                                </CustomTDFirstStyled>
-                                <CustomTDLastStyled styles={{ textAlign: 'center', borderBottom: true, tabular: true }}>
-                                    {this._getPrice(market)}
-                                </CustomTDLastStyled>
-                            </TRStyled>
-                        );
+                            return (
+                                <TRStyled active={isActive} key={index} onClick={setSelectedMarket}>
+                                    <CustomTDFirstStyled styles={{ textAlign: 'left', borderBottom: true }}>
+                                        <TokenIconAndLabel>
+                                            <TokenIcon
+                                                symbol={token.symbol}
+                                                primaryColor={token.primaryColor}
+                                                icon={token.icon}
+                                            />
+                                            <TokenLabel>
+                                                {baseSymbol} / {quoteSymbol}
+                                            </TokenLabel>
+                                        </TokenIconAndLabel>
+                                    </CustomTDFirstStyled>
+                                    <CustomTDLastStyled
+                                        styles={{ textAlign: 'center', borderBottom: true, tabular: true }}
+                                    >
+                                        {this._getPrice(market)}
+                                    </CustomTDLastStyled>
+                                </TRStyled>
+                            );
+                        } catch {
+                            return null;
+                        }
                     })}
                 </TBody>
             </Table>
@@ -456,9 +460,6 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
     };
 };
 
-const MarketsDropdownContainer = withWindowWidth(connect(
-    mapStateToProps,
-    mapDispatchToProps,
-)(MarketsDropdown));
+const MarketsDropdownContainer = withWindowWidth(connect(mapStateToProps, mapDispatchToProps)(MarketsDropdown));
 
 export { MarketsDropdown, MarketsDropdownContainer };

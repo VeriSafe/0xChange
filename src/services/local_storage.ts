@@ -1,4 +1,4 @@
-import { BigNumber } from '0x.js';
+import { BigNumber } from '@0x/utils';
 
 import { FILLS_LIMIT, NETWORK_ID, NOTIFICATIONS_LIMIT } from '../common/constants';
 import { Fill, MarketFill, Notification, Wallet } from '../util/types';
@@ -11,6 +11,9 @@ const hasUnreadNotificationsKey = addPrefix('hasUnreadNotifications');
 const lastBlockCheckedKey = addPrefix('lastBlockChecked');
 const adBlockMessageShownKey = addPrefix('adBlockMessageShown');
 const walletConnectedKey = addPrefix('walletConnected');
+const themeNameKey = addPrefix('themeName');
+const erc20LayoutKey = addPrefix('erc20Layout');
+const dynamicLayoutKey = addPrefix('dynamicLayoutKey');
 
 export class LocalStorage {
     private readonly _storage: Storage;
@@ -215,5 +218,29 @@ export class LocalStorage {
     }
     public getWalletConnected(): Wallet | null | boolean {
         return JSON.parse(this._storage.getItem(walletConnectedKey) || JSON.stringify(false));
+    }
+    public getThemeName(): string | null {
+        return JSON.parse(this._storage.getItem(themeNameKey) || 'null');
+    }
+
+    public getErc20Layout(): string | null {
+        return JSON.parse(this._storage.getItem(erc20LayoutKey) || 'null');
+    }
+    public getDynamicLayout(): boolean {
+        return JSON.parse(this._storage.getItem(dynamicLayoutKey) || 'false');
+    }
+    public saveDynamicLayout(isDynamicLayout: boolean): void {
+        this._storage.setItem(dynamicLayoutKey, JSON.stringify(isDynamicLayout));
+    }
+
+    public saveErc20Layout(erc20Layout?: string): void {
+        if (erc20Layout) {
+            this._storage.setItem(erc20LayoutKey, JSON.stringify(erc20Layout));
+        }
+    }
+    public saveThemeName(themeName?: string): void {
+        if (themeName) {
+            this._storage.setItem(themeNameKey, JSON.stringify(themeName));
+        }
     }
 }
