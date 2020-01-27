@@ -96,12 +96,12 @@ export const ZeroXInstantComponent = (props: Props) => {
             if (tokenName) {
                 isBot
                     ? (token = knownTokensIEO.getTokenBotByName(tokenName))
-                    : (token = knownTokens.getTokenByName(tokenName));
+                    : (isEIO ? token = knownTokensIEO.getTokenByName(tokenName) : token = knownTokens.getTokenByName(tokenName));
             }
             if (tokenSymbol) {
                 isBot
                     ? (token = knownTokensIEO.getTokenBotBySymbol(tokenSymbol))
-                    : (token = knownTokens.getTokenBySymbol(tokenSymbol));
+                    : (isEIO ? token = knownTokensIEO.getTokenBySymbol(tokenSymbol) : token = knownTokens.getTokenBySymbol(tokenSymbol));
             }
             if (token) {
                 const isTokenIEO = knownTokens.isIEOKnownAddress(token.address);
