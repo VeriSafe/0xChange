@@ -1,8 +1,11 @@
+import { ERC20BridgeSource, SwapQuoteRequestOpts } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { Network, ProviderType } from '../util/types';
+import { ChainId } from '../util/types/swap';
 
 export const ERC20_APP_BASE_PATH = '/erc20';
+export const MARKET_APP_BASE_PATH = '/market-trade';
 export const LAUNCHPAD_APP_BASE_PATH = '/launchpad';
 export const MARGIN_APP_BASE_PATH = '/margin';
 export const INSTANT_APP_BASE_PATH = '/instant';
@@ -169,4 +172,21 @@ export const PROVIDER_TYPE_TO_NAME: { [key in ProviderType]: string } = {
     [ProviderType.TrustWallet]: 'Trust Wallet',
     [ProviderType.Opera]: 'Opera Wallet',
     [ProviderType.Fallback]: 'Fallback',
+};
+
+export const ONE_SECOND_MS = 1000;
+
+export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 30; // Ignore orders that expire in 30 seconds
+
+export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
+    noConflicts: true,
+    excludedSources:
+        CHAIN_ID === ChainId.Mainnet
+            ? []
+            : [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap],
+    numSamples: 10,
+    runLimit: 4096,
+    bridgeSlippage: 0.0005,
+    dustFractionThreshold: 0.0025,
+    sampleDistributionBase: 1.05,
 };

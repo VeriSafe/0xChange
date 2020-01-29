@@ -3,7 +3,7 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { goToHomeLaunchpad, goToHomeMarginLend, logoutWallet } from '../../../store/actions';
+import { goToHomeLaunchpad, goToHomeMarginLend, goToHomeMarketTrade, logoutWallet } from '../../../store/actions';
 import { getEthAccount } from '../../../store/selectors';
 import { connectToExplorer, viewOnFabrx } from '../../../util/external_services';
 import { truncateAddress } from '../../../util/number_utils';
@@ -22,6 +22,7 @@ interface DispatchProps {
     onLogoutWallet: () => any;
     onGoToHomeLaunchpad: () => any;
     onGoToHomeMarginLend: () => any;
+    onGoToHomeMarketTrade: () => any;
 }
 
 type Props = StateProps & OwnProps & DispatchProps;
@@ -33,7 +34,7 @@ const DropdownItems = styled(CardBase)`
 
 class WalletConnectionContent extends React.PureComponent<Props> {
     public render = () => {
-        const { ethAccount, onLogoutWallet, onGoToHomeLaunchpad, onGoToHomeMarginLend, ...restProps } = this.props;
+        const { ethAccount, onLogoutWallet, onGoToHomeLaunchpad, onGoToHomeMarginLend, onGoToHomeMarketTrade, ...restProps } = this.props;
         const ethAccountText = ethAccount ? `${truncateAddress(ethAccount)}` : 'Not connected';
 
         const openFabrx = () => {
@@ -50,6 +51,7 @@ class WalletConnectionContent extends React.PureComponent<Props> {
                     <DropdownTextItem text="Copy Address to Clipboard" />
                 </CopyToClipboard>
                 <DropdownTextItem onClick={viewAccountExplorer} text="View Address on Etherscan" />
+                <DropdownTextItem onClick={onGoToHomeMarketTrade} text="Market Trade" />
                 <DropdownTextItem onClick={connectToExplorer} text="Track DEX volume" />
                 <DropdownTextItem onClick={openFabrx} text="Set Alerts" />
                 <DropdownTextItem onClick={onGoToHomeLaunchpad} text="Launchpad" />
@@ -79,6 +81,7 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
         onLogoutWallet: () => dispatch(logoutWallet()),
         onGoToHomeLaunchpad: () => dispatch(goToHomeLaunchpad()),
         onGoToHomeMarginLend: () => dispatch(goToHomeMarginLend()),
+        onGoToHomeMarketTrade: () => dispatch(goToHomeMarketTrade()),
     };
 };
 

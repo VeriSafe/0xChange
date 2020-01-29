@@ -1,5 +1,5 @@
 import { ExchangeFillEventArgs, LogWithDecodedArgs } from '@0x/contract-wrappers';
-import { assetDataUtils } from '@0x/order-utils';
+import { assetDataUtils, ERC20AssetData } from '@0x/order-utils';
 import { BigNumber } from '@0x/utils';
 
 import { getKnownTokens, KnownTokens } from './known_tokens';
@@ -22,13 +22,13 @@ export const buildFill = (
 
     quoteTokenAddress =
         side === OrderSide.Buy
-            ? assetDataUtils.decodeERC20AssetData(args.takerAssetData).tokenAddress
-            : assetDataUtils.decodeERC20AssetData(args.makerAssetData).tokenAddress;
+            ? (assetDataUtils.decodeAssetDataOrThrow(args.takerAssetData) as ERC20AssetData).tokenAddress
+            : (assetDataUtils.decodeAssetDataOrThrow(args.makerAssetData) as ERC20AssetData).tokenAddress;
 
     baseTokenAddress =
         side === OrderSide.Buy
-            ? assetDataUtils.decodeERC20AssetData(args.makerAssetData).tokenAddress
-            : assetDataUtils.decodeERC20AssetData(args.takerAssetData).tokenAddress;
+            ? (assetDataUtils.decodeAssetDataOrThrow(args.makerAssetData) as ERC20AssetData).tokenAddress
+            : (assetDataUtils.decodeAssetDataOrThrow(args.takerAssetData) as ERC20AssetData).tokenAddress;
 
     baseToken = knownTokens.getTokenByAddress(baseTokenAddress);
     quoteToken = knownTokens.getTokenByAddress(quoteTokenAddress);

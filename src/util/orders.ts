@@ -1,5 +1,6 @@
 import { OrderConfigRequest, OrderConfigResponse } from '@0x/connect';
 import { assetDataUtils, Order, SignedOrder } from '@0x/order-utils';
+import { AssetData, AssetProxyId, ERC20BridgeAssetData } from '@0x/types';
 import { BigNumber, NULL_BYTES } from '@0x/utils';
 
 import {
@@ -51,6 +52,10 @@ interface BuildMarketLimitMatchingOrderParams {
     price: BigNumber;
     orders: UIOrder[];
 }
+
+export const isBridgeAssetData = (decodedAssetData: AssetData): decodedAssetData is ERC20BridgeAssetData => {
+    return decodedAssetData.assetProxyId === AssetProxyId.ERC20Bridge;
+};
 
 export const buildSellCollectibleOrder = async (params: BuildSellCollectibleOrderParams, side: OrderSide) => {
     const {

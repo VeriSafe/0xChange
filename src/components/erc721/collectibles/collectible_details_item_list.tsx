@@ -15,7 +15,7 @@ const CollectibleAssetWrapper = styled.div`
     border-bottom: 1px solid ${props => props.theme.componentsTheme.cardBorderColor};
     cursor: pointer;
     display: flex;
-    padding: 12px ${props => props.theme.modalTheme.content.padding};
+    padding: 12px ${props => props.theme.modalTheme.content && props.theme.modalTheme.content.padding};
 
     &:hover {
         background-color: rgba(0, 0, 0, 0.03);

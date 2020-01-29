@@ -1,5 +1,5 @@
 import { assetDataUtils } from '@0x/order-utils';
-import { SignedOrder } from '@0x/types';
+import { ERC721AssetData, SignedOrder } from '@0x/types';
 
 import { COLLECTIBLE_ADDRESS } from '../common/constants';
 import { getRelayer, Relayer } from '../services/relayer';
@@ -35,7 +35,7 @@ export class CollectiblesMetadataGateway {
         }
 
         const tokenIdToOrder = orders.reduce<{ [tokenId: string]: SignedOrder }>((acc, order) => {
-            const { tokenId } = assetDataUtils.decodeERC721AssetData(order.makerAssetData);
+            const { tokenId } = assetDataUtils.decodeAssetDataOrThrow(order.makerAssetData) as ERC721AssetData;
             acc[tokenId.toString()] = order;
             return acc;
         }, {});

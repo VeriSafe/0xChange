@@ -69,7 +69,6 @@ class App extends React.Component<Props> {
             onInitConfig(dex, undefined);
         } else {
             const themeName = localStorage.getThemeName();
-            //  console.log(themeName);
             onInitTheme(themeName);
         }
 

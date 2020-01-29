@@ -1,3 +1,4 @@
+import { MarketBuySwapQuote, MarketSellSwapQuote } from '@0x/asset-swapper';
 import { ERC721TokenContract } from '@0x/contract-wrappers';
 import { eip712Utils, signatureUtils } from '@0x/order-utils';
 import { MetamaskSubprovider } from '@0x/subproviders';
@@ -32,8 +33,9 @@ import {
     createBuySellMarketSteps,
     createLendingTokenSteps,
     createSellCollectibleSteps,
+    createSwapMarketSteps,
 } from '../../util/steps_modals_generation';
-import { tokenAmountInUnitsToBigNumber } from '../../util/tokens';
+import { tokenAmountInUnits, tokenAmountInUnitsToBigNumber } from '../../util/tokens';
 import {
     Collectible,
     ConfigData,
@@ -561,6 +563,69 @@ export const startBuySellMarketSteps: ThunkCreator = (
             side,
             price,
             orderFeeData,
+        );
+
+        dispatch(setStepsModalCurrentStep(buySellMarketFlow[0]));
+        dispatch(setStepsModalPendingSteps(buySellMarketFlow.slice(1)));
+        dispatch(setStepsModalDoneSteps([]));
+    };
+};
+
+export const startSwapMarketSteps: ThunkCreator = (
+    amount: BigNumber,
+    side: OrderSide,
+    quote: MarketSellSwapQuote | MarketBuySwapQuote,
+) => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const baseToken = selectors.getSwapBaseToken(state) as Token;
+        const quoteToken = selectors.getSwapQuoteToken(state) as Token;
+        const tokenBalances = selectors.getTokenBalances(state) as TokenBalance[];
+        const wethTokenBalance = selectors.getWethTokenBalance(state) as TokenBalance;
+        const ethBalance = selectors.getEthBalance(state);
+        const totalEthBalance = selectors.getTotalEthBalance(state);
+        const quoteTokenBalance = selectors.getSwapQuoteTokenBalance(state);
+        const baseTokenBalance = selectors.getSwapBaseTokenBalance(state);
+
+        if (side === OrderSide.Sell) {
+            // When selling, user should have enough BASE Token
+            if (baseTokenBalance && baseTokenBalance.balance.isLessThan(amount)) {
+                throw new InsufficientTokenBalanceException(baseToken.symbol);
+            }
+        } else {
+            const totalFilledAmount = quote.bestCaseQuoteInfo.takerAssetAmount;
+            // When buying and
+            // if quote token is weth, should have enough ETH + WETH balance, or
+            // if quote token is not weth, should have enough quote token balance
+            const isEthAndWethNotEnoughBalance =
+                isWeth(quoteToken.symbol) && totalEthBalance.isLessThan(totalFilledAmount);
+            const ifOtherQuoteTokenAndNotEnoughBalance =
+                !isWeth(quoteToken.symbol) &&
+                quoteTokenBalance &&
+                quoteTokenBalance.balance.isLessThan(totalFilledAmount);
+            if (isEthAndWethNotEnoughBalance || ifOtherQuoteTokenAndNotEnoughBalance) {
+                throw new InsufficientTokenBalanceException(quoteToken.symbol);
+            }
+        }
+        const bestQuote = quote.bestCaseQuoteInfo;
+        const isSell = side === OrderSide.Sell;
+        const quoteTokenAmount = isSell ? bestQuote.makerAssetAmount : bestQuote.takerAssetAmount;
+        const baseTokenAmount = isSell ? bestQuote.takerAssetAmount : bestQuote.makerAssetAmount;
+
+        const quoteTokenAmountUnits = new BigNumber(tokenAmountInUnits(quoteTokenAmount, quoteToken.decimals, 18));
+        const baseTokenAmountUnits = new BigNumber(tokenAmountInUnits(baseTokenAmount, baseToken.decimals, 18));
+        const price = quoteTokenAmountUnits.div(baseTokenAmountUnits);
+
+        const buySellMarketFlow: Step[] = createSwapMarketSteps(
+            baseToken,
+            quoteToken,
+            tokenBalances,
+            wethTokenBalance,
+            ethBalance,
+            amount,
+            side,
+            price,
+            quote,
         );
 
         dispatch(setStepsModalCurrentStep(buySellMarketFlow[0]));

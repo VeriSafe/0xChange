@@ -8,6 +8,7 @@ import {
     goToHome,
     goToHomeLaunchpad,
     goToHomeMarginLend,
+    goToHomeMarketTrade,
     goToWallet,
     logoutWallet,
     openFiatOnRampChooseModal,
@@ -74,6 +75,11 @@ export const MobileWalletConnectionContent = () => {
         dispatch(openSideBar(false));
     };
 
+    const onGoToMarketTrade = () => {
+        dispatch(goToHomeMarketTrade());
+        dispatch(openSideBar(false));
+    };
+
     const onGoToMarginLend = () => {
         dispatch(goToHomeMarginLend());
         dispatch(openSideBar(false));
@@ -111,6 +117,7 @@ export const MobileWalletConnectionContent = () => {
             <ListContainer>
                 <ListItem onClick={onGoToHome}>Home</ListItem>
                 <ListItem onClick={onGoToWallet}>Wallet</ListItem>
+                <ListItem onClick={onGoToMarketTrade}>Market Trade</ListItem>
                 <ListItem onClick={onGoToLaunchpad}>Launchpad</ListItem>
                 <ListItem onClick={onGoToMarginLend}>Lend</ListItem>
                 <hr />

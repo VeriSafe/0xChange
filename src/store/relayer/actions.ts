@@ -347,8 +347,8 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            Web3Wrapper.toBaseUnitAmount(feePercentange, 18),
-                            feeRecipient,
+                            [Web3Wrapper.toBaseUnitAmount(feePercentange, 18)],
+                            [feeRecipient],
                         )
                         .sendTransactionAsync({
                             from: ethAccount,
@@ -466,8 +466,8 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            Web3Wrapper.toBaseUnitAmount(feePercentange, 18),
-                            feeRecipient,
+                            [Web3Wrapper.toBaseUnitAmount(feePercentange, 18)],
+                            [feeRecipient],
                         )
                         .sendTransactionAsync({
                             from: ethAccount,

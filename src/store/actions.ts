@@ -1,3 +1,4 @@
+import { getMarketPriceTokens } from '../services/markets';
 import { getWeb3Wrapper } from '../services/web3_wrapper';
 import { getKnownTokens } from '../util/known_tokens';
 import { getLogger } from '../util/logger';
@@ -6,9 +7,20 @@ import { BZXLoadingState, MARKETPLACES } from '../util/types';
 import { fetchLaunchpad, updateGasInfo, updateTokenBalances } from './blockchain/actions';
 import { fetchBZX, initBZX } from './bzx/actions';
 import { getAllCollectibles } from './collectibles/actions';
-import { setMarketTokens, updateMarketPriceEther, updateMarketPriceQuote } from './market/actions';
+import {
+    fetchMarketPriceTokensUpdate,
+    setMarketTokens,
+    updateMarketPriceEther,
+    updateMarketPriceQuote,
+} from './market/actions';
 import { getOrderBook, getOrderbookAndUserOrders } from './relayer/actions';
-import { getBZXLoadingState, getCurrencyPair, getCurrentMarketPlace } from './selectors';
+import {
+    getBZXLoadingState,
+    getCurrencyPair,
+    getCurrentMarketPlace,
+    getSwapBaseTokenBalance,
+    getSwapQuoteTokenBalance,
+} from './selectors';
 
 export * from './blockchain/actions';
 export * from './bzx/actions';
@@ -18,6 +30,7 @@ export * from './router/actions';
 export * from './ui/actions';
 export * from './market/actions';
 export * from './collectibles/actions';
+export * from './swap/actions';
 
 const logger = getLogger('Store::Actions');
 
@@ -48,6 +61,10 @@ export const updateStore = () => {
                 case MARKETPLACES.Margin:
                     // Updated in market price tokens
                     // dispatch(updateBZXStore());
+                    break;
+                case MARKETPLACES.MarketTrade:
+                    // Updated in market price tokens
+                    dispatch(updateSwapStore());
                     break;
                 default:
                     break;
@@ -93,6 +110,22 @@ export const updateLaunchpadStore = () => {
             dispatch(fetchLaunchpad());
         } catch (error) {
             logger.error('Failed to update Launchpad', error);
+        }
+    };
+};
+
+export const updateSwapStore = () => {
+    return async (dispatch: any, getState: any) => {
+        const state = getState();
+        try {
+            const baseTokenBalance = getSwapBaseTokenBalance(state);
+            const quoteTokenBalance = getSwapQuoteTokenBalance(state);
+            if (baseTokenBalance && quoteTokenBalance) {
+                const tokensPrices = await getMarketPriceTokens([baseTokenBalance, quoteTokenBalance]);
+                dispatch(fetchMarketPriceTokensUpdate(tokensPrices));
+            }
+        } catch (error) {
+            logger.error('Failed to update Swap', error);
         }
     };
 };

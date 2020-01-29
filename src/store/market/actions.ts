@@ -140,12 +140,21 @@ export const changeMarket: ThunkCreator = (currencyPair: CurrencyPair) => {
 };
 
 export const fetchMarkets: ThunkCreator = () => {
-    return async dispatch => {
+    return async (dispatch, getState) => {
         const knownTokens = getKnownTokens();
         const relayer = getRelayer();
         if (!USE_ORDERBOOK_PRICES) {
             const marketsStats = await getAllMarketsStatsFromRelayer();
             dispatch(setMarketsStats(marketsStats));
+            const state = getState() as StoreState;
+            const currencyPair = getCurrencyPair(state);
+            const market = marketToString(currencyPair);
+            if (marketsStats && marketsStats.length > 0) {
+                const singleMarket = marketsStats.find(m => m.pair === market);
+                if (singleMarket) {
+                   dispatch(setMarketStats(singleMarket));
+                }
+            }
         }
         let markets: any[] = await Promise.all(
             getAvailableMarkets().map(async availableMarket => {

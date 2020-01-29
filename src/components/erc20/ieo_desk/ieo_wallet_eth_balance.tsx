@@ -238,7 +238,6 @@ class IEOWalletEthBalance extends React.Component<Props, State> {
             totalEthBalance,
             onConnectingWallet,
             wallet,
-            ethAccount,
         } = this.props;
 
         if (quoteTokenBalance) {

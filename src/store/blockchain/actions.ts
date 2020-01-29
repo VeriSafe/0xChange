@@ -624,7 +624,7 @@ const initWalletBeginCommon: ThunkCreator<Promise<any>> = (wallet: Wallet) => {
         }
     };
 };
-
+export let isInitedERC20 = false;
 const initWalletERC20: ThunkCreator<Promise<any>> = () => {
     return async (dispatch, getState, { getWeb3Wrapper }) => {
         const web3Wrapper = await getWeb3Wrapper();
@@ -676,6 +676,7 @@ const initWalletERC20: ThunkCreator<Promise<any>> = () => {
             }
             // tslint:disable-next-line:no-floating-promises
             dispatch(updateMarketPriceQuote());
+            isInitedERC20 = true;
         }
     };
 };
