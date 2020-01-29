@@ -395,7 +395,7 @@ const IEOTokenBalances = (props: Props) => {
 
     const knownTokens = getKnownTokensIEO();
     const tokensIEO = knownTokens.getTokens();
-    //const wethToken = null;
+    // const wethToken = null;
 
     /* if (!wethTokenBalance) {
         content = <EmptyContent alignAbsoluteCenter={true} text="There are no orders to show" />;

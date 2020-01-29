@@ -1,13 +1,15 @@
-import { Theme, ThemeModalStyle, ThemeProperties } from './commons';
+import { Styles } from 'react-modal';
 
-const modalThemeStyle: ThemeModalStyle = {
+import { Theme, ThemeProperties } from './commons';
+
+const modalThemeStyle: Styles = {
     content: {
         backgroundColor: '#fff',
         borderColor: '#dedede',
         bottom: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        flexGrow: '0',
+        flexGrow: 0,
         left: 'auto',
         maxHeight: '90%',
         minWidth: '350px',
@@ -22,7 +24,7 @@ const modalThemeStyle: ThemeModalStyle = {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         display: 'flex',
         justifyContent: 'center',
-        zIndex: '12345',
+        zIndex: 12345,
     },
 };
 
@@ -118,7 +120,7 @@ const lightThemeColors: ThemeProperties = {
 
 export class DefaultTheme implements Theme {
     public componentsTheme: ThemeProperties;
-    public modalTheme: ThemeModalStyle;
+    public modalTheme: Styles;
     constructor() {
         this.componentsTheme = lightThemeColors;
         this.modalTheme = modalThemeStyle;

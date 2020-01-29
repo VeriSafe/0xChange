@@ -6,6 +6,7 @@ import {
     ERC721_APP_BASE_PATH,
     LAUNCHPAD_APP_BASE_PATH,
     MARGIN_APP_BASE_PATH,
+    MARKET_APP_BASE_PATH,
 } from '../../common/constants';
 import { CollectibleFilterType } from '../../util/filterable_collectibles';
 import { CollectibleSortType } from '../../util/sortable_collectibles';
@@ -16,14 +17,15 @@ export const goToHome: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
         const currentRoute = getCurrentRoutePath(state);
-        currentRoute.includes(ERC20_APP_BASE_PATH) ? dispatch(goToHomeErc20()) : dispatch(goToHomeErc721());
+        const isRoutes = currentRoute.includes(ERC20_APP_BASE_PATH) || currentRoute.includes(MARGIN_APP_BASE_PATH) ||
+        currentRoute.includes(MARKET_APP_BASE_PATH);
+        isRoutes ? dispatch(goToHomeErc20()) : dispatch(goToHomeErc721());
     };
 };
 
 const goToHomeErc20: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
-
         dispatch(
             push({
                 ...state.router.location,
@@ -54,6 +56,19 @@ export const goToHomeMarginLend: ThunkCreator = () => {
             push({
                 ...state.router.location,
                 pathname: `${MARGIN_APP_BASE_PATH}/lend`,
+            }),
+        );
+    };
+};
+
+export const goToHomeMarketTrade: ThunkCreator = () => {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        dispatch(
+            push({
+                ...state.router.location,
+                pathname: `${MARKET_APP_BASE_PATH}`,
             }),
         );
     };

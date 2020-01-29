@@ -15,6 +15,7 @@ import {
     LAUNCHPAD_APP_BASE_PATH,
     LOGGER_ID,
     MARGIN_APP_BASE_PATH,
+    MARKET_APP_BASE_PATH,
 } from './common/constants';
 import { AppContainer } from './components/app';
 import { PageLoading } from './components/common/page_loading';
@@ -45,6 +46,7 @@ const LaunchpadApp = lazy(() => import('./components/erc20/launchpad_app'));
 const MarginApp = lazy(() => import('./components/erc20/margin_app'));
 const InstantApp = lazy(() => import('./components/erc20/instant_app'));
 const FiatApp = lazy(() => import('./components/erc20/fiat_ramp_app'));
+const MarketTradeApp = lazy(() => import('./components/erc20/market_trade_app'));
 
 const Web3WrappedApp = (
     <Provider store={store}>
@@ -57,6 +59,7 @@ const Web3WrappedApp = (
                         <Route path={MARGIN_APP_BASE_PATH} component={MarginApp} />
                         <Route path={INSTANT_APP_BASE_PATH} component={InstantApp} />
                         <Route path={FIAT_RAMP_APP_BASE_PATH} component={FiatApp} />
+                        <Route path={MARKET_APP_BASE_PATH} component={MarketTradeApp} />
                         {/* <Route path={ERC721_APP_BASE_PATH} component={Erc721App} />*/}
                         <Route component={RedirectToHome} />
                     </Switch>

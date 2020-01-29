@@ -13,7 +13,6 @@ export const getContractWrappers = async () => {
         const web3Wrapper = await getWeb3Wrapper();
         contractWrappers = new ContractWrappers(web3Wrapper.getProvider(), { chainId: CHAIN_ID });
     }
-
     return contractWrappers;
 };
 

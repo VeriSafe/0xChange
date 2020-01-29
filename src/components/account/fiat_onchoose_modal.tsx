@@ -71,7 +71,7 @@ const FiatChooseModal: React.FC<Props> = props => {
 
     const content = (
         <>
-            <ModalTitle>Buy With:</ModalTitle>
+            <ModalTitle>Buy ETH With:</ModalTitle>
             <ButtonStyled onClick={chooseApplePay} variant={ButtonVariant.Portis}>
                 <LinkButton>{'Apple Pay'}</LinkButton>
             </ButtonStyled>

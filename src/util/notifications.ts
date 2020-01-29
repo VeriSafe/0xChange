@@ -1,5 +1,5 @@
 import { ExchangeFillEventArgs, LogWithDecodedArgs } from '@0x/contract-wrappers';
-import { assetDataUtils } from '@0x/order-utils';
+import { assetDataUtils, ERC20AssetData } from '@0x/order-utils';
 
 import { KnownTokens } from './known_tokens';
 import { getTransactionLink } from './transaction_link';
@@ -15,8 +15,8 @@ export const buildOrderFilledNotification = (
     let exchangedTokenAddress: string;
     let exchangedToken: Token;
     exchangedTokenAddress = OrderSide.Sell
-        ? assetDataUtils.decodeERC20AssetData(args.makerAssetData).tokenAddress
-        : assetDataUtils.decodeERC20AssetData(args.takerAssetData).tokenAddress;
+        ? (assetDataUtils.decodeAssetDataOrThrow(args.makerAssetData) as ERC20AssetData).tokenAddress
+        : (assetDataUtils.decodeAssetDataOrThrow(args.takerAssetData) as ERC20AssetData).tokenAddress;
 
     exchangedToken = knownTokens.getTokenByAddress(exchangedTokenAddress);
     return {
@@ -39,8 +39,8 @@ export const getOrderSideFromFillEvent = (
     }
     const { makerAssetData, takerAssetData } = fillEvent.args;
     const wethToken = knownTokens.getWethToken();
-    const makerTokenAddress = assetDataUtils.decodeERC20AssetData(makerAssetData).tokenAddress;
-    const takerTokenAddress = assetDataUtils.decodeERC20AssetData(takerAssetData).tokenAddress;
+    const makerTokenAddress = (assetDataUtils.decodeAssetDataOrThrow(makerAssetData) as ERC20AssetData).tokenAddress;
+    const takerTokenAddress = (assetDataUtils.decodeAssetDataOrThrow(takerAssetData) as ERC20AssetData).tokenAddress;
     const wethAssetData = assetDataUtils.encodeERC20AssetData(wethToken.address);
     let orderSide: OrderSide = OrderSide.Buy;
     // Fallback in case there are not markets
