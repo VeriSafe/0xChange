@@ -475,7 +475,7 @@ export const getUnlockFeeAssetStepIfNeeded = (
     tokenBalances: TokenBalance[],
     feeTokenAddress: string,
 ): StepToggleTokenLock | null => {
-    const balance = tokenBalances.find(tokenBalance => tokenBalance.token.address === feeTokenAddress);
+    const balance = tokenBalances.find(tokenBalance => tokenBalance.token.address.toLowerCase() === feeTokenAddress.toLowerCase());
     if (!balance) {
         throw new Error(`Unknown fee token: ${feeTokenAddress}`);
     }

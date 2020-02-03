@@ -318,7 +318,7 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                 return total.plus(currentValue);
             }, ZERO);
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            const feeAmount = ordersToFill.map(o => o.takerFee).reduce((p, c) => p.plus(c));
+            const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
             const affiliateFeeAmount = ethAmountRequired
                 .plus(protocolFee)
                 .plus(feeAmount)
@@ -437,7 +437,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                 return total.plus(currentValue);
             }, ZERO);
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            const feeAmount = ordersToFill.map(o => o.takerFee).reduce((p, c) => p.plus(c));
+            const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
             const affiliateFeeAmount = ethAmountRequired
                 .plus(protocolFee)
                 .plus(feeAmount)
@@ -495,6 +495,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                 }
             } catch (e) {
                 logger.log(e.message);
+                console.log(e);
                 throw e;
             }
 
