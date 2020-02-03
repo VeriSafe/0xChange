@@ -314,21 +314,20 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
             const quoteToken = getQuoteToken(state) as Token;
             // Check if the order is fillable using the forwarder
             const ethBalance = getEthBalance(state) as BigNumber;
-            const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
+            /*const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
-            }, ZERO);
+            }, ZERO);*/
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
-            const affiliateFeeAmount = ethAmountRequired
+            //const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
+            const affiliateFeeAmount = amount
                 .plus(protocolFee)
-                .plus(feeAmount)
                 .multipliedBy(feePercentange)
-                .integerValue(BigNumber.ROUND_CEIL);
+                .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = ethAmountRequired
+            const totalEthAmount = amount
                 .plus(protocolFee)
-                .plus(affiliateFeeAmount)
-                .plus(feeAmount);
+                .plus(affiliateFeeAmount);
+
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
             const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -347,7 +346,7 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            [Web3Wrapper.toBaseUnitAmount(feePercentange, 18)],
+                            [affiliateFeeAmount],
                             [feeRecipient],
                         )
                         .sendTransactionAsync({
@@ -433,21 +432,19 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
 
             // Check if the order is fillable using the forwarder
             const ethBalance = getEthBalance(state) as BigNumber;
-            const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
+           /* const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
-            }, ZERO);
+            }, ZERO);*/
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
-            const affiliateFeeAmount = ethAmountRequired
-                .plus(protocolFee)
-                .plus(feeAmount)
-                .multipliedBy(feePercentange)
-                .integerValue(BigNumber.ROUND_CEIL);
 
-            const totalEthAmount = ethAmountRequired
+            const affiliateFeeAmount = amount
                 .plus(protocolFee)
-                .plus(affiliateFeeAmount)
-                .plus(feeAmount);
+                .multipliedBy(feePercentange)
+                .integerValue(BigNumber.ROUND_UP);
+
+            const totalEthAmount = amount
+                .plus(protocolFee)
+                .plus(affiliateFeeAmount);
 
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
@@ -466,7 +463,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            [Web3Wrapper.toBaseUnitAmount(feePercentange, 18)],
+                            [affiliateFeeAmount],
                             [feeRecipient],
                         )
                         .sendTransactionAsync({
@@ -495,7 +492,6 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                 }
             } catch (e) {
                 logger.log(e.message);
-                console.log(e);
                 throw e;
             }
 
