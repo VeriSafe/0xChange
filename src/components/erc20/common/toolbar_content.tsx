@@ -8,12 +8,12 @@ import { separatorTopbar, ToolbarContainer } from '../../../components/common/to
 import { NotificationsDropdownContainer } from '../../../components/notifications/notifications_dropdown';
 import {
     goToHome,
+    goToHomeMarketTrade,
     goToWallet,
     openFiatOnRampChooseModal,
     openSideBar,
     setERC20Theme,
     setThemeName,
-    goToHomeMarketTrade,
 } from '../../../store/actions';
 import { getCurrentMarketPlace, getGeneralConfig, getThemeName } from '../../../store/selectors';
 import { Theme, themeBreakPoints } from '../../../themes/commons';

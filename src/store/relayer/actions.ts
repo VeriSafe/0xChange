@@ -1,9 +1,8 @@
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { createAction } from 'typesafe-actions';
 
-import { FEE_PERCENTAGE, FEE_RECIPIENT, ZERO } from '../../common/constants';
+import { FEE_PERCENTAGE, FEE_RECIPIENT } from '../../common/constants';
 import { INSUFFICIENT_ORDERS_TO_FILL_AMOUNT_ERR } from '../../exceptions/common';
 import { InsufficientOrdersAmountException } from '../../exceptions/insufficient_orders_amount_exception';
 import { RelayerException } from '../../exceptions/relayer_exception';
@@ -318,7 +317,7 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                 return total.plus(currentValue);
             }, ZERO);*/
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            //const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
+            // const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
             const affiliateFeeAmount = amount
                 .plus(protocolFee)
                 .multipliedBy(feePercentange)
