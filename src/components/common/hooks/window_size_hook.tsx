@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 export const useWindowSize = () => {
     const isClient = typeof window === 'object';
 
-    function getSize() {
+    function getSize(): { width: number; height: number } {
         return {
             width: isClient ? window.innerWidth : 0,
             height: isClient ? window.innerHeight : 0,

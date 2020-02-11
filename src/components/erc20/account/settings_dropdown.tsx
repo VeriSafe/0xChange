@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { setERC20Layout } from '../../../store/actions';
-import { getERC20Layout } from '../../../store/selectors';
+import { setDynamicLayout, setERC20Layout, setERC20Theme, setThemeName } from '../../../store/actions';
+import { getDynamicLayout, getERC20Layout, getThemeName } from '../../../store/selectors';
+import { getThemeFromConfigDex } from '../../../themes/theme_meta_data_utils';
 import { ButtonVariant } from '../../../util/types';
 import { Button } from '../../common/button';
 import { CardBase } from '../../common/card_base';
 import { Dropdown, DropdownPositions } from '../../common/dropdown';
+import { DropdownTextItem } from '../../common/dropdown_text_item';
 import { ChevronDownIcon } from '../../common/icons/chevron_down_icon';
 
 const LayoutDropdownHeaderWrapper = styled.div`
@@ -81,32 +83,22 @@ export const FieldContainer = styled.div`
 };*/
 
 const defaultLayouts = {
-    a: { w: 2, h: 6, x: 0, y: 0, i: 'a' },
-    b: { w: 6, h: 3, x: 2, y: 0, i: 'b' },
-    d: { w: 4, h: 3, x: 8, y: 3, i: 'd' },
-    e: { w: 2, h: 3, x: 8, y: 0, i: 'e' },
-    f: { w: 6, h: 3, x: 2, y: 3, i: 'f' },
-    g: { w: 2, h: 3, x: 10, y: 0, i: 'g' },
+    a: { w: 2, h: 56, x: 0, y: 0, i: 'a' },
+    b: { w: 6, h: 40, x: 2, y: 0, i: 'b' },
+    d: { w: 4, h: 26, x: 8, y: 30, i: 'd' },
+    e: { w: 2, h: 30, x: 8, y: 0, i: 'e' },
+    f: { w: 6, h: 19, x: 2, y: 37, i: 'f' },
+    g: { w: 2, h: 30, x: 10, y: 0, i: 'g' },
 };
 
 const resetLayouts = {
-    /* lg: [
-        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-        { i: 'b', x: 4, y: 0, w: 8, h: 4 },
-        { i: 'c', x: 0, y: 4, w: 3, h: 1 },
-        { i: 'd', x: 0, y: 5, w: 3, h: 3 },
-        { i: 'e', x: 3, y: 4, w: 3, h: 4 },
-        { i: 'f', x: 6, y: 4, w: 6, h: 1 },
-        { i: 'g', x: 6, y: 5, w: 6, h: 2 },
-        { i: 'h', x: 6, y: 7, w: 6, h: 1 },
-    ],*/
     lg: [
-        { w: 2, h: 6, x: 0, y: 0, i: 'a' },
-        { w: 6, h: 3, x: 2, y: 0, i: 'b' },
-        { w: 4, h: 3, x: 8, y: 3, i: 'd' },
-        { w: 2, h: 3, x: 8, y: 0, i: 'e' },
-        { w: 6, h: 3, x: 2, y: 3, i: 'f' },
-        { w: 2, h: 3, x: 10, y: 0, i: 'g' },
+        { w: 2, h: 56, x: 0, y: 0, i: 'a' },
+        { w: 6, h: 40, x: 2, y: 0, i: 'b' },
+        { w: 4, h: 26, x: 8, y: 30, i: 'd' },
+        { w: 2, h: 30, x: 8, y: 0, i: 'e' },
+        { w: 6, h: 19, x: 2, y: 37, i: 'f' },
+        { w: 2, h: 30, x: 10, y: 0, i: 'g' },
     ],
 };
 
@@ -135,7 +127,7 @@ const getLayoutValue = (layouts: ReactGridLayout.Layouts, key: keyType) => {
     return false;
 };
 
-export const LayoutDropdownContainer = (props: any) => {
+export const SettingsDropdownContainer = (props: any) => {
     const header = (
         <LayoutDropdownHeaderWrapper>
             <WalletConnectionStatusText>⚙</WalletConnectionStatusText>
@@ -143,7 +135,19 @@ export const LayoutDropdownContainer = (props: any) => {
         </LayoutDropdownHeaderWrapper>
     );
     const layouts: ReactGridLayout.Layouts = JSON.parse(useSelector(getERC20Layout));
+    const themeName = useSelector(getThemeName);
+    const isDynamicLayout = useSelector(getDynamicLayout);
+
     const dispatch = useDispatch();
+    const handleThemeClick = () => {
+        const themeN = themeName === 'DARK_THEME' ? 'LIGHT_THEME' : 'DARK_THEME';
+        dispatch(setThemeName(themeN));
+        const theme = getThemeFromConfigDex(themeN);
+        dispatch(setERC20Theme(theme));
+    };
+    const onDynamicLayout = () => {
+        dispatch(setDynamicLayout(!isDynamicLayout));
+    };
 
     const [isMarketList, setMarketList] = useState(getLayoutValue(layouts, 'a'));
     const [isMarketDetails, setMarketDetails] = useState(getLayoutValue(layouts, 'b'));
@@ -214,6 +218,16 @@ export const LayoutDropdownContainer = (props: any) => {
     const body = (
         <>
             <DropdownBody>
+                <DropdownTextItem
+                    onClick={handleThemeClick}
+                    style={{ textAlign: 'center' }}
+                    text={themeName === 'DARK_THEME' ? ' ☼' : ' ☾'}
+                />
+                <DropdownTextItem
+                    onClick={onDynamicLayout}
+                    style={{ textAlign: 'center' }}
+                    text={isDynamicLayout ? 'Dynamic Layout' : 'Static Layout'}
+                />
                 <LabelContainer>
                     <Label>Markets List</Label>
                     <FieldContainer>
@@ -275,7 +289,7 @@ export const LayoutDropdownContainer = (props: any) => {
         <DropdownWrapper
             body={body}
             header={header}
-            horizontalPosition={DropdownPositions.Left}
+            horizontalPosition={DropdownPositions.Right}
             shouldCloseDropdownOnClickOutside={false}
             {...props}
         />

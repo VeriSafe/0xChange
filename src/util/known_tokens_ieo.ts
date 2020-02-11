@@ -6,6 +6,7 @@ import { ConfigIEO } from '../common/config';
 import { KNOWN_TOKENS_META_DATA } from '../common/tokens_meta_data';
 import { KNOWN_TOKENS_IEO_META_DATA, TokenIEOMetaData } from '../common/tokens_meta_data_ieo';
 
+import { getKnownTokens, getTokenMetadaDataFromContract, getTokenMetadaDataFromServer } from './known_tokens';
 import { getLogger } from './logger';
 import { mapTokensBotToTokenIEO, mapTokensIEOMetaDataToTokenByNetworkId } from './token_ieo_meta_data';
 import { TokenIEO } from './types';
@@ -111,6 +112,34 @@ export class KnownTokensIEO {
         } catch (e) {
             return false;
         }
+    };
+    public addTokenByAddress = async (address: string, makerAddress: string): Promise<TokenIEO | null> => {
+        if (this.isKnownAddress(address.toLowerCase())) {
+            return null;
+        }
+        let token;
+        try {
+            token = await getTokenMetadaDataFromContract(address);
+        } catch {
+            token = await getTokenMetadaDataFromServer(address);
+        }
+        if (!token) {
+            return null;
+        }
+        const tokenToAdd = {
+            ...token,
+            social: {},
+            owners: [makerAddress.toLowerCase()],
+            feePercentage: '0.05',
+        };
+        // TODO refactor to remove this
+        const tokens = getKnownTokens();
+        if (!tokens.isIEOKnownAddress(token.address)) {
+            tokens.pushTokenIEO(tokenToAdd);
+        }
+
+        this._tokens.push(tokenToAdd);
+        return tokenToAdd;
     };
 
     /**

@@ -59,7 +59,7 @@ const FiatChooseModal: React.FC<Props> = props => {
         reset();
     };
     const chooseCreditCard = () => {
-        dispatch(setFiatType('CREDIT_CARD'));
+        dispatch(setFiatType('CARDS'));
         dispatch(openFiatOnRampModal(true));
         reset();
     };

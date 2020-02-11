@@ -22,7 +22,7 @@ const Row = styled.div`
     z-index: 1;
 
     &:last-of-type {
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
 `;
 
@@ -30,7 +30,7 @@ const Value = styled.div`
     color: ${props => props.theme.componentsTheme.textColorCommon};
     flex-shrink: 0;
     font-feature-settings: 'tnum' 1;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.2;
     white-space: nowrap;
 `;
@@ -40,27 +40,27 @@ const CostValue = styled(Value)`
     font-weight: bold;
 `;
 
-const LabelContainer = styled.div`
+/*const LabelContainer = styled.div`
     align-items: flex-end;
     display: flex;
     justify-content: space-between;
     margin: 5px 0 10px 0;
-`;
+`;*/
 
 const Label = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     line-height: normal;
     margin: 0;
 `;
 
-const MainLabel = styled(Label)``;
+// const MainLabel = styled(Label)``;
 
-const FeeLabel = styled(Label)`
+/*const FeeLabel = styled(Label)`
     color: ${props => props.theme.componentsTheme.textColorCommon};
     font-weight: normal;
-`;
+`;*/
 
 const CostLabel = styled(Label)`
     font-weight: 700;
@@ -123,7 +123,7 @@ class OrderDetails extends React.Component<Props, State> {
     };
 
     public render = () => {
-        const fee = this._getFeeStringForRender();
+        // const fee = this._getFeeStringForRender();
         const cost = this._getCostStringForRender();
         const costText = this._getCostLabelStringForRender();
         const priceMedianText = this._getMedianPriceStringForRender();
@@ -131,13 +131,13 @@ class OrderDetails extends React.Component<Props, State> {
 
         return (
             <>
-                <LabelContainer>
+                {/*  <LabelContainer>
                     <MainLabel>Order Details</MainLabel>
-                </LabelContainer>
+              </LabelContainer>
                 <Row>
                     <FeeLabel>Fee</FeeLabel>
                     <Value>{fee}</Value>
-                </Row>
+              </Row>*/}
                 <Row>
                     <CostLabel>{costText}</CostLabel>
                     <CostValue>{cost}</CostValue>
@@ -163,7 +163,11 @@ class OrderDetails extends React.Component<Props, State> {
             const { quote, base } = currencyPair;
             const quoteToken = getKnownTokens().getTokenBySymbol(quote);
             const baseToken = getKnownTokens().getTokenBySymbol(base);
-            const priceInQuoteBaseUnits = Web3Wrapper.toBaseUnitAmount(tokenPrice, quoteToken.decimals);
+            // TODO: Check if this precision is enough, price was giving error on precision
+            const priceInQuoteBaseUnits = Web3Wrapper.toBaseUnitAmount(
+                new BigNumber(tokenPrice.toFixed(18)),
+                quoteToken.decimals,
+            );
             const baseTokenAmountInUnits = Web3Wrapper.toUnitAmount(tokenAmount, baseToken.decimals);
             const quoteTokenAmount = baseTokenAmountInUnits.multipliedBy(priceInQuoteBaseUnits);
             const { makerFee, makerFeeAssetData, takerFee, takerFeeAssetData } = await onFetchTakerAndMakerFee(
@@ -223,7 +227,7 @@ class OrderDetails extends React.Component<Props, State> {
 
     private readonly _getCostStringForRender = () => {
         const { canOrderBeFilled } = this.state;
-        const { orderType, qouteInUSD } = this.props;
+        const { orderType } = this.props;
         if (orderType === OrderType.Market && !canOrderBeFilled) {
             return `---`;
         }
@@ -231,14 +235,15 @@ class OrderDetails extends React.Component<Props, State> {
         const { quote } = this.props.currencyPair;
         const quoteToken = getKnownTokens().getTokenBySymbol(quote);
         const { quoteTokenAmount } = this.state;
-        const quoteTokenAmountUnits = tokenAmountInUnits(quoteTokenAmount, quoteToken.decimals);
+        //  const quoteTokenAmountUnits = tokenAmountInUnits(quoteTokenAmount, quoteToken.decimals);
         const costAmount = tokenAmountInUnits(quoteTokenAmount, quoteToken.decimals, quoteToken.displayDecimals);
-        if (qouteInUSD) {
+        return `${costAmount} ${formatTokenSymbol(quote)}`;
+        /*if (qouteInUSD) {
             const quotePriceAmountUSD = new BigNumber(quoteTokenAmountUnits).multipliedBy(qouteInUSD);
             return `${costAmount} ${formatTokenSymbol(quote)} (${quotePriceAmountUSD.toFixed(2)} $)`;
         } else {
             return `${costAmount} ${formatTokenSymbol(quote)}`;
-        }
+        }*/
     };
     private readonly _getMedianPriceStringForRender = () => {
         const { canOrderBeFilled } = this.state;
@@ -263,7 +268,7 @@ class OrderDetails extends React.Component<Props, State> {
     private readonly _getCostLabelStringForRender = () => {
         const { qouteInUSD, orderSide } = this.props;
         if (qouteInUSD) {
-            return orderSide === OrderSide.Sell ? 'Total (USD)' : 'Cost (USD)';
+            return orderSide === OrderSide.Sell ? 'Total' : 'Cost';
         } else {
             return orderSide === OrderSide.Sell ? 'Total' : 'Cost';
         }

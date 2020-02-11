@@ -26,10 +26,12 @@ export interface ThemeProperties {
     buttonTorusBackgroundColor: string;
     buttonTextColor: string;
     cardImageBackgroundColor: string;
+    cardHeaderBackgroundColor: string;
     cardBackgroundColor: string;
     cardBorderColor: string;
     cardTitleColor: string;
     cardTitleOwnerColor: string;
+    cardTitleFontSize: string;
     chartColor: string;
     darkBlue: string;
     darkGray: string;
@@ -78,8 +80,20 @@ export interface ThemeProperties {
     stepsProgressStepLineProgressColor: string;
     stepsProgressStepTitleColor: string;
     stepsProgressStepTitleColorActive: string;
+    // font Sizes Marketplace ERC20
+    orderbookTDFontSize?: string;
+    orderbookTHFontSize?: string;
+    marketFillsTHFontSize?: string;
+    marketFillsTDFontSize?: string;
+    marketListTHFontSize?: string;
+    marketListTDFontSize?: string;
+    marketStatsTHFontSize?: string;
+    marketStatsTDFontSize?: string;
+    marketDetailsTHFontSize?: string;
+    marketDetailsTDFontSize?: string;
     tableBorderColor: string;
     tdColor: string;
+    tdFontSize: string;
     textColorCommon: string;
     textDark: string;
     textInputBackgroundColor: string;
@@ -88,6 +102,7 @@ export interface ThemeProperties {
     textLight: string;
     textLighter: string;
     thColor: string;
+    thFontSize: string;
     tooltipBackgroundColor: string;
     tooltipTextColor: string;
     topbarBackgroundColor: string;
@@ -128,14 +143,14 @@ export interface ThemeMetaData {
 
 export const themeDimensions = {
     borderRadius: '4px',
-    fieldHeight: '46px',
+    fieldHeight: '36px',
     footerHeight: '38px',
-    horizontalPadding: '16px',
-    mainPadding: '10px',
+    horizontalPadding: '5px',
+    mainPadding: '5px',
     sidebarWidth: '350px',
     toolbarHeight: '64px',
-    verticalPadding: '10px',
-    verticalSeparation: '30px',
+    verticalPadding: '5px',
+    verticalSeparation: '5px',
     verticalSeparationSm: '10px',
 };
 
@@ -157,3 +172,19 @@ export enum SpinnerSize {
     Small = '26px',
     Medium = '52px',
 }
+
+export const fontSizes = {
+    // FontSizes
+    tdFontSize: '12px',
+    thFontSize: '12px',
+    orderbookTDFontSize: '11px',
+    orderbookTHFontSize: '11px',
+    marketFillsTDFontSize: '11px',
+    marketFillsTHFontSize: '11px',
+    marketListTHFontSize: '11px',
+    marketListTDFontSize: '11px',
+    marketStatsTHFontSize: '11px',
+    marketStatsTDFontSize: '11px',
+    marketDetailsTHFontSize: '12px',
+    marketDetailsTDFontSize: '12px',
+};

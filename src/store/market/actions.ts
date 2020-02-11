@@ -152,7 +152,7 @@ export const fetchMarkets: ThunkCreator = () => {
             if (marketsStats && marketsStats.length > 0) {
                 const singleMarket = marketsStats.find(m => m.pair === market);
                 if (singleMarket) {
-                   dispatch(setMarketStats(singleMarket));
+                    dispatch(setMarketStats(singleMarket));
                 }
             }
         }

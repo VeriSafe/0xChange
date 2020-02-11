@@ -3,7 +3,13 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { goToHomeLaunchpad, goToHomeMarginLend, goToHomeMarketTrade, logoutWallet } from '../../../store/actions';
+import {
+    goToHomeLaunchpad,
+    goToHomeMarginLend,
+    goToHomeMarketTrade,
+    goToWallet,
+    logoutWallet,
+} from '../../../store/actions';
 import { getEthAccount } from '../../../store/selectors';
 import { connectToExplorer, viewOnFabrx } from '../../../util/external_services';
 import { truncateAddress } from '../../../util/number_utils';
@@ -20,6 +26,7 @@ interface StateProps {
 }
 interface DispatchProps {
     onLogoutWallet: () => any;
+    onGoToWallet: () => any;
     onGoToHomeLaunchpad: () => any;
     onGoToHomeMarginLend: () => any;
     onGoToHomeMarketTrade: () => any;
@@ -34,7 +41,15 @@ const DropdownItems = styled(CardBase)`
 
 class WalletConnectionContent extends React.PureComponent<Props> {
     public render = () => {
-        const { ethAccount, onLogoutWallet, onGoToHomeLaunchpad, onGoToHomeMarginLend, onGoToHomeMarketTrade, ...restProps } = this.props;
+        const {
+            ethAccount,
+            onLogoutWallet,
+            onGoToHomeLaunchpad,
+            onGoToHomeMarginLend,
+            onGoToHomeMarketTrade,
+            onGoToWallet,
+            ...restProps
+        } = this.props;
         const ethAccountText = ethAccount ? `${truncateAddress(ethAccount)}` : 'Not connected';
 
         const openFabrx = () => {
@@ -45,8 +60,14 @@ class WalletConnectionContent extends React.PureComponent<Props> {
             viewAddressOnEtherscan(ethAccount);
         };
 
+        const handleMyWalletClick: React.EventHandler<React.MouseEvent> = e => {
+            e.preventDefault();
+            onGoToWallet();
+        };
+
         const content = (
             <DropdownItems>
+                <DropdownTextItem onClick={handleMyWalletClick} text="My Wallet" />
                 <CopyToClipboard text={ethAccount ? ethAccount : ''}>
                     <DropdownTextItem text="Copy Address to Clipboard" />
                 </CopyToClipboard>
@@ -79,6 +100,7 @@ const mapStateToProps = (state: StoreState): StateProps => {
 const mapDispatchToProps = (dispatch: any): DispatchProps => {
     return {
         onLogoutWallet: () => dispatch(logoutWallet()),
+        onGoToWallet: () => dispatch(goToWallet()),
         onGoToHomeLaunchpad: () => dispatch(goToHomeLaunchpad()),
         onGoToHomeMarginLend: () => dispatch(goToHomeMarginLend()),
         onGoToHomeMarketTrade: () => dispatch(goToHomeMarketTrade()),

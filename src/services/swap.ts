@@ -50,7 +50,10 @@ export class SwapService {
     public getSwapQuoteConsumer(): SwapQuoteConsumer {
         return this._swapQuoteConsumer;
     }
-    public async executeSwapQuote(isETHSell: boolean, quote: MarketBuySwapQuote | MarketSellSwapQuote): Promise<string> {
+    public async executeSwapQuote(
+        isETHSell: boolean,
+        quote: MarketBuySwapQuote | MarketSellSwapQuote,
+    ): Promise<string> {
         // If ETH was specified as the token to sell then we use the Forwarder
         const extensionContractType = isETHSell ? ExtensionContractType.Forwarder : ExtensionContractType.None;
         return this._swapQuoteConsumer.executeSwapQuoteOrThrowAsync(quote, {
@@ -62,7 +65,9 @@ export class SwapService {
             },
         });
     }
-    public async getSwapQuoteAsync(params: CalculateSwapQuoteParams): Promise<MarketBuySwapQuote | MarketSellSwapQuote> {
+    public async getSwapQuoteAsync(
+        params: CalculateSwapQuoteParams,
+    ): Promise<MarketBuySwapQuote | MarketSellSwapQuote> {
         let swapQuote;
         const {
             sellAmount,

@@ -14,16 +14,24 @@ const initialStepsModalState: StepsModalState = {
     pendingSteps: [],
 };
 const initialLayouts = {
+    /*  lg: [
+          { i: 'a', x: 0, y: 0, w: 4, h: 4 },
+          { i: 'b', x: 4, y: 0, w: 8, h: 4 },
+          { i: 'c', x: 0, y: 4, w: 3, h: 1 },
+          { i: 'd', x: 0, y: 5, w: 3, h: 3 },
+          { i: 'e', x: 3, y: 4, w: 3, h: 4 },
+          { i: 'f', x: 6, y: 4, w: 6, h: 1 },
+          { i: 'g', x: 6, y: 5, w: 6, h: 2 },
+          { i: 'h', x: 6, y: 7, w: 6, h: 1 },
+          //   {i: 't', x: 16, y: 14, w: 4, h: 2},
+      ],*/
     lg: [
-        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-        { i: 'b', x: 4, y: 0, w: 8, h: 4 },
-        { i: 'c', x: 0, y: 4, w: 3, h: 1 },
-        { i: 'd', x: 0, y: 5, w: 3, h: 3 },
-        { i: 'e', x: 3, y: 4, w: 3, h: 4 },
-        { i: 'f', x: 6, y: 4, w: 6, h: 1 },
-        { i: 'g', x: 6, y: 5, w: 6, h: 2 },
-        { i: 'h', x: 6, y: 7, w: 6, h: 1 },
-        //   {i: 't', x: 16, y: 14, w: 4, h: 2},
+        { w: 2, h: 56, x: 0, y: 0, i: 'a' },
+        { w: 6, h: 40, x: 2, y: 0, i: 'b' },
+        { w: 4, h: 26, x: 8, y: 30, i: 'd' },
+        { w: 2, h: 30, x: 8, y: 0, i: 'e' },
+        { w: 6, h: 19, x: 2, y: 37, i: 'f' },
+        { w: 2, h: 30, x: 10, y: 0, i: 'g' },
     ],
 };
 
@@ -39,6 +47,7 @@ const initialUIState: UIState = {
     orderPriceSelected: null,
     sidebarOpen: false,
     fiatType: 'APPLE_PAY',
+    startTour: false,
     openFiatOnRampModal: false,
     openFiatOnRampChooseModal: false,
     erc20Layout: localStorage.getErc20Layout() || JSON.stringify(initialLayouts),
@@ -97,6 +106,8 @@ export function ui(state: UIState = initialUIState, action: RootAction): UIState
             return { ...state, erc20Layout: action.payload };
         case getType(actions.setDynamicLayout):
             return { ...state, isDynamicLayout: action.payload };
+        case getType(actions.setTour):
+            return { ...state, startTour: action.payload };
         case getType(actions.setFiatType):
             return { ...state, fiatType: action.payload };
         case getType(actions.addNotifications): {

@@ -1,29 +1,27 @@
 import React, { HTMLAttributes } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
 
 import { Config } from '../../common/config';
 import { GIT_COMMIT } from '../../common/constants';
-import { goToListedTokens, openFiatOnRampChooseModal, setERC20Theme, setThemeName } from '../../store/actions';
-import { getThemeName } from '../../store/selectors';
+import { goToListedTokens, goToListings } from '../../store/actions';
 import { themeBreakPoints, themeDimensions } from '../../themes/commons';
-import { getThemeFromConfigDex } from '../../themes/theme_meta_data_utils';
 
-import { Button } from './button';
 import { SocialIcon } from './icons/social_icon';
 
 interface Props extends HTMLAttributes<HTMLDivElement> {}
 
 const FooterWrapper = styled.div`
-    display: block;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
     width: 100%;
     background-color: ${props => props.theme.componentsTheme.background};
 `;
 
 const LinksContainer = styled.div`
-    align-items: center;
+    align-items: left;
     display: flex;
     justify-content: center;
     padding: 0 ${themeDimensions.horizontalPadding} ${themeDimensions.verticalPadding};
@@ -52,13 +50,13 @@ const SocialsContainer = styled.div`
 const HrefStyled = styled.a`
     color: ${props => props.theme.componentsTheme.textColorCommon};
     text-decoration: none;
-    padding-left: 5px;
+    font-size: 10px;
     @media (max-width: ${themeBreakPoints.md}) {
         padding-left: 2px;
     }
 `;
 
-const StyledButton = styled(Button)`
+/*const StyledButton = styled(Button)`
     background-color: ${props => props.theme.componentsTheme.background};
     color: ${props => props.theme.componentsTheme.textColorCommon};
     padding: 0px;
@@ -66,6 +64,13 @@ const StyledButton = styled(Button)`
     &:hover {
         text-decoration: underline;
     }
+`;*/
+
+const Pipe = styled.span`
+    color: #888;
+    font-size: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
 `;
 
 const poweredBySVG = () => {
@@ -150,8 +155,8 @@ export const Footer: React.FC<Props> = props => {
         };
     }
 
-    const themeName = useSelector(getThemeName);
-    const handleThemeClick = () => {
+    // const themeName = useSelector(getThemeName);
+    /* const handleThemeClick = () => {
         const themeN = themeName === 'DARK_THEME' ? 'LIGHT_THEME' : 'DARK_THEME';
         dispatch(setThemeName(themeN));
         const theme = getThemeFromConfigDex(themeN);
@@ -159,13 +164,17 @@ export const Footer: React.FC<Props> = props => {
     };
     const handleFiatChooseModal = () => {
         dispatch(openFiatOnRampChooseModal(true));
-    };
+    };*/
 
     /*const handleDexWizardClick: React.EventHandler<React.MouseEvent> = e => {
         e.preventDefault();
         dispatch(goToDexWizard());
     };*/
 
+    const handleListingsClick: React.EventHandler<React.MouseEvent> = e => {
+        e.preventDefault();
+        dispatch(goToListings());
+    };
     const handleListTokensClick: React.EventHandler<React.MouseEvent> = e => {
         e.preventDefault();
         dispatch(goToListedTokens());
@@ -177,6 +186,7 @@ export const Footer: React.FC<Props> = props => {
                 <HrefStyled href={`/listed-tokens`} onClick={handleListTokensClick}>
                     Tokens
                 </HrefStyled>
+                <Pipe>|</Pipe>
                 <HrefStyled
                     href="https://www.verisafe.io/terms-and-conditions"
                     target="_blank"
@@ -185,14 +195,12 @@ export const Footer: React.FC<Props> = props => {
                 >
                     Terms and Conditions
                 </HrefStyled>
-                <HrefStyled href="https://0x.org/" target="_blank" rel="noopener noreferrer">
-                    {poweredBySVG()}
-                </HrefStyled>
+                <Pipe>|</Pipe>
                 <br className="break" />
-
                 <HrefStyled href="https://www.verisafe.io/privacy-policy" target="_blank" rel="noopener noreferrer">
-                    Privay Policy
+                    Privacy Policy
                 </HrefStyled>
+                <Pipe>|</Pipe>
                 <HrefStyled
                     href="https://steemit.com/veridex/@joaocampos/tutorial-to-use-veridex-at-dex-verisafe-io-https-dex-verisafe-io"
                     target="_blank"
@@ -200,20 +208,30 @@ export const Footer: React.FC<Props> = props => {
                 >
                     Tutorial
                 </HrefStyled>
-                <HrefStyled href="https://my.verisafe.io/help-support/" target="_blank" rel="noopener noreferrer">
+                <Pipe>|</Pipe>
+                <HrefStyled href={`/listings`} onClick={handleListingsClick}>
                     Listings
                 </HrefStyled>
-            </LinksContainer>
-            <LinksContainer>
-                {/*<HrefStyled href={`/dex-wizard`} onClick={handleDexWizardClick}>
-                    Dex Wizard
-                 </HrefStyled> */}
-                <StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
+                {/*<StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
                     {themeName === 'DARK_THEME' ? '☼' : '🌑'}
                 </StyledButton>
                 <StyledButton onClick={handleFiatChooseModal} className={'buy-eth-footer'}>
                     Buy ETH
+    </StyledButton> */}
+            </LinksContainer>
+            <LinksContainer>
+                <HrefStyled href="https://0x.org/" target="_blank" rel="noopener noreferrer">
+                    {poweredBySVG()}
+                </HrefStyled>
+                {/* <HrefStyled href={`/dex-wizard`} onClick={handleDexWizardClick}>
+                    Dex Wizard
+                 </HrefStyled>
+                <StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
+                    {themeName === 'DARK_THEME' ? '☼' : '🌑'}
                 </StyledButton>
+                 <StyledButton onClick={handleFiatChooseModal} className={'buy-eth-footer'}>
+                    Buy ETH
+                </StyledButton>*/}
             </LinksContainer>
             {socialButtons && <SocialsContainer>{socialButtons()}</SocialsContainer>}
         </FooterWrapper>

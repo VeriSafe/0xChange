@@ -18,6 +18,7 @@ import {
     RelayerMarketStats,
     Token,
 } from '../util/types';
+
 // tslint:disable-next-line
 const uuidv1 = require('uuid/v1');
 const logger = getLogger('Services::Relayer');
@@ -40,10 +41,14 @@ export class Relayer {
     }
 
     public async getAllOrdersAsync(baseTokenAssetData: string, quoteTokenAssetData: string): Promise<SignedOrder[]> {
+        /*
+        @Note Somehow this is failing and not getting buy orders at first, so we opt in to do two awaits in concurrent
         const [sellOrders, buyOrders] = await Promise.all([
-            this._getOrdersAsync(baseTokenAssetData, quoteTokenAssetData),
-            this._getOrdersAsync(quoteTokenAssetData, baseTokenAssetData),
-        ]);
+                this._getOrdersAsync(baseTokenAssetData, quoteTokenAssetData),
+                this._getOrdersAsync(quoteTokenAssetData, baseTokenAssetData),
+            ]);*/
+        const sellOrders = await this._getOrdersAsync(baseTokenAssetData, quoteTokenAssetData);
+        const buyOrders = await this._getOrdersAsync(quoteTokenAssetData, baseTokenAssetData);
         return [...sellOrders, ...buyOrders];
     }
 
@@ -314,6 +319,31 @@ export const getUserIEOSignedOrders = async (
     }
 };
 
+interface TokenMetadata {
+    address: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+}
+
+export const getTokenMetaData = async (address: string): Promise<TokenMetadata | null> => {
+    const headers = new Headers({
+        'content-type': 'application/json',
+    });
+    const init: RequestInit = {
+        method: 'GET',
+        headers,
+    };
+    const relayer_url = new URL(RELAYER_URL);
+
+    const response = await fetch(`${relayer_url.origin}/v1/token-metadata/${address.toLowerCase()}`, init);
+    if (response.ok) {
+        return (await response.json()) as TokenMetadata;
+    } else {
+        return null;
+    }
+};
+
 export const getAllIEOSignedOrders = async (): Promise<SignedOrder[]> => {
     const headers = new Headers({
         'content-type': 'application/json',
@@ -367,4 +397,24 @@ export const startWebsocketMarketsSubscription = (cb_onmessage: any): WebSocket 
     };
 
     return socket;
+};
+
+export const postMoonpaySignature = async (payload: { url: string }): Promise<{ urlWithSignature: string } | null> => {
+    const headers = new Headers({
+        'content-type': 'application/json',
+    });
+
+    const init: RequestInit = {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+    };
+    const relayer_url = new URL(RELAYER_URL);
+
+    const response = await fetch(`${relayer_url.origin}/v1/moonpay/signature`, init);
+    if (response.ok) {
+        return (await response.json()) as { urlWithSignature: string };
+    } else {
+        return null;
+    }
 };

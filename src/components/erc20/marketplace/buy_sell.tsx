@@ -88,7 +88,7 @@ const BuySellWrapper = styled(CardBase)`
 const Content = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 20px ${themeDimensions.horizontalPadding};
+    padding: 10px;
 `;
 
 const TabsContainer = styled.div`
@@ -116,7 +116,7 @@ const TabButton = styled.div<{ isSelected: boolean; side: OrderSide }>`
     cursor: ${props => (props.isSelected ? 'default' : 'pointer')};
     display: flex;
     font-weight: 600;
-    height: 47px;
+    height: 35px;
     justify-content: center;
     width: 50%;
 
@@ -137,7 +137,7 @@ const LabelContainer = styled.div`
     align-items: flex-end;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 `;
 
 const LabelAvailableContainer = styled.div`
@@ -149,7 +149,7 @@ const LabelAvailableContainer = styled.div`
 
 const Label = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     line-height: normal;
     margin: 0;
@@ -157,7 +157,7 @@ const Label = styled.label<{ color?: string }>`
 
 const LabelAvaible = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
-    font-size: 12px;
+    font-size: 10px;
     font-weight: normal;
     line-height: normal;
     margin: 0;
@@ -172,12 +172,12 @@ const MinLabel = styled.label<{ color?: string }>`
 `;
 
 const InnerTabs = styled(CardTabSelector)`
-    font-size: 14px;
+    font-size: 12px;
 `;
 
 const FieldContainer = styled.div`
     height: ${themeDimensions.fieldHeight};
-    margin-bottom: 25px;
+    margin-bottom: 5px;
     position: relative;
 `;
 
@@ -193,7 +193,7 @@ const BigInputNumberStyled = styled<any>(BigNumberInput)`
     border: 1px solid ${props => props.theme.componentsTheme.textInputBorderColor};
     color: ${props => props.theme.componentsTheme.textInputTextColor};
     font-feature-settings: 'tnum' 1;
-    font-size: 16px;
+    font-size: 12px;
     height: 100%;
     padding-left: 14px;
     padding-right: 60px;
@@ -213,7 +213,7 @@ const TokenContainer = styled.div`
 
 const TokenText = styled.span`
     color: ${props => props.theme.componentsTheme.textInputTextColor};
-    font-size: 14px;
+    font-size: 12px;
     font-weight: normal;
     line-height: 21px;
     text-align: right;
@@ -232,7 +232,7 @@ class BuySell extends React.Component<Props, State> {
     public state: State = {
         makerAmount: null,
         price: null,
-        orderType: OrderType.Market,
+        orderType: OrderType.Limit,
         tab: OrderSide.Buy,
         error: {
             btnMsg: null,
@@ -255,14 +255,14 @@ class BuySell extends React.Component<Props, State> {
 
         const buySellInnerTabs = [
             {
-                active: orderType === OrderType.Market,
-                onClick: this._switchToMarket,
-                text: 'Market',
-            },
-            {
                 active: orderType === OrderType.Limit,
                 onClick: this._switchToLimit,
                 text: 'Limit',
+            },
+            {
+                active: orderType === OrderType.Market,
+                onClick: this._switchToMarket,
+                text: 'Market',
             },
         ];
         const decimals = getKnownTokens().getTokenBySymbol(currencyPair.base).decimals;
@@ -355,7 +355,7 @@ class BuySell extends React.Component<Props, State> {
                             orderType={orderType}
                             orderSide={tab}
                             tokenAmount={amount}
-                            tokenPrice={price || new BigNumber(0)}
+                            tokenPrice={price || new BigNumber(1).div(new BigNumber(10).pow(pricePrecision))}
                             currencyPair={currencyPair}
                         />
                         <Button

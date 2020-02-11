@@ -1,4 +1,5 @@
 import { SignedOrder } from '@0x/types';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
@@ -8,7 +9,7 @@ import { getERC20ContractWrapper } from '../../../services/contract_wrappers';
 import { getAllOrders } from '../../../services/orders';
 import { getUserIEOSignedOrders } from '../../../services/relayer';
 import { getFeePercentage, getFeeRecipient } from '../../../store/selectors';
-import { getKnownTokens } from '../../../util/known_tokens';
+import { getKnownTokens, getTokenMetadaDataFromServer } from '../../../util/known_tokens';
 import { getKnownTokensIEO } from '../../../util/known_tokens_ieo';
 import { Token, TokenIEO, Wallet } from '../../../util/types';
 import { PageLoading } from '../../common/page_loading';
@@ -66,7 +67,7 @@ export const ZeroXInstantComponent = (props: Props) => {
     let feePercentage = INSTANT_FEE_PERCENTAGE;
     const feeP = useSelector(getFeePercentage);
     feePercentage = feeP ? Number(feeP) : INSTANT_FEE_PERCENTAGE;
-    let feeRecipient = useSelector(getFeeRecipient) || FEE_RECIPIENT;
+    const feeRecipient = useSelector(getFeeRecipient) || FEE_RECIPIENT;
     useEffect(() => {
         load0xInstantScript(() => {
             setScripReady(true);
@@ -85,24 +86,52 @@ export const ZeroXInstantComponent = (props: Props) => {
         const isEIO = query.get('isEIO');
         const isBot = query.get('isBot');
         const makerAddresses = query.get('addresses');
-        const affiliate = query.get('affiliate');
-        const affiliatePercentage = query.get('affiliatePercentage');
+        const makerAddress = query.get('makerAddress');
+        // const affiliate = query.get('affiliate');
+        //  const affiliatePercentage = query.get('affiliatePercentage');
         let additionalAssetMetaDataMap = {};
         let erc20TokenAssetData;
         // TODO refactor this to be better
         try {
             const knownTokens = getKnownTokens();
             const knownTokensIEO = getKnownTokensIEO();
-            if (tokenName) {
+            if (tokenName && !Web3Wrapper.isAddress(tokenName)) {
                 isBot
                     ? (token = knownTokensIEO.getTokenBotByName(tokenName))
                     : (isEIO ? token = knownTokensIEO.getTokenByName(tokenName) : token = knownTokens.getTokenByName(tokenName));
             }
+            // if TokenName and address and not IEO
+            // console.log(tokenName);
+            if (tokenName && Web3Wrapper.isAddress(tokenName) && !isEIO) {
+                const tokenData = await getTokenMetadaDataFromServer(tokenName);
+                if (tokenData) {
+                    token = tokenData;
+                    if (!knownTokens.isKnownAddress(token.address)) {
+                        knownTokens.pushToken(token);
+                    }
+                }
+            }
+
             if (tokenSymbol) {
                 isBot
                     ? (token = knownTokensIEO.getTokenBotBySymbol(tokenSymbol))
                     : (isEIO ? token = knownTokensIEO.getTokenBySymbol(tokenSymbol) : token = knownTokens.getTokenBySymbol(tokenSymbol));
             }
+            // Allows for any token address launch automatically an IEO with maker address
+            if (
+                tokenName &&
+                makerAddress &&
+                Web3Wrapper.isAddress(tokenName) &&
+                Web3Wrapper.isAddress(makerAddress) &&
+                isEIO
+            ) {
+                if (knownTokensIEO.isKnownAddress(tokenName)) {
+                    token = knownTokensIEO.getTokenByAddress(tokenName);
+                } else {
+                    token = (await knownTokensIEO.addTokenByAddress(tokenName, makerAddress)) as TokenIEO;
+                }
+            }
+
             if (token) {
                 const isTokenIEO = knownTokens.isIEOKnownAddress(token.address);
                 if (isTokenIEO) {
@@ -174,12 +203,12 @@ export const ZeroXInstantComponent = (props: Props) => {
                 }
             }
 
-            if (affiliate) {
+            /*  if (affiliate) {
                 feeRecipient = affiliate;
                 if (affiliatePercentage) {
                     feePercentage = Number(affiliatePercentage);
                 }
-            }
+            }*/
         } catch (e) {
             token = undefined;
             orderSource = undefined;

@@ -1,6 +1,5 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import TimeAgo from 'react-timeago';
 import styled from 'styled-components';
 
 import { USE_RELAYER_MARKET_UPDATES } from '../../../common/constants';
@@ -10,7 +9,7 @@ import { themeBreakPoints } from '../../../themes/commons';
 import { getCurrencyPairByTokensSymbol } from '../../../util/known_currency_pairs';
 import { isWeth } from '../../../util/known_tokens';
 import { marketToStringFromTokens } from '../../../util/markets';
-import { tokenAmountInUnits } from '../../../util/tokens';
+import { formatTokenSymbol, tokenAmountInUnits } from '../../../util/tokens';
 import { CurrencyPair, Fill, MarketFill, OrderSide, StoreState, Token, Web3State } from '../../../util/types';
 import { Card } from '../../common/card';
 import { EmptyContent } from '../../common/empty_content';
@@ -39,27 +38,28 @@ interface DispatchProps {
 
 type Props = StateProps & DispatchProps;
 
-export const SideTD = styled(CustomTD)<{ side: OrderSide }>`
+const CustomTDFills = styled(CustomTD)`
+    font-size: ${props => props.theme.componentsTheme.marketFillsTDFontSize};
+`;
+const CustomTH = styled(TH)`
+    font-size: ${props => props.theme.componentsTheme.marketFillsTHFontSize};
+    text-transform: none;
+`;
+
+export const SideTD = styled(CustomTDFills)<{ side: OrderSide }>`
     color: ${props =>
         props.side === OrderSide.Buy ? props.theme.componentsTheme.green : props.theme.componentsTheme.red};
 `;
 
 const fillToRow = (fill: Fill, index: number) => {
-    const sideLabel = fill.side === OrderSide.Sell ? 'Sell' : 'Buy';
     let amountBase;
-    let amountQuote;
     if (USE_RELAYER_MARKET_UPDATES) {
         amountBase = fill.amountBase.toFixed(fill.tokenBase.displayDecimals);
-        amountQuote = fill.amountQuote.toFixed(fill.tokenQuote.displayDecimals);
     } else {
         amountBase = tokenAmountInUnits(fill.amountBase, fill.tokenBase.decimals, fill.tokenBase.displayDecimals);
-        amountQuote = tokenAmountInUnits(fill.amountQuote, fill.tokenQuote.decimals, fill.tokenQuote.displayDecimals);
     }
 
-    const displayAmountBase = `${amountBase} ${fill.tokenBase.symbol.toUpperCase()}`;
-
-    const tokenQuoteSymbol = isWeth(fill.tokenQuote.symbol) ? 'ETH' : fill.tokenQuote.symbol.toUpperCase();
-    const displayAmountQuote = `${amountQuote} ${tokenQuoteSymbol}`;
+    const displayAmountBase = `${amountBase} ${formatTokenSymbol(fill.tokenBase.symbol)}`;
     let currencyPair: CurrencyPair;
     try {
         currencyPair = getCurrencyPairByTokensSymbol(fill.tokenBase.symbol, fill.tokenQuote.symbol);
@@ -70,13 +70,13 @@ const fillToRow = (fill: Fill, index: number) => {
 
     return (
         <TR key={index}>
-            <SideTD side={fill.side}>{sideLabel}</SideTD>
-            <CustomTD styles={{ textAlign: 'right', tabular: true }}>{price}</CustomTD>
-            <CustomTD styles={{ textAlign: 'right', tabular: true }}>{displayAmountBase}</CustomTD>
-            <CustomTD styles={{ textAlign: 'right', tabular: true }}>{displayAmountQuote}</CustomTD>
-            <CustomTD styles={{ textAlign: 'right', tabular: true }}>
-                <TimeAgo date={fill.timestamp} />;
-            </CustomTD>
+            <SideTD styles={{ textAlign: 'right', tabular: true }} side={fill.side}>
+                {price}
+            </SideTD>
+            <CustomTDFills styles={{ textAlign: 'right', tabular: true }}>{displayAmountBase}</CustomTDFills>
+            <CustomTDFills styles={{ textAlign: 'right', tabular: true }}>
+                {fill.timestamp.toISOString().slice(-13, -5)}
+            </CustomTDFills>
         </TR>
     );
 };
@@ -100,11 +100,9 @@ class MarketFills extends React.Component<Props> {
                     <Table isResponsive={false}>
                         <THead>
                             <TR>
-                                <TH>Side</TH>
-                                <TH styles={{ textAlign: 'right' }}>Price ({tokenQuoteSymbol})</TH>
-                                <TH styles={{ textAlign: 'right' }}>Amount ({tokenBaseSymbol})</TH>
-                                <TH styles={{ textAlign: 'right' }}>Total ({tokenQuoteSymbol})</TH>
-                                <TH styles={{ textAlign: 'right' }}>Age</TH>
+                                <CustomTH styles={{ textAlign: 'right' }}>Price ({tokenQuoteSymbol})</CustomTH>
+                                <CustomTH styles={{ textAlign: 'right' }}>Amount ({tokenBaseSymbol})</CustomTH>
+                                <CustomTH styles={{ textAlign: 'right' }}>Time</CustomTH>
                             </TR>
                         </THead>
                         <tbody>{marketFills[market].map((marketFill, index) => fillToRow(marketFill, index))}</tbody>
@@ -134,11 +132,7 @@ class MarketFills extends React.Component<Props> {
             }
         }
 
-        return (
-            <MarketTradesList title="Market History" minHeightBody={'190px'}>
-                {content}
-            </MarketTradesList>
-        );
+        return <MarketTradesList minHeightBody={'190px'}>{content}</MarketTradesList>;
     };
 }
 

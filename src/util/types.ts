@@ -46,6 +46,7 @@ export interface Token {
     verisafe_sticker?: string;
     price_usd?: BigNumber | null;
     price_usd_24h_change?: BigNumber | null;
+    listed: boolean;
 }
 
 export interface TokenIEO {
@@ -79,6 +80,7 @@ export interface TokenIEO {
     };
     feePercentage?: string;
     endDate?: string | number;
+    listed: boolean;
 }
 
 export interface TokenPrice {
@@ -180,11 +182,12 @@ export interface UIState {
     readonly userFills: Fill[];
     readonly hasUnreadNotifications: boolean;
     readonly stepsModal: StepsModalState;
+    readonly startTour: boolean;
     readonly orderPriceSelected: BigNumber | null;
     readonly sidebarOpen: boolean;
     readonly openFiatOnRampModal: boolean;
     readonly openFiatOnRampChooseModal: boolean;
-    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD';
+    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CARDS';
     readonly erc20Theme: Theme;
     readonly erc20Layout: string;
     readonly isDynamicLayout: boolean;
@@ -475,6 +478,7 @@ export interface RelayerMarketStats {
     price_min_24: number;
     last_price: number;
     last_price_change: number;
+    last_price_change_24: number;
     last_price_usd: string;
     utc_date: string;
     utc_timestamp: number;

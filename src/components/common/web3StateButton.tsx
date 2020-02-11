@@ -72,18 +72,14 @@ const Web3StateButton = () => {
                     <ErrorCard fontSize={FontSize.Large} text={errorsWallet.mmWrongNetwork} icon={ErrorIcons.Warning} />
                 );
             case Web3State.Done:
-                return (null);
+                return null;
             default:
                 const _exhaustiveCheck: never = web3State;
                 return _exhaustiveCheck;
         }
     };
 
-    return (
-         <>
-            {getContentFromWeb3State()}
-        </>
-    );
+    return <>{getContentFromWeb3State()}</>;
 };
 
 export { Web3StateButton };

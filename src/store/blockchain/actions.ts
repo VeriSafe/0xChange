@@ -3,6 +3,7 @@ import { ERC20TokenContract, ERC721TokenContract } from '@0x/contract-wrappers';
 import { signatureUtils } from '@0x/order-utils';
 import { MetamaskSubprovider } from '@0x/subproviders';
 import { BigNumber } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import { createAction, createAsyncAction } from 'typesafe-actions';
 
 import {
@@ -14,11 +15,13 @@ import {
     USE_RELAYER_MARKET_UPDATES,
     ZERO,
 } from '../../common/constants';
+import { addAvailableMarket } from '../../common/markets';
 import { ConvertBalanceMustNotBeEqualException } from '../../exceptions/convert_balance_must_not_be_equal_exception';
 import { SignedOrderException } from '../../exceptions/signed_order_exception';
 import { subscribeToAllFillEvents, subscribeToFillEvents } from '../../services/exchange';
 import { getGasEstimationInfoAsync } from '../../services/gas_price_estimation';
 import { LocalStorage } from '../../services/local_storage';
+import { getTokenMetaData } from '../../services/relayer';
 import { tokensToTokenBalances, tokenToTokenBalance } from '../../services/tokens';
 import { deleteWeb3Wrapper, isMetamaskInstalled } from '../../services/web3_wrapper';
 import * as serviceWorker from '../../serviceWorker';
@@ -51,6 +54,7 @@ import {
 import { getAllCollectibles } from '../collectibles/actions';
 import {
     fetchMarkets,
+    setCurrencyPair,
     setMarketTokens,
     updateMarketPriceEther,
     updateMarketPriceQuote,
@@ -84,6 +88,7 @@ import {
     setHasUnreadNotifications,
     setMarketFills,
     setNotifications,
+    setNotKnownToken,
     setUserFills,
     setUserMarketFills,
 } from '../ui/actions';
@@ -636,8 +641,18 @@ const initWalletERC20: ThunkCreator<Promise<any>> = () => {
             // tslint:disable-next-line:no-floating-promises
             dispatch(getOrderBook());
         } else {
-            const state = getState();
+            const parsedUrl = new URL(window.location.href.replace('#/', ''));
+            const base = parsedUrl.searchParams.get('base');
             const knownTokens = getKnownTokens();
+            if (base && Web3Wrapper.isAddress(base) && !knownTokens.isKnownAddress(base)) {
+                const tokenToAdd = await knownTokens.addTokenByAddress(base);
+                const market = tokenToAdd && addAvailableMarket(tokenToAdd);
+                if (market) {
+                    dispatch(setCurrencyPair(market));
+                }
+                dispatch(setNotKnownToken(true));
+            }
+            const state = getState();
             const ethAccount = getEthAccount(state);
 
             const tokenBalances = await tokensToTokenBalances(knownTokens.getTokens(), ethAccount);
@@ -857,7 +872,7 @@ export const initializeAppNoMetamaskOrLocked: ThunkCreator = () => {
  */
 export const initializeAppWallet: ThunkCreator = () => {
     return async (dispatch, getState) => {
-        const state = getState();
+        let state = getState();
         // detect if is mobile operate system
         // Note: need to disable service workers when inside dapp browsers
         if (envUtil.isMobileOperatingSystem()) {
@@ -900,9 +915,33 @@ export const initializeAppWallet: ThunkCreator = () => {
         if (!wallet) {
             dispatch(setWeb3State(Web3State.Connect));
         }
-
-        const currencyPair = getCurrencyPair(state);
+        const parsedUrl = new URL(window.location.href.replace('#/', ''));
+        const base = parsedUrl.searchParams.get('base');
         const knownTokens = getKnownTokens();
+        if (base && Web3Wrapper.isAddress(base) && !knownTokens.isKnownAddress(base)) {
+            const tokenData = await getTokenMetaData(base);
+            if (tokenData) {
+                let tokenToAdd = {
+                    address: tokenData.address,
+                    decimals: Number(tokenData.decimals),
+                    name: tokenData.name,
+                    symbol: tokenData.symbol.toLowerCase(),
+                    primaryColor: '#081e6e',
+                    displayDecimals: 2,
+                    listed: false,
+                };
+                tokenToAdd = await knownTokens.fetchTokenMetadaFromGecko(tokenToAdd);
+                knownTokens.pushToken(tokenToAdd);
+                const market = addAvailableMarket(tokenToAdd);
+                if (market) {
+                    dispatch(setCurrencyPair(market));
+                }
+                dispatch(setNotKnownToken(true));
+            }
+        }
+
+        state = getState();
+        const currencyPair = getCurrencyPair(state);
         const baseToken = knownTokens.getTokenBySymbol(currencyPair.base);
         const quoteToken = knownTokens.getTokenBySymbol(currencyPair.quote);
 

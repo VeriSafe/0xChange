@@ -3,6 +3,7 @@ import { getType } from 'typesafe-actions';
 
 import { getAvailableMarkets } from '../../common/markets';
 import { getCurrencyPairByTokensSymbol } from '../../util/known_currency_pairs';
+import { getKnownTokens } from '../../util/known_tokens';
 import { MarketState } from '../../util/types';
 import * as actions from '../actions';
 import { RootAction } from '../reducers';
@@ -11,6 +12,9 @@ const parsedUrl = new URL(window.location.href.replace('#/', ''));
 const base = parsedUrl.searchParams.get('base') || getAvailableMarkets()[0].base;
 const quote = parsedUrl.searchParams.get('quote') || getAvailableMarkets()[0].quote;
 let currencyPair;
+
+const known_tokens = getKnownTokens();
+
 try {
     currencyPair = getCurrencyPairByTokensSymbol(base, quote);
 } catch (e) {
@@ -27,8 +31,8 @@ const getMakerAddresses = () => {
 
 const initialMarketState: MarketState = {
     currencyPair,
-    baseToken: null,
-    quoteToken: null,
+    baseToken: known_tokens.getTokenBySymbol(currencyPair.base),
+    quoteToken: known_tokens.getTokenBySymbol(currencyPair.quote),
     markets: null,
     ethInUsd: null,
     tokensPrice: null,
