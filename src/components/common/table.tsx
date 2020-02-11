@@ -10,6 +10,8 @@ interface TableStyleProps {
     textAlign?: string;
     fontWeight?: string;
     lineWeight?: string;
+    fontSize?: string;
+    textTransform?: string;
 }
 
 interface TableProps {
@@ -59,14 +61,15 @@ export const TH = styled.th<TableTDProps>`
     border-top: ${props =>
         props.styles && props.styles.borderTop ? `1px solid ${props.theme.componentsTheme.tableBorderColor}` : 'none'};
     color: ${props => (props.styles && props.styles.color ? props.styles.color : props.theme.componentsTheme.thColor)};
-    font-size: 12px;
+    font-size: ${props =>
+        props.styles && props.styles.fontSize ? props.styles.fontSize : props.theme.componentsTheme.thFontSize};
     font-weight: 500;
     letter-spacing: 0.5px;
     line-height: 1.2;
     padding: 0 ${themeDimensions.horizontalPadding} 5px 0;
     text-align: ${props =>
         props.styles && props.styles.textAlign && props.styles.textAlign.length ? props.styles.textAlign : 'left'};
-    text-transform: uppercase;
+    text-transform: ${props => (props.styles && props.styles.textTransform ? props.styles.textTransform : 'uppercase')};
     white-space: nowrap;
 
     &:last-child {
@@ -83,7 +86,8 @@ export const CustomTD = styled.td<TableTDProps>`
         props.styles && props.styles.borderTop ? `1px solid ${props.theme.componentsTheme.tableBorderColor}` : 'none'};
     color: ${props => (props.styles && props.styles.color ? props.styles.color : props.theme.componentsTheme.tdColor)};
     font-feature-settings: 'tnum' ${props => (props.styles && props.styles.tabular ? '1' : '0')};
-    font-size: 14px;
+    font-size: ${props =>
+        props.styles && props.styles.fontSize ? props.styles.fontSize : props.theme.componentsTheme.tdFontSize};
     font-weight: ${props => (props.styles && props.styles.fontWeight ? props.styles.fontWeight : 'normal')};
     line-height: ${props => (props.styles && props.styles.lineWeight ? props.styles.lineWeight : '1.2')};
     padding: 5px ${themeDimensions.horizontalPadding} 5px 0;

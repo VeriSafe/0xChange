@@ -1,6 +1,6 @@
 import { Styles } from 'react-modal';
 
-import { Theme, ThemeProperties } from './commons';
+import { fontSizes, Theme, ThemeProperties } from './commons';
 
 const modalThemeStyle: Styles = {
     content: {
@@ -50,9 +50,11 @@ const lightThemeColors: ThemeProperties = {
     buttonTorusBackgroundColor: '#3a96ff',
     cardImageBackgroundColor: '#EBF0F5',
     cardBackgroundColor: '#fff',
+    cardHeaderBackgroundColor: '#fff',
     cardBorderColor: '#dedede',
     cardTitleColor: '#000',
     cardTitleOwnerColor: '#3CB34F',
+    cardTitleFontSize: '13px',
     chartColor: '#00AE99',
     darkBlue: '#002979',
     darkGray: '#474747',
@@ -103,6 +105,7 @@ const lightThemeColors: ThemeProperties = {
     stepsProgressStepTitleColorActive: '#000',
     tableBorderColor: '#dedede',
     tdColor: '#000',
+    tdFontSize: '12px',
     textColorCommon: '#000',
     textDark: '#666',
     textInputBackgroundColor: '#F9F9F9',
@@ -111,11 +114,13 @@ const lightThemeColors: ThemeProperties = {
     textLight: '#999',
     textLighter: '#666',
     thColor: '#B9B9B9',
+    thFontSize: '12px',
     tooltipBackgroundColor: '#222',
     tooltipTextColor: '#fff',
     topbarBackgroundColor: '#fff',
     topbarBorderColor: '#dedede',
     topbarSeparatorColor: '#dedede',
+    ...fontSizes,
 };
 
 export class DefaultTheme implements Theme {

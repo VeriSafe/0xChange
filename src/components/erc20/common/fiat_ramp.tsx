@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled, { withTheme } from 'styled-components';
 
-import { COINDIRECT_MERCHANT_ID, WYRE_ID } from '../../../common/constants';
+import { COINDIRECT_MERCHANT_ID, MOONPAY_API_KEY, WYRE_ID } from '../../../common/constants';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
 import { isMobile } from '../../../util/screen';
 import { useWindowSize } from '../../common/hooks/window_size_hook';
@@ -57,6 +57,14 @@ export const FiatOnRampModal = (props: Props) => {
     const [isLoading, setLoading] = useState(true);
     let fiat_link: string = 'link';
     let coinType;
+    useEffect(() => {
+        // https://gist.github.com/vfaramond/db042057d022169b872ce2b25b914d68
+        const isSafari = navigator.userAgent.indexOf('Safari') > -1;
+        if (!document.cookie.match(/^(.*;)?\s*moonpay-fixed\s*=\s*[^;]+(.*)?$/) && isSafari && fiatType === 'cards') {
+            document.cookie = 'moonpay-fixed=fixed; expires=Tue, 19 Jan 2038 03:14:07 UTC; path=/';
+            window.location.replace('https://buy.moonpay.io/safari_fix');
+        }
+    }, []);
     const frame_width = isMobile(size.width) ? `${size.width - 10}` : '500';
     switch (fiatType) {
         case 'apple-pay':
@@ -101,6 +109,20 @@ export const FiatOnRampModal = (props: Props) => {
                     break;
             }
             fiat_link = `https://business.coindirect.com/buy?merchantId=${COINDIRECT_MERCHANT_ID}&to=${coinType}&address=${ethAccount}`;
+            break;
+        case 'cards':
+            switch (coin) {
+                case 'eth':
+                    coinType = 'eth';
+                    break;
+                case 'btc':
+                    coinType = 'btc';
+                    break;
+                default:
+                    coinType = 'eth';
+                    break;
+            }
+            fiat_link = `https://buy.moonpay.io?apiKey=${MOONPAY_API_KEY}&enabledPaymentMethods=credit_debit_card,sepa_bank_transfer,gbp_bank_transfer&currencyCode=${coinType}`;
             break;
 
         default:

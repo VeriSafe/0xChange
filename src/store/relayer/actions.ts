@@ -1,9 +1,8 @@
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { createAction } from 'typesafe-actions';
 
-import { FEE_PERCENTAGE, FEE_RECIPIENT, ZERO } from '../../common/constants';
+import { FEE_PERCENTAGE, FEE_RECIPIENT } from '../../common/constants';
 import { INSUFFICIENT_ORDERS_TO_FILL_AMOUNT_ERR } from '../../exceptions/common';
 import { InsufficientOrdersAmountException } from '../../exceptions/insufficient_orders_amount_exception';
 import { RelayerException } from '../../exceptions/relayer_exception';
@@ -18,7 +17,6 @@ import {
 import {
     getAccountMarketStatsFromRelayer,
     getAllIEOSignedOrders,
-    getFillsFromRelayer,
     getMarketFillsFromRelayer,
     getRelayer,
     postIEOSignedOrder,
@@ -71,7 +69,7 @@ import {
     getWeb3State,
     getWethTokenBalance,
 } from '../selectors';
-import { addFills, addMarketFills, addNotifications, setFills, setMarketFills } from '../ui/actions';
+import { addMarketFills, addNotifications, setMarketFills } from '../ui/actions';
 
 const logger = getLogger('Store::Market::Actions');
 
@@ -314,21 +312,17 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
             const quoteToken = getQuoteToken(state) as Token;
             // Check if the order is fillable using the forwarder
             const ethBalance = getEthBalance(state) as BigNumber;
-            const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
+            /*const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
-            }, ZERO);
+            }, ZERO);*/
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            const feeAmount = ordersToFill.map(o => o.takerFee).reduce((p, c) => p.plus(c));
-            const affiliateFeeAmount = ethAmountRequired
+            const affiliateFeeAmount = amount
                 .plus(protocolFee)
-                .plus(feeAmount)
                 .multipliedBy(feePercentange)
-                .integerValue(BigNumber.ROUND_CEIL);
+                .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = ethAmountRequired
-                .plus(protocolFee)
-                .plus(affiliateFeeAmount)
-                .plus(feeAmount);
+            const totalEthAmount = amount.plus(protocolFee).plus(affiliateFeeAmount);
+
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
             const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -347,7 +341,7 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            [Web3Wrapper.toBaseUnitAmount(feePercentange, 18)],
+                            [affiliateFeeAmount],
                             [feeRecipient],
                         )
                         .sendTransactionAsync({
@@ -412,7 +406,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
     return async (dispatch, getState, { getContractWrappers, getWeb3Wrapper }) => {
         const state = getState();
         const feeRecipient = getFeeRecipient(state) || FEE_RECIPIENT;
-        const feePercentange = Number(getFeePercentage(state)) || FEE_PERCENTAGE;
+        const feePercentange = Number(getFeePercentage(state)) || Number(FEE_PERCENTAGE);
         const ethAccount = getEthAccount(state);
         const gasPrice = getGasPriceInWei(state);
 
@@ -433,21 +427,19 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
 
             // Check if the order is fillable using the forwarder
             const ethBalance = getEthBalance(state) as BigNumber;
-            const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
+            /*const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
-            }, ZERO);
+            }, ZERO);*/
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
-            const feeAmount = ordersToFill.map(o => o.takerFee).reduce((p, c) => p.plus(c));
-            const affiliateFeeAmount = ethAmountRequired
+            const affiliateFeeAmount = amount
                 .plus(protocolFee)
-                .plus(feeAmount)
                 .multipliedBy(feePercentange)
-                .integerValue(BigNumber.ROUND_CEIL);
+                .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = ethAmountRequired
+            const totalEthAmount = amount
                 .plus(protocolFee)
                 .plus(affiliateFeeAmount)
-                .plus(feeAmount);
+                .integerValue(BigNumber.ROUND_UP);
 
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
@@ -466,7 +458,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                             ordersToFill,
                             amount,
                             orderSignatures,
-                            [Web3Wrapper.toBaseUnitAmount(feePercentange, 18)],
+                            [affiliateFeeAmount],
                             [feeRecipient],
                         )
                         .sendTransactionAsync({
@@ -604,7 +596,10 @@ export const subscribeToRelayerWebsocketFillEvents: ThunkCreator<Promise<void>> 
                             takerAddress: fill.takerAddress,
                             market: fill.pair,
                         };
-                        dispatch(addFills([newFill]));
+                        /* We are not using 0x market trades anymore
+
+                           dispatch(addFills([newFill]));
+                        */
                         dispatch(
                             addMarketFills({
                                 [fill.pair]: [newFill],
@@ -638,11 +633,12 @@ export const fetchPastFills: ThunkCreator<Promise<void>> = () => {
         dispatch(setMarketFills(localStorage.getMarketFills(ethAccount)));*/
 
         try {
-            const fillsResponse = await getFillsFromRelayer();
             const currencyPair = getCurrencyPair(state);
             const market = marketToString(currencyPair);
             const marketFillsResponse = await getMarketFillsFromRelayer(market);
             const known_tokens = getKnownTokens();
+            /* As we take
+            const fillsResponse = await getFillsFromRelayer();
             if (fillsResponse) {
                 const fills = fillsResponse.records;
                 if (fills.length > 0) {
@@ -657,7 +653,7 @@ export const fetchPastFills: ThunkCreator<Promise<void>> = () => {
                         dispatch(setFills(filteredFills));
                     }
                 }
-            }
+            }*/
             if (marketFillsResponse) {
                 const fills = marketFillsResponse.records;
                 if (fills.length > 0) {

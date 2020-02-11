@@ -1,9 +1,11 @@
 import { BigNumber } from '@0x/utils';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { fetchBaseTokenIEO, initWallet, startBuySellLimitIEOSteps } from '../../../store/actions';
+import { addAvailableMarket } from '../../../common/markets';
+import { fetchBaseTokenIEO, initWallet, setCurrencyPair, startBuySellLimitIEOSteps } from '../../../store/actions';
 import { fetchTakerAndMakerFeeIEO } from '../../../store/relayer/actions';
 import {
     getBaseTokenBalanceIEO,
@@ -63,6 +65,7 @@ interface DispatchProps {
     onConnectWallet: () => any;
     onFetchTakerAndMakerFee: (amount: BigNumber, price: BigNumber, side: OrderSide) => Promise<any>;
     onFetchBaseTokenIEO: (token: TokenIEO) => Promise<any>;
+    onAddCurrencyPair: (currencyPair: CurrencyPair) => any;
 }
 
 type Props = StateProps & DispatchProps;
@@ -205,6 +208,7 @@ const parsedUrl = new URL(window.location.href.replace('#/', ''));
 const tokenName = parsedUrl.searchParams.get('token');
 const symbol = parsedUrl.searchParams.get('symbol');
 const bot = parsedUrl.searchParams.get('bot');
+const makerAddress = parsedUrl.searchParams.get('makerAddress');
 
 class IEOOrder extends React.Component<Props, State> {
     public state: State = {
@@ -221,7 +225,22 @@ class IEOOrder extends React.Component<Props, State> {
     public componentDidMount = async () => {
         const known_tokens = getKnownTokensIEO();
         let token;
-        if (tokenName) {
+        if (tokenName && makerAddress && Web3Wrapper.isAddress(tokenName) && Web3Wrapper.isAddress(makerAddress)) {
+            if (known_tokens.isKnownAddress(tokenName)) {
+                await this.props.onFetchBaseTokenIEO(known_tokens.getTokenByAddress(tokenName));
+            } else {
+                token = await known_tokens.addTokenByAddress(tokenName, makerAddress);
+                if (token) {
+                    await this.props.onFetchBaseTokenIEO(token);
+                    const market = addAvailableMarket(token);
+                    if (market) {
+                        this.props.onAddCurrencyPair(market);
+                    }
+                }
+            }
+        }
+
+        if (tokenName && !Web3Wrapper.isAddress(tokenName)) {
             bot
                 ? (token = known_tokens.getTokenBotByName(tokenName))
                 : (token = known_tokens.getTokenByName(tokenName));
@@ -248,7 +267,7 @@ class IEOOrder extends React.Component<Props, State> {
         if (newProps.ethAccount !== prevProps.ethAccount) {
             const known_tokens = getKnownTokensIEO();
             let token;
-            if (tokenName) {
+            if (tokenName && !Web3Wrapper.isAddress(tokenName)) {
                 bot
                     ? (token = known_tokens.getTokenBotByName(tokenName))
                     : (token = known_tokens.getTokenByName(tokenName));
@@ -259,6 +278,22 @@ class IEOOrder extends React.Component<Props, State> {
                     ? (token = known_tokens.getTokenBotBySymbol(symbol))
                     : (token = known_tokens.getTokenBySymbol(symbol));
                 await this.props.onFetchBaseTokenIEO(token);
+            }
+
+            if (tokenName && makerAddress && Web3Wrapper.isAddress(tokenName) && Web3Wrapper.isAddress(makerAddress)) {
+                if (known_tokens.isKnownAddress(tokenName)) {
+                    await this.props.onFetchBaseTokenIEO(known_tokens.getTokenByAddress(tokenName));
+                } else {
+                    token = await known_tokens.addTokenByAddress(tokenName, makerAddress);
+
+                    if (token) {
+                        await this.props.onFetchBaseTokenIEO(token);
+                        const market = addAvailableMarket(token);
+                        if (market) {
+                            this.props.onAddCurrencyPair(market);
+                        }
+                    }
+                }
             }
 
             if (!token) {
@@ -337,7 +372,7 @@ class IEOOrder extends React.Component<Props, State> {
                         <FieldContainer>
                             <BigInputNumberStyled
                                 decimals={decimals}
-                                min={new BigNumber(0)}
+                                min={new BigNumber(1).div(new BigNumber(10).pow(pricePrecision))}
                                 onChange={this.updateMakerAmount}
                                 value={amount}
                                 step={stepAmountUnits}
@@ -352,7 +387,7 @@ class IEOOrder extends React.Component<Props, State> {
                         <FieldContainer>
                             <BigInputNumberStyled
                                 decimals={0}
-                                min={new BigNumber(0)}
+                                min={new BigNumber(1).div(new BigNumber(10).pow(pricePrecision))}
                                 onChange={this.updatePrice}
                                 value={price}
                                 step={new BigNumber(1).div(new BigNumber(10).pow(pricePrecision))}
@@ -459,6 +494,7 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
         onFetchBaseTokenIEO: (token: TokenIEO) => dispatch(fetchBaseTokenIEO(token)),
         onFetchTakerAndMakerFee: (amount: BigNumber, price: BigNumber, side: OrderSide) =>
             dispatch(fetchTakerAndMakerFeeIEO(amount, price, side)),
+        onAddCurrencyPair: (currencyPair: CurrencyPair) => dispatch(setCurrencyPair(currencyPair)),
     };
 };
 

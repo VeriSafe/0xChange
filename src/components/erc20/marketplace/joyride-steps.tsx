@@ -9,11 +9,24 @@ const commonSteps: Step[] = [
         target: '.market-details',
         content: 'Market Stats: Show all market details related to the selected pair and respective graphic',
     },
-    {
+    /*   {
         target: '.wallet-balance',
         content: 'Wallet Balances: Shows your balances of current active pair',
         placementBeacon: 'bottom',
         placement: 'bottom',
+    },*/
+    {
+        target: '.orderbook',
+        content: 'OrderBook: Shows bid and asks for active current pair',
+    },
+    {
+        target: '.market-fills',
+        content: 'Market History: Shows most recent market fills for the current active pair.',
+    },
+    {
+        target: '.orderhistory',
+        content:
+            'Open Orders: Shows your open orders for active current pair. You can check filled balance and cancel orders here.',
     },
     {
         target: '.buy-sell',
@@ -22,51 +35,39 @@ const commonSteps: Step[] = [
         placement: 'bottom',
         placementBeacon: 'bottom',
     },
-    {
-        target: '.orderbook',
-        content: 'OrderBook: Shows bid and asks for active current pair',
-    },
-    {
-        target: '.orderhistory',
-        content:
-            'My Current Orders: Shows your open orders for active current pair. You can check filled balance and cancel orders here.',
-    },
-    {
-        target: '.market-fills',
-        content: 'Market History: Shows most recent market fills for the current active pair.',
-    },
-    {
+    /*{
         target: '.order-fills',
         content: '0x Mesh Trades: Shows all recent trades on 0x network for the listed pairs on this dex.',
-    },
+    },*/
 ];
 
 export const marketPlaceSteps: Step[] = [
     {
-        target: '.theme-switcher',
-        content: 'Choose a theme between Light or Dark',
+        target: '.settings-dropdown',
+        content:
+            'Choose between Light or Dark themes, choose to use custom or static layout. Hide/resize cards when custom layout is enabled',
         disableBeacon: true,
         floaterProps: { disableAnimation: true },
     },
     {
         target: '.buy-eth',
         content:
-            'Buy ETH with Apple Pay, Credit or Debit Cards using our integrated fiat on ramps from our parterns: Wyre and Coindirect',
+            'Buy ETH with Apple Pay, Credit or Debit Cards using our integrated fiat on ramps from our parterns: Wyre and Moonpay',
     },
-    {
+    /* {
         target: '.my-wallet',
         content:
             'Navigate to your Wallet. Here you can check all token balances, transfer tokens and buy tokens instantly',
-    },
+    },*/
     {
         target: '.wallet-dropdown',
         content:
-            'Check the navigation menu. Here you can copy to clipboard, set alerts, check your etherscan wallet, go to launchpad or lend tokens at lending page',
+            'Check the navigation menu. Here you can navigate to your wallet balances, copy to clipboard, set alerts, check your etherscan wallet, go to launchpad or lend tokens at lending page',
     },
-    {
+    /*  {
         target: '.markets-dropdown',
         content: 'Check all markets clicking on this dropdown',
-    },
+    },*/
     {
         target: '.notifications',
         content: 'Check all related blockchain notifications here from market buy, market sell and token transfers.',

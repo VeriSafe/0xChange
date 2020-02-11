@@ -101,6 +101,10 @@ export const setUserMarketFills = createAction('ui/FILLS_USER_MARKET_set', resol
     return (newUserMarketFills: MarketFill) => resolve(newUserMarketFills);
 });
 
+export const setTour = createAction('ui/TOUR_set', resolve => {
+    return (setIsTour: boolean) => resolve(setIsTour);
+});
+
 export const setUserFills = createAction('ui/FILLS_USER_set', resolve => {
     return (userFills: Fill[]) => resolve(userFills);
 });
@@ -170,7 +174,11 @@ export const setConfigData = createAction('ui/CONFIG_DATA_set', resolve => {
 });
 
 export const setFiatType = createAction('ui/FIAT_TYPE_set', resolve => {
-    return (fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD') => resolve(fiatType);
+    return (fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CARDS') => resolve(fiatType);
+});
+
+export const setNotKnownToken = createAction('ui/NOT_KNOWN_TOKEN_set', resolve => {
+    return (isNotKnownToken: boolean) => resolve(isNotKnownToken);
 });
 
 export const startToggleTokenLockSteps: ThunkCreator = (token: Token, isUnlocked: boolean) => {

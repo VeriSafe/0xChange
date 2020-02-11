@@ -1,13 +1,14 @@
 @import url('https://rsms.me/inter/inter.css');
 @import url('https://rsms.me/inter/inter-ui.css');
+@import url('https://fonts.googleapis.com/css?family=Nunito&display=swap');
 
 html {
-    font-family: 'Inter', sans-serif;
+    font-family:  'Nunito', sans-serif;
 }
 
 @supports (font-variation-settings: normal) {
     html {
-        font-family: 'Inter var', sans-serif;
+        font-family: 'Nunito', sans-serif;
     }
 }
 
@@ -30,6 +31,9 @@ code {
 #zerox-widget{
     z-index: 99999999;
 }
+
+
+
 
 @media screen and (max-width: 600px) {
 
@@ -95,7 +99,7 @@ code {
   }
   
   .react-grid-item.react-grid-placeholder {
-    background: red;
+    background: gray;
     opacity: 0.2;
     transition-duration: 100ms;
     z-index: 2;

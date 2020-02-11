@@ -176,12 +176,12 @@ class MarketTradeDetails extends React.Component<Props, State> {
 
     public render = () => {
         // const fee = this._getFeeStringForRender();
-         const cost = this._getCostStringForRender();
-         const costText = this._getCostLabelStringForRender();
-         const priceMedianText = this._getMedianPriceStringForRender();
-         const priceMarketTrackerText = this._getPriceMarketRender();
+        const cost = this._getCostStringForRender();
+        const costText = this._getCostLabelStringForRender();
+        const priceMedianText = this._getMedianPriceStringForRender();
+        const priceMarketTrackerText = this._getPriceMarketRender();
 
-         return (
+        return (
             <>
                 <LabelContainer>
                     <MainLabel>Order Details</MainLabel>

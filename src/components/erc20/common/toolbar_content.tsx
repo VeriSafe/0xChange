@@ -1,29 +1,29 @@
 import React from 'react';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router';
 import styled, { withTheme } from 'styled-components';
 
-import { UI_GENERAL_TITLE } from '../../../common/constants';
+import { ERC20_APP_BASE_PATH, UI_GENERAL_TITLE } from '../../../common/constants';
 import { Logo } from '../../../components/common/logo';
 import { separatorTopbar, ToolbarContainer } from '../../../components/common/toolbar';
 import { NotificationsDropdownContainer } from '../../../components/notifications/notifications_dropdown';
 import {
     goToHome,
+    goToHomeMarketTrade,
     goToWallet,
     openFiatOnRampChooseModal,
     openSideBar,
-    setERC20Theme,
-    setThemeName,
-    goToHomeMarketTrade,
+    setTour,
 } from '../../../store/actions';
-import { getCurrentMarketPlace, getGeneralConfig, getThemeName } from '../../../store/selectors';
+import { getCurrentMarketPlace, getGeneralConfig } from '../../../store/selectors';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
-import { getThemeFromConfigDex } from '../../../themes/theme_meta_data_utils';
 import { isMobile } from '../../../util/screen';
 import { MARKETPLACES } from '../../../util/types';
 import { Button } from '../../common/button';
 import { withWindowWidth } from '../../common/hoc/withWindowWidth';
 import { LogoIcon } from '../../common/icons/logo_icon';
 import { MenuBurguer } from '../../common/icons/menu_burguer';
+import { SettingsDropdownContainer } from '../account/settings_dropdown';
 import { WalletConnectionContentContainer } from '../account/wallet_connection_content';
 
 import { MarketsDropdownStatsContainer } from './markets_dropdown_stats';
@@ -41,21 +41,6 @@ interface OwnProps {
 }
 
 type Props = DispatchProps & OwnProps;
-
-const MyWalletLink = styled.a`
-    align-items: center;
-    color: ${props => props.theme.componentsTheme.myWalletLinkColor};
-    display: flex;
-    font-size: 16px;
-    font-weight: 500;
-    text-decoration: none;
-
-    &:hover {
-        text-decoration: underline;
-    }
-
-    ${separatorTopbar}
-`;
 
 const LogoHeader = styled(Logo)`
     ${separatorTopbar}
@@ -109,25 +94,18 @@ const ToolbarContent = (props: Props) => {
         props.onGoToHome();
     };
     const generalConfig = useSelector(getGeneralConfig);
-    const themeName = useSelector(getThemeName);
     const marketplace = useSelector(getCurrentMarketPlace);
+    const location = useLocation();
+    const isHome = location.pathname === ERC20_APP_BASE_PATH || location.pathname === `${ERC20_APP_BASE_PATH}/`;
+
     const logo = generalConfig && generalConfig.icon ? <LogoIcon icon={generalConfig.icon} /> : null;
     const dispatch = useDispatch();
     const setOpenSideBar = () => {
         dispatch(openSideBar(true));
     };
-    const handleThemeClick = () => {
-        const themeN = themeName === 'DARK_THEME' ? 'LIGHT_THEME' : 'DARK_THEME';
-        dispatch(setThemeName(themeN));
-        const theme = getThemeFromConfigDex(themeN);
-        dispatch(setERC20Theme(theme));
-    };
+
     const handleFiatChooseModal = () => {
         dispatch(openFiatOnRampChooseModal(true));
-    };
-    const handleMarketTradeClick: React.EventHandler<React.MouseEvent> = e => {
-        e.preventDefault();
-        props.onGoToHomeMarketTrade();
     };
 
     const dropdownHeader =
@@ -138,6 +116,7 @@ const ToolbarContent = (props: Props) => {
         );
 
     let startContent;
+    let endOptContent;
     if (isMobile(props.windowWidth)) {
         startContent = (
             <>
@@ -156,18 +135,18 @@ const ToolbarContent = (props: Props) => {
                     text={(generalConfig && generalConfig.title) || UI_GENERAL_TITLE}
                     textColor={props.theme.componentsTheme.logoERC20TextColor}
                 />
-                {dropdownHeader}
-                <MyWalletLink href="/market-trade" onClick={handleMarketTradeClick} className={'market-trade'}>
+                {!isHome && dropdownHeader}
+                {/* <MyWalletLink href="/market-trade" onClick={handleMarketTradeClick} className={'market-trade'}>
                    Market Trade
-                </MyWalletLink>
+                </MyWalletLink>*/}
             </>
         );
     }
 
-    const handleMyWalletClick: React.EventHandler<React.MouseEvent> = e => {
-        e.preventDefault();
-        props.onGoToWallet();
+    const handleTour: React.EventHandler<React.MouseEvent> = e => {
+        dispatch(setTour(true));
     };
+
     let endContent;
     if (isMobile(props.windowWidth)) {
         endContent = (
@@ -176,24 +155,29 @@ const ToolbarContent = (props: Props) => {
             </>
         );
     } else {
-        endContent = (
+        endOptContent = (
             <>
-                <StyledButton onClick={handleThemeClick} className={'theme-switcher'}>
-                    {themeName === 'DARK_THEME' ? '☼' : '🌑'}
-                </StyledButton>
+                {/*  <SettingsContentContainer  className={'settings-dropdown'} /> */}
+                <SettingsDropdownContainer className={'settings-dropdown'} />
+                <StyledButton onClick={handleTour}>Tour</StyledButton>
                 <StyledButton onClick={handleFiatChooseModal} className={'buy-eth'}>
                     Buy ETH
                 </StyledButton>
-                <MyWalletLink href="/my-wallet" onClick={handleMyWalletClick} className={'my-wallet'}>
+            </>
+        );
+
+        endContent = (
+            <>
+                {/* <MyWalletLink href="/my-wallet" onClick={handleMyWalletClick} className={'my-wallet'}>
                     My Wallet
-                </MyWalletLink>
+        </MyWalletLink> */}
                 <WalletDropdown className={'wallet-dropdown'} />
                 <NotificationsDropdownContainer className={'notifications'} />
             </>
         );
     }
 
-    return <ToolbarContainer startContent={startContent} endContent={endContent} />;
+    return <ToolbarContainer startContent={startContent} endContent={endContent} endOptContent={endOptContent} />;
 };
 
 const mapDispatchToProps = (dispatch: any): DispatchProps => {

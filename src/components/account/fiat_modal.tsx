@@ -3,7 +3,8 @@ import Modal from 'react-modal';
 import { useDispatch, useSelector } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
-import { COINDIRECT_MERCHANT_ID, WYRE_ID } from '../../common/constants';
+import { COINDIRECT_MERCHANT_ID, MOONPAY_API_KEY, WYRE_ID } from '../../common/constants';
+import { postMoonpaySignature } from '../../services/relayer';
 import { openFiatOnRampModal } from '../../store/actions';
 import { getEthAccount, getFiatType, getOpenFiatOnRampModalState } from '../../store/selectors';
 import { Theme, themeBreakPoints } from '../../themes/commons';
@@ -29,6 +30,8 @@ const ModalContent = styled.div`
     height: 810px;
     @media (max-width: ${themeBreakPoints.sm}) {
         width: inherit;
+        width: 100%;
+        height: 100%;
     }
 `;
 
@@ -67,6 +70,8 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     const fiatType = useSelector(getFiatType);
     const isOpen = useSelector(getOpenFiatOnRampModalState);
     const [loading, setLoading] = useState(true);
+    const [fiatLink, setFiatLink] = useState('link');
+    const [isMoonPayLoaded, setIsMoonPayLoaded] = useState(false);
     const reset = () => {
         dispatch(openFiatOnRampModal(false));
     };
@@ -77,21 +82,53 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     switch (fiatType) {
         case 'APPLE_PAY':
             fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=apple-pay&accountId=${WYRE_ID}`;
+            if (fiatLink !== fiat_link) {
+                setFiatLink(fiat_link);
+            }
             description = `Disclaimer  <br />
             Veridex now enables easy purchase of Ether using ApplePay, through Wyre!`;
             // window.open(fiat_link);
             break;
         case 'DEBIT_CARD':
             fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=debit-card&accountId=${WYRE_ID}`;
+            if (fiatLink !== fiat_link) {
+                setFiatLink(fiat_link);
+            }
             description = `Disclaimer  <br />
             Veridex now enables easy purchase of Ether using Mastercad and Visa cards, through Wyre!`;
             break;
         case 'CREDIT_CARD':
             fiat_link = `https://business.coindirect.com/buy?merchantId=${COINDIRECT_MERCHANT_ID}&to=eth&address=${ethAccount}`;
+            if (fiatLink !== fiat_link) {
+                setFiatLink(fiat_link);
+            }
             description = `Disclaimer  <br />
     Veridex now enables easy purchase of Ether using credit & debit cards, through Coindirect! <br />
     Once payment is completed, you can check your payment status on Coindirect and deposit history in your ethereum wallet.<br />
     If you have any questions, please contact: support@coindirect.com`;
+            break;
+        case 'CARDS':
+            const baseMoonPay = 'https://buy.moonpay.io/';
+
+            if (ethAccount) {
+                if (!isMoonPayLoaded) {
+                    const link = `${baseMoonPay}?apiKey=${MOONPAY_API_KEY}&enabledPaymentMethods=credit_debit_card,sepa_bank_transfer,gbp_bank_transfer&currencyCode=eth&walletAddress=${ethAccount}`;
+                    postMoonpaySignature({ url: link }).then(response => {
+                        if (response) {
+                            setFiatLink(response.urlWithSignature);
+                            setIsMoonPayLoaded(true);
+                        }
+                    });
+                }
+            } else {
+                fiat_link = `${baseMoonPay}?apiKey=${MOONPAY_API_KEY}&enabledPaymentMethods=credit_debit_card,sepa_bank_transfer,gbp_bank_transfer&currencyCode=eth`;
+                if (fiatLink !== fiat_link) {
+                    setFiatLink(fiat_link);
+                }
+            }
+            description = `Disclaimer  <br />
+        Veridex now enables easy purchase of Ether using credit & debit cards, through Moonpay! <br />
+        Once payment is completed, you can check your payment status on Moonpay and deposit history in your ethereum wallet.<br />`;
             break;
 
         default:
@@ -109,7 +146,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     return (
         <Modal isOpen={isOpen} style={theme.modalTheme}>
             <CloseModalButton onClick={reset} />
-            <ModalContent style={{ height: `${size.height - 10}px` }}>
+            <ModalContent style={{ height: `${size.height}px` }}>
                 <Title>BUY ETH {toolTip}</Title>
                 {loading && fiatType !== 'APPLE_PAY' && <LoadingWrapper minHeight="120px" />}
                 {fiatType === 'APPLE_PAY' ? (
@@ -117,15 +154,17 @@ export const FiatOnRampModal: React.FC<Props> = props => {
                         Use our Provider Wyre
                     </ApplePayLink>
                 ) : (
-                    <iframe
-                        title="fiat_on_ramp"
-                        src={fiat_link}
-                        width={frame_width}
-                        height={frame_height}
-                        frameBorder="0"
-                        allowFullScreen={true}
-                        onLoad={onload}
-                    />
+                    fiatLink !== 'link' && (
+                        <iframe
+                            title="fiat_on_ramp"
+                            src={fiatLink}
+                            width={frame_width}
+                            height={frame_height}
+                            frameBorder="0"
+                            allowFullScreen={true}
+                            onLoad={onload}
+                        />
+                    )
                 )}
             </ModalContent>
         </Modal>

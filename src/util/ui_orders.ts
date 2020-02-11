@@ -32,14 +32,25 @@ const ordersToUIOrdersWithoutOrderInfo = (orders: SignedOrder[], baseToken: Toke
     const baseTokenEncoded = assetDataUtils.encodeERC20AssetData(baseToken.address);
 
     return orders.map((order, i) => {
+        const makerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.makerAssetData) as ERC20AssetData)
+            .tokenAddress;
+        const makerAssetTokenDecimals = getKnownTokens().getTokenByAddress(makerAssetAddress).decimals;
+        const makerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.makerAssetAmount, makerAssetTokenDecimals);
+
+        const takerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.takerAssetData) as ERC20AssetData)
+            .tokenAddress;
+        const takerAssetTokenDecimals = getKnownTokens().getTokenByAddress(takerAssetAddress).decimals;
+        const takerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.takerAssetAmount, takerAssetTokenDecimals);
+
         const side = order.takerAssetData === baseTokenEncoded ? OrderSide.Buy : OrderSide.Sell;
+        const isSell = side === OrderSide.Sell;
+
         const size = side === OrderSide.Sell ? order.makerAssetAmount : order.takerAssetAmount;
         const filled = null;
         const status = null;
-        const price =
-            side === OrderSide.Sell
-                ? order.takerAssetAmount.div(order.makerAssetAmount)
-                : order.makerAssetAmount.div(order.takerAssetAmount);
+        const price = isSell
+            ? takerAssetAmountInUnits.div(makerAssetAmountInUnits)
+            : makerAssetAmountInUnits.div(takerAssetAmountInUnits);
 
         return {
             rawOrder: order,

@@ -85,6 +85,8 @@ export const FORTMATIC_APP_ID = process.env.REACT_APP_FORTMATIC_APP_ID;
 
 export const COINDIRECT_MERCHANT_ID = process.env.REACT_APP_COINDIRECT_MERCHANT_ID || '';
 
+export const MOONPAY_API_KEY = process.env.REACT_APP_MOONPAY_API_KEY || '';
+
 export const WYRE_ID = process.env.REACT_APP_WYRE_ID || '';
 
 // Default value is enabled, 0 is disabled

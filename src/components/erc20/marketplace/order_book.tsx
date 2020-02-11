@@ -3,7 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import styled, { withTheme } from 'styled-components';
 
-import { UI_DECIMALS_DISPLAYED_PRICE_ETH, UI_DECIMALS_DISPLAYED_SPREAD_PERCENT, ZERO } from '../../../common/constants';
+import { UI_DECIMALS_DISPLAYED_SPREAD_PERCENT, ZERO } from '../../../common/constants';
 import {
     getBaseToken,
     getCurrencyPair,
@@ -29,6 +29,9 @@ import {
 } from '../../../util/types';
 import { Card } from '../../common/card';
 import { EmptyContent } from '../../common/empty_content';
+import { BuyBookIcon } from '../../common/icons/buy_book';
+import { BuySellBookIcon } from '../../common/icons/buysell_book';
+import { SellBookIcon } from '../../common/icons/sell_book';
 import { LoadingWrapper } from '../../common/loading';
 import { ShowNumberWithColors } from '../../common/show_number_with_colors';
 import { CustomTD, CustomTDLast, CustomTDTitle, TH, THLast } from '../../common/table';
@@ -64,12 +67,8 @@ const OrderbookCard = styled(Card)`
     flex-direction: column;
     flex-grow: 1;
     height: 100%;
-    > div:first-child {
-        flex-grow: 0;
-        flex-shrink: 0;
-    }
 
-    > div:nth-child(2) {
+    > div:first-child {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -90,9 +89,43 @@ interface TotalProps {
     isTop?: boolean;
 }
 
-const THTotal = styled(TH)`
+const THBooksOptions = styled(TH)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTHFontSize};
+    display: flex;
     text-transform: none;
     padding-left: 5px;
+`;
+const BookOption = styled.span<{ isSelected: boolean }>`
+    padding-right: 3px;
+    cursor: pointer;
+    border: ${props => (props.isSelected ? `1px solid ${props.theme.componentsTheme.textColorCommon}` : 'none')};
+`;
+
+const THTotal = styled(TH)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTHFontSize};
+    text-transform: none;
+    padding-left: 5px;
+`;
+
+const CustomTH = styled(TH)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTHFontSize};
+    text-transform: none;
+`;
+
+const CustomTHLast = styled(THLast)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTHFontSize};
+`;
+
+const CustomTDBook = styled(CustomTD)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTDFontSize};
+`;
+
+const CustomTDSpread = styled(CustomTD)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTDFontSize};
+`;
+
+const CustomTDLastBook = styled(CustomTDLast)`
+    font-size: ${props => props.theme.componentsTheme.orderbookTDFontSize};
 `;
 
 const TotalRow = styled.div<TotalProps>`
@@ -132,7 +165,7 @@ const ItemsScroll = styled.div`
     overflow: auto;
 
     @media (min-width: ${themeBreakPoints.xl}) {
-        max-height: none;
+        max-height: auto;
     }
 `;
 
@@ -159,6 +192,12 @@ const TopItems = styled(ItemsInnerContainer)`
 
 const BottomItems = styled(ItemsInnerContainer)`
     justify-content: flex-start;
+`;
+
+const DepthSelect = styled.select`
+    background-color: ${props => props.theme.componentsTheme.cardBackgroundColor};
+    color: ${props => props.theme.componentsTheme.textColorCommon};
+    padding-left: 1px;
 `;
 
 interface OrderToRowPropsOwn {
@@ -215,9 +254,13 @@ class OrderToRow extends React.Component<OrderToRowProps> {
         const displayColor = isMySizeEmpty ? '#dedede' : undefined;
         const mySizeRow =
             web3State !== Web3State.Locked && web3State !== Web3State.NotInstalled ? (
-                <CustomTDLast as="div" styles={{ tabular: true, textAlign: 'right', color: displayColor }} id="mySize">
+                <CustomTDLastBook
+                    as="div"
+                    styles={{ tabular: true, textAlign: 'right', color: displayColor }}
+                    id="mySize"
+                >
                     {isMySizeEmpty ? '-' : mySizeConverted}
-                </CustomTDLast>
+                </CustomTDLastBook>
             ) : null;
 
         return (
@@ -228,16 +271,16 @@ class OrderToRow extends React.Component<OrderToRowProps> {
                 // tslint:disable-next-line jsx-no-lambda
                 onClick={() => this._setOrderPriceSelected(order.price)}
             >
-                <CustomTD as="div" styles={{ tabular: true, textAlign: 'right' }}>
+                <CustomTDBook as="div" styles={{ tabular: true, textAlign: 'right' }}>
                     <ShowNumberWithColors
                         isHover={this.state.isHover}
                         num={new BigNumber(size)}
                         precision={basePrecision}
                     />
-                </CustomTD>
-                <CustomTD as="div" styles={{ tabular: true, textAlign: 'right', color: priceColor }}>
+                </CustomTDBook>
+                <CustomTDBook as="div" styles={{ tabular: true, textAlign: 'right', color: priceColor }}>
                     {parseFloat(price).toFixed(pricePrecision)}
-                </CustomTD>
+                </CustomTDBook>
                 {mySizeRow}
             </GridRowInner>
         );
@@ -256,7 +299,22 @@ const mapOrderToRowDispatchToProps = (dispatch: any): OrderToRowDispatchProps =>
 
 const OrderToRowContainer = connect(null, mapOrderToRowDispatchToProps)(OrderToRow);
 
-class OrderBookTable extends React.Component<Props> {
+enum BookOptionType {
+    BuySellBook,
+    SellBook,
+    BuyBook,
+}
+
+interface StateOrderBook {
+    depth: { value: number };
+    bookOption: BookOptionType;
+}
+class OrderBookTable extends React.Component<Props, StateOrderBook> {
+    public state = {
+        depth: { value: 5 },
+        bookOption: BookOptionType.BuySellBook,
+    };
+
     private readonly _spreadRowScrollable: React.RefObject<HTMLDivElement>;
     private readonly _spreadRowFixed: React.RefObject<GridRowSpread>;
     private readonly _itemsScroll: React.RefObject<HTMLDivElement>;
@@ -303,12 +361,12 @@ class OrderBookTable extends React.Component<Props> {
         } else {
             const mySizeHeader =
                 web3State !== Web3State.Locked && web3State !== Web3State.NotInstalled ? (
-                    <THLast as="div" styles={{ textAlign: 'right', borderBottom: true }}>
+                    <CustomTHLast as="div" styles={{ textAlign: 'right', borderBottom: true }}>
                         My Size
-                    </THLast>
+                    </CustomTHLast>
                 ) : null;
 
-            const spreadAbsFixed = absoluteSpread.toFixed(UI_DECIMALS_DISPLAYED_PRICE_ETH);
+            const spreadAbsFixed = absoluteSpread.toFixed(currencyPair.config.pricePrecision);
             const spreadPercentFixed = percentageSpread.toFixed(UI_DECIMALS_DISPLAYED_SPREAD_PERCENT);
             const basePrecision = currencyPair.config.basePrecision;
 
@@ -332,80 +390,139 @@ class OrderBookTable extends React.Component<Props> {
 
             const baseSymbol = formatTokenSymbol(baseToken.symbol);
             const quoteSymbol = formatTokenSymbol(quoteToken.symbol);
+
+            const handleDepth = (event: any) => {
+                this.setState({ depth: { value: Number(event.target.value) } });
+            };
+            const bookOptionState = this.state.bookOption;
+            const handleBookOption = (option: BookOptionType) => {
+                this.setState({ bookOption: option });
+            };
+
             content = (
                 <>
+                    {
+                        <TotalRow isBottom={true}>
+                            <THBooksOptions as="div" styles={{ textAlign: 'left' }}>
+                                <BookOption
+                                    isSelected={bookOptionState === BookOptionType.BuySellBook}
+                                    onClick={() => handleBookOption(BookOptionType.BuySellBook)}
+                                >
+                                    {' '}
+                                    <BuySellBookIcon />
+                                </BookOption>
+                                <BookOption
+                                    isSelected={bookOptionState === BookOptionType.BuyBook}
+                                    onClick={() => handleBookOption(BookOptionType.BuyBook)}
+                                >
+                                    {' '}
+                                    <BuyBookIcon />{' '}
+                                </BookOption>
+                                <BookOption
+                                    isSelected={bookOptionState === BookOptionType.SellBook}
+                                    onClick={() => handleBookOption(BookOptionType.SellBook)}
+                                >
+                                    {' '}
+                                    <SellBookIcon />{' '}
+                                </BookOption>
+                            </THBooksOptions>
+                            <CustomTH as="div" styles={{ textAlign: 'right' }}>
+                                Depth
+                                <DepthSelect value={this.state.depth.value} onChange={handleDepth}>
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                </DepthSelect>
+                            </CustomTH>
+                        </TotalRow>
+                    }
                     <TotalRow isBottom={true}>
                         <THTotal as="div" styles={{ textAlign: 'left' }}>{`Asks`}</THTotal>
-                        <TH as="div" styles={{ textAlign: 'right' }}>{`Total: ${totalBase} ${baseSymbol}`}</TH>
+                        <CustomTH as="div" styles={{ textAlign: 'right' }}>
+                            {`Total: ${totalBase} ${baseSymbol}`}
+                        </CustomTH>
                     </TotalRow>
                     <GridRowTop as="div">
-                        <TH as="div" styles={{ textAlign: 'right', borderBottom: true }}>
+                        <CustomTH as="div" styles={{ textAlign: 'right', borderBottom: true }}>
                             Trade size
-                        </TH>
-                        <TH as="div" styles={{ textAlign: 'right', borderBottom: true }}>
-                            Price ({quoteToken.symbol})
-                        </TH>
+                        </CustomTH>
+                        <CustomTH as="div" styles={{ textAlign: 'right', borderBottom: true }}>
+                            Price ({formatTokenSymbol(quoteToken.symbol)})
+                        </CustomTH>
                         {mySizeHeader}
                     </GridRowTop>
                     <ItemsScroll ref={this._itemsScroll} onScroll={this._updateStickySpreadState}>
-                        <GridRowSpread
-                            ref={this._spreadRowFixed}
-                            spreadAbsValue={spreadAbsFixed}
-                            spreadPercentValue={spreadPercentFixed}
-                        />
+                        {bookOptionState !== BookOptionType.BuyBook && (
+                            <GridRowSpread
+                                ref={this._spreadRowFixed}
+                                spreadAbsValue={spreadAbsFixed}
+                                spreadPercentValue={spreadPercentFixed}
+                            />
+                        )}
                         <ItemsMainContainer>
-                            <TopItems>
-                                {sellOrders.map((order, index) => (
-                                    <OrderToRowContainer
-                                        key={index}
-                                        order={order}
-                                        index={index}
-                                        count={sellOrders.length}
-                                        baseToken={baseToken}
-                                        priceColor={getColor(order)}
-                                        mySizeOrders={mySizeSellArray}
-                                        web3State={web3State}
-                                        currencyPair={currencyPair}
-                                    />
-                                ))}
-                            </TopItems>
+                            {(bookOptionState === BookOptionType.BuySellBook ||
+                                bookOptionState === BookOptionType.SellBook) && (
+                                <TopItems>
+                                    {sellOrders
+                                        .slice(sellOrders.length - this.state.depth.value, sellOrders.length)
+                                        .map((order, index) => (
+                                            <OrderToRowContainer
+                                                key={index}
+                                                order={order}
+                                                index={index}
+                                                count={sellOrders.length}
+                                                baseToken={baseToken}
+                                                priceColor={getColor(order)}
+                                                mySizeOrders={mySizeSellArray}
+                                                web3State={web3State}
+                                                currencyPair={currencyPair}
+                                            />
+                                        ))}
+                                </TopItems>
+                            )}
                             <GridRowSpreadContainer ref={this._spreadRowScrollable}>
                                 <CustomTDTitle as="div" styles={customTDTitleStyles}>
                                     Spread
                                 </CustomTDTitle>
-                                <CustomTD as="div" styles={customTDStyles}>
+                                <CustomTDSpread as="div" styles={customTDStyles}>
                                     {spreadAbsFixed}
-                                </CustomTD>
+                                </CustomTDSpread>
                                 <CustomTDLast as="div" styles={customTDLastStyles}>
                                     {spreadPercentFixed}%
                                 </CustomTDLast>
                             </GridRowSpreadContainer>
-                            <BottomItems>
-                                {buyOrders.map((order, index) => (
-                                    <OrderToRowContainer
-                                        key={index}
-                                        order={order}
-                                        index={index}
-                                        count={buyOrders.length}
-                                        baseToken={baseToken}
-                                        priceColor={getColor(order)}
-                                        mySizeOrders={mySizeBuyArray}
-                                        web3State={web3State}
-                                        currencyPair={currencyPair}
-                                    />
-                                ))}
-                            </BottomItems>
+                            {(bookOptionState === BookOptionType.BuyBook ||
+                                bookOptionState === BookOptionType.BuySellBook) && (
+                                <BottomItems>
+                                    {buyOrders.slice(0, this.state.depth.value).map((order, index) => (
+                                        <OrderToRowContainer
+                                            key={index}
+                                            order={order}
+                                            index={index}
+                                            count={buyOrders.length}
+                                            baseToken={baseToken}
+                                            priceColor={getColor(order)}
+                                            mySizeOrders={mySizeBuyArray}
+                                            web3State={web3State}
+                                            currencyPair={currencyPair}
+                                        />
+                                    ))}
+                                </BottomItems>
+                            )}
                         </ItemsMainContainer>
                     </ItemsScroll>
                     <TotalRow isTop={true}>
                         <THTotal as="div" styles={{ textAlign: 'left' }}>{`Bids`}</THTotal>
-                        <TH as="div" styles={{ textAlign: 'right' }}>{`Total: ${totalQuote} ${quoteSymbol}`}</TH>{' '}
+                        <CustomTH as="div" styles={{ textAlign: 'right' }}>
+                            {`Total: ${totalQuote} ${quoteSymbol}`}
+                        </CustomTH>{' '}
                     </TotalRow>
                 </>
             );
         }
 
-        return <OrderbookCard title="Orderbook">{content}</OrderbookCard>;
+        return <OrderbookCard>{content}</OrderbookCard>;
     };
 
     public componentDidMount = () => {
