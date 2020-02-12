@@ -56,10 +56,12 @@ export const TokensListing = () => {
     const [copyIndex, setCopyIndex] = useState(0);
     const [makerAddress, setMakerAddress] = useState(ethAccount || '0x');
     const updateValue = (event: ChangeEvent<HTMLInputElement>) => {
-        setAddress(event.target.value);
+        const value = event.target.value;
+        setAddress(value.trim().toLowerCase());
     };
     const updateValueMaker = (event: ChangeEvent<HTMLInputElement>) => {
-        setMakerAddress(event.target.value);
+        const value = event.target.value;
+        setMakerAddress(value.trim().toLowerCase());
     };
 
     const input = <Input onChange={updateValue} type={'text'} value={address} placeholder={'Type Token Address'} />;

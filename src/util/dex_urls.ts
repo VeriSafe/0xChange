@@ -1,5 +1,5 @@
 export const generateTrustWalletDeepLink = (url: string) => {
-    return `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURI(url)}`;
+    return `https://link.trustwallet.com/open_url?coin_id=60&url=${encodeURIComponent(url)}`;
 };
 
 export const generateMetamaskWalletDeepLink = (url: string) => {

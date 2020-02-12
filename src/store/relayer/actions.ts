@@ -322,9 +322,7 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                 .multipliedBy(feePercentange)
                 .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = amount
-                .plus(protocolFee)
-                .plus(affiliateFeeAmount);
+            const totalEthAmount = amount.plus(protocolFee).plus(affiliateFeeAmount);
 
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
@@ -430,7 +428,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
 
             // Check if the order is fillable using the forwarder
             const ethBalance = getEthBalance(state) as BigNumber;
-           /* const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
+            /* const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
             }, ZERO);*/
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
@@ -440,9 +438,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                 .multipliedBy(feePercentange)
                 .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = amount
-                .plus(protocolFee)
-                .plus(affiliateFeeAmount);
+            const totalEthAmount = amount.plus(protocolFee).plus(affiliateFeeAmount);
 
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
