@@ -19,7 +19,7 @@ export const generateIEODashboardLink = (address: string, makerAddress: string) 
 };
 
 export const generateERC20TradeLink = (address: string) => {
-    return `https://dex.verisafe.io/#/?base=${address}&quote=weth`;
+    return `https://dex.verisafe.io/#/erc20?base=${address}&quote=weth`;
 };
 
 export const generateERC20MarketTradeLink = (address: string) => {
