@@ -11,7 +11,7 @@ import {
 import { CollectibleFilterType } from '../../util/filterable_collectibles';
 import { CollectibleSortType } from '../../util/sortable_collectibles';
 import { ThunkCreator } from '../../util/types';
-import { getCurrentRoutePath } from '../selectors';
+import { getCollectibleCollectionSelected, getCurrentRoutePath } from '../selectors';
 
 export const goToHome: ThunkCreator = () => {
     return async (dispatch, getState) => {
@@ -131,11 +131,11 @@ export const goToWallet: ThunkCreator = () => {
 const goToHomeErc721 = () => {
     return async (dispatch: any, getState: any) => {
         const state = getState();
-
+        const collection = getCollectibleCollectionSelected(state);
         dispatch(
             push({
                 ...state.router.location,
-                pathname: `${ERC721_APP_BASE_PATH}/`,
+                pathname: `${ERC721_APP_BASE_PATH}/${collection.slug}`,
             }),
         );
     };
@@ -144,11 +144,11 @@ const goToHomeErc721 = () => {
 export const goToMyCollectibles = () => {
     return async (dispatch: any, getState: any) => {
         const state = getState();
-
+        const collection = getCollectibleCollectionSelected(state);
         dispatch(
             push({
                 ...state.router.location,
-                pathname: `${ERC721_APP_BASE_PATH}/my-collectibles`,
+                pathname: `${ERC721_APP_BASE_PATH}/${collection.name.toLowerCase()}/my-collectibles`,
             }),
         );
     };
@@ -158,12 +158,12 @@ export const goToIndividualCollectible = (collectibleId: string) => {
     return async (dispatch: any, getState: any) => {
         const state = getState();
         const currentRoutePath = getCurrentRoutePath(state);
-
+        const collection = getCollectibleCollectionSelected(state);
         if (!currentRoutePath.includes(`collectible/${collectibleId}`)) {
             dispatch(
                 push({
                     ...state.router.location,
-                    pathname: `${ERC721_APP_BASE_PATH}/collectible/${collectibleId}`,
+                    pathname: `${ERC721_APP_BASE_PATH}/${collection.name.toLowerCase()}/collectible/${collectibleId}`,
                 }),
             );
         }

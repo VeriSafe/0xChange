@@ -11,8 +11,9 @@ import {
     goToHome,
     goToHomeMarketTrade,
     goToWallet,
-    openFiatOnRampChooseModal,
+    openFiatOnRampModal,
     openSideBar,
+    setFiatType,
     setTour,
 } from '../../../store/actions';
 import { getCurrentMarketPlace, getGeneralConfig } from '../../../store/selectors';
@@ -104,8 +105,10 @@ const ToolbarContent = (props: Props) => {
         dispatch(openSideBar(true));
     };
 
-    const handleFiatChooseModal = () => {
-        dispatch(openFiatOnRampChooseModal(true));
+    const handleFiatModal: React.EventHandler<React.MouseEvent> = e => {
+        e.preventDefault();
+        dispatch(setFiatType('CARDS'));
+        dispatch(openFiatOnRampModal(true));
     };
 
     const dropdownHeader =
@@ -160,7 +163,7 @@ const ToolbarContent = (props: Props) => {
                 {/*  <SettingsContentContainer  className={'settings-dropdown'} /> */}
                 <SettingsDropdownContainer className={'settings-dropdown'} />
                 <StyledButton onClick={handleTour}>Tour</StyledButton>
-                <StyledButton onClick={handleFiatChooseModal} className={'buy-eth'}>
+                <StyledButton onClick={handleFiatModal} className={'buy-eth'}>
                     Buy ETH
                 </StyledButton>
             </>

@@ -435,8 +435,7 @@ class OrderBookTable extends React.Component<Props, StateOrderBook> {
                                     <option value="50">50</option>
                                 </DepthSelect>
                             </CustomTH>
-                        </TotalRow>
-                    }
+                        </TotalRow>}
                     <TotalRow isBottom={true}>
                         <THTotal as="div" styles={{ textAlign: 'left' }}>{`Asks`}</THTotal>
                         <CustomTH as="div" styles={{ textAlign: 'right' }}>

@@ -10,6 +10,7 @@ import configTipBotWhitelistAddresses from './files/settingsAssetsWhitelistAddre
 // Using this due to CI error
 
 // import configFileProduction from '../config/files/config.json';
+import collectibleCollectionConfig from './collectibles-config.json';
 import configFileIEOProduction from './config-ieo.json';
 import configTemplateFile from './config-template.json';
 import configFileTest from './config-test.json';
@@ -34,4 +35,11 @@ if (process.env.NODE_ENV === 'development') {
 
 configFileIEO = configFileIEOProduction;
 
-export { configFile, configFileIEO, configTipBot, configTipBotWhitelistAddresses, configTemplateFile };
+export {
+    configFile,
+    configFileIEO,
+    configTipBot,
+    configTipBotWhitelistAddresses,
+    configTemplateFile,
+    collectibleCollectionConfig,
+};

@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { ERC721_APP_BASE_PATH } from '../../../common/constants';
-import { getEthAccount } from '../../../store/selectors';
+import { getCollectibleCollectionSelected, getEthAccount } from '../../../store/selectors';
 import { themeDimensions, themeFeatures } from '../../../themes/commons';
-import { Collectible, StoreState } from '../../../util/types';
+import { getPathNameCollection } from '../../../util/collectibles';
+import { Collectible, CollectibleCollection, StoreState } from '../../../util/types';
 
 import { OwnerBadge } from './owner_badge';
 import { PriceBadge } from './price_badge';
@@ -59,23 +60,24 @@ interface OwnProps {
 
 interface StateProps {
     ethAccount: string;
+    collectibleCollection: CollectibleCollection;
 }
 
 type Props = StateProps & OwnProps;
 
 class CollectibleCard extends React.Component<Props> {
     public render = () => {
-        const { collectible, price, ethAccount, onClick, ...restProps } = this.props;
+        const { collectible, collectibleCollection, price, ethAccount, onClick, ...restProps } = this.props;
         const { currentOwner, tokenId, color, image, name } = collectible;
         const isOwner = currentOwner.toLowerCase() === ethAccount.toLowerCase();
         const ownerBadge = isOwner ? <OwnerBadge /> : null;
-
+        const collectionPathName = getPathNameCollection(collectibleCollection);
         return (
             <CollectibleCardWrapper
                 {...restProps}
                 id={tokenId}
                 onClick={onClick || defaultHandleClick}
-                to={`${ERC721_APP_BASE_PATH}/collectible/${tokenId}`}
+                to={`${ERC721_APP_BASE_PATH}/${collectionPathName}/collectible/${tokenId}`}
             >
                 <ImageWrapper color={color} image={image}>
                     {ownerBadge}
@@ -90,6 +92,7 @@ class CollectibleCard extends React.Component<Props> {
 const mapStateToProps = (state: StoreState): StateProps => {
     return {
         ethAccount: getEthAccount(state),
+        collectibleCollection: getCollectibleCollectionSelected(state),
     };
 };
 

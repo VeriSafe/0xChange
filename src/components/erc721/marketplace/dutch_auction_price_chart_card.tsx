@@ -1,14 +1,14 @@
 // tslint:disable:no-unused-variable
-import { BigNumber } from '@0x/utils';
+// import { BigNumber } from '@0x/utils';
 import React from 'react';
 import styled from 'styled-components';
 
-import { ETH_DECIMALS } from '../../../common/constants';
+import { Collectible } from '../../../util/types';
+/*import { ETH_DECIMALS } from '../../../common/constants';
 import { themeBreakPoints } from '../../../themes/commons';
 import { getCollectiblePrice } from '../../../util/collectibles';
 import { convertTimeInSecondsToDaysAndHours } from '../../../util/time_utils';
 import { tokenAmountInUnits } from '../../../util/tokens';
-import { Collectible } from '../../../util/types';
 import { Card } from '../../common/card';
 import { DecliningPriceGraph } from '../common/declining_price_graph';
 
@@ -33,7 +33,7 @@ const PriceChartPriceAndTime = styled.div`
     @media (min-width: ${themeBreakPoints.xl}) {
         margin-bottom: 0;
     }
-`;
+`;*/
 
 export const PriceChartTitle = styled.h5`
     color: ${props => props.theme.componentsTheme.cardTitleColor};
@@ -55,7 +55,7 @@ export const PriceChartValue = styled.p`
     }
 `;
 
-const PriceChartValueNeutral = styled(PriceChartValue)`
+/*const PriceChartValueNeutral = styled(PriceChartValue)`
     color: ${props => props.theme.componentsTheme.cardTitleColor};
 `;
 
@@ -79,7 +79,7 @@ const PriceChartGraphValues = styled.div`
     align-items: center;
     display: flex;
     justify-content: space-between;
-`;
+`;*/
 
 interface Props {
     collectible: Collectible;

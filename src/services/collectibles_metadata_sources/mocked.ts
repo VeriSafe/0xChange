@@ -1,9 +1,10 @@
 import { ERC721TokenContract } from '@0x/contract-wrappers';
 import { BigNumber } from '@0x/utils';
 
+import { getCollectibleCollections } from '../../common/collections';
 import { COLLECTIBLE_ADDRESS } from '../../common/constants';
 import { getContractWrappers } from '../../services/contract_wrappers';
-import { Collectible, CollectibleMetadataSource } from '../../util/types';
+import { Collectible, CollectibleCollection, CollectibleMetadataSource } from '../../util/types';
 
 const allCollectibles: Collectible[] = [
     {
@@ -112,4 +113,8 @@ export class Mocked implements CollectibleMetadataSource {
         const collectibles = allCollectibles.filter(value => tokenIds.indexOf(value.tokenId) !== -1);
         return Promise.resolve(collectibles);
     };
+    public fetchCollectionAsync(_collectibleCollectionAddress: string): Promise<CollectibleCollection | null> {
+        const collections = getCollectibleCollections();
+        return Promise.resolve(collections[0]);
+    }
 }

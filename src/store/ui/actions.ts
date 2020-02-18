@@ -8,7 +8,7 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import { createAction } from 'typesafe-actions';
 
 import { Config } from '../../common/config';
-import { CHAIN_ID, COLLECTIBLE_ADDRESS, FEE_PERCENTAGE, FEE_RECIPIENT, ZERO } from '../../common/constants';
+import { CHAIN_ID, FEE_PERCENTAGE, FEE_RECIPIENT, ZERO } from '../../common/constants';
 import { getAvailableMarkets, updateAvailableMarkets } from '../../common/markets';
 import { InsufficientOrdersAmountException } from '../../exceptions/insufficient_orders_amount_exception';
 import { InsufficientTokenBalanceException } from '../../exceptions/insufficient_token_balance_exception';
@@ -242,8 +242,9 @@ export const startSellCollectibleSteps: ThunkCreator = (
 
         const contractWrappers = await getContractWrappers();
         const ethAccount = selectors.getEthAccount(state);
+        const selectedCollection = selectors.getCollectibleCollectionSelected(state);
 
-        const erc721Token = new ERC721TokenContract(COLLECTIBLE_ADDRESS, contractWrappers.getProvider());
+        const erc721Token = new ERC721TokenContract(selectedCollection.address, contractWrappers.getProvider());
         const isUnlocked = await erc721Token
             .isApprovedForAll(ethAccount, contractWrappers.contractAddresses.erc721Proxy)
             .callAsync();

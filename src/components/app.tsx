@@ -77,7 +77,6 @@ class App extends React.Component<Props> {
             return;
         }
 
-        // this.props.onInitWalletState();
         const walletConnected = localStorage.getWalletConnected();
         if (walletConnected !== false && walletConnected !== undefined) {
             this.props.onConnectWallet(walletConnected as Wallet);
@@ -93,12 +92,17 @@ class App extends React.Component<Props> {
             serviceWorker.unregister();
             return;
         }
-        if (web3State !== prevProps.web3State) {
+
+        if (web3State !== prevProps.web3State || MARKETPLACE !== prevProps.MARKETPLACE) {
             if (web3State === Web3State.Done) {
                 this._activatePollingUpdates();
             } else {
                 // If the user is currently using the dApp with the interval and the metamask status changed, the polling is removed
                 this._deactivatePollingUpdates();
+            }
+            // Update when user travel between platforms
+            if (web3State === Web3State.Connect && MARKETPLACE !== prevProps.MARKETPLACE) {
+                this.props.onInitWalletState();
             }
         }
     };
@@ -106,6 +110,8 @@ class App extends React.Component<Props> {
     public componentWillUnmount = () => {
         clearInterval(this._updateStoreInterval);
         clearInterval(this._updatePriceEtherInterval);
+        clearInterval(this._updatePriceTokensInterval);
+        clearInterval(this._updateERC20MarketsInterval);
     };
 
     public render = () => this.props.children;
@@ -162,6 +168,10 @@ class App extends React.Component<Props> {
         if (this._updatePriceTokensInterval) {
             clearInterval(this._updatePriceTokensInterval);
             this._updatePriceTokensInterval = undefined;
+        }
+        if (this._updateERC20MarketsInterval) {
+            clearInterval(this._updateERC20MarketsInterval);
+            this._updateERC20MarketsInterval = undefined;
         }
     };
 }

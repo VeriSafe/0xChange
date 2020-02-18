@@ -13,7 +13,7 @@ export const FIAT_RAMP_APP_BASE_PATH = '/fiat-onramp';
 
 export const USE_RELAYER_MARKET_UPDATES = process.env.REACT_APP_USE_RELAYER_MARKET_UPDATES === 'true' ? true : false;
 
-export const ERC721_APP_BASE_PATH = '/erc721';
+export const ERC721_APP_BASE_PATH = '/marketplace';
 export const DEFAULT_BASE_PATH = process.env.REACT_APP_DEFAULT_BASE_PATH || ERC20_APP_BASE_PATH;
 
 export const RELAYER_URL = process.env.REACT_APP_RELAYER_URL || 'http://localhost:3001/api/v3';

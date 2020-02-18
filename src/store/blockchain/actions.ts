@@ -6,8 +6,9 @@ import { BigNumber } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { createAction, createAsyncAction } from 'typesafe-actions';
 
+import { addCollection, findCollectibleCollectionsBySlug, getCollectibleCollections } from '../../common/collections';
 import {
-    COLLECTIBLE_ADDRESS,
+    FEE_PERCENTAGE,
     FEE_RECIPIENT,
     NETWORK_ID,
     START_BLOCK_LIMIT,
@@ -18,16 +19,17 @@ import {
 import { addAvailableMarket } from '../../common/markets';
 import { ConvertBalanceMustNotBeEqualException } from '../../exceptions/convert_balance_must_not_be_equal_exception';
 import { SignedOrderException } from '../../exceptions/signed_order_exception';
+import { getConfiguredSource } from '../../services/collectibles_metadata_sources';
 import { subscribeToAllFillEvents, subscribeToFillEvents } from '../../services/exchange';
 import { getGasEstimationInfoAsync } from '../../services/gas_price_estimation';
 import { LocalStorage } from '../../services/local_storage';
 import { getTokenMetaData } from '../../services/relayer';
 import { tokensToTokenBalances, tokenToTokenBalance } from '../../services/tokens';
-import { deleteWeb3Wrapper, isMetamaskInstalled } from '../../services/web3_wrapper';
+import { deleteWeb3Wrapper } from '../../services/web3_wrapper';
 import * as serviceWorker from '../../serviceWorker';
 import { envUtil } from '../../util/env';
 import { buildFill } from '../../util/fills';
-import { getKnownTokens, isWeth } from '../../util/known_tokens';
+import { getKnownTokens, getTokenMetadaDataFromContract, isWeth } from '../../util/known_tokens';
 import { getKnownTokensIEO } from '../../util/known_tokens_ieo';
 import { getLogger } from '../../util/logger';
 import { buildOrderFilledNotification } from '../../util/notifications';
@@ -51,7 +53,8 @@ import {
     Wallet,
     Web3State,
 } from '../../util/types';
-import { getAllCollectibles } from '../collectibles/actions';
+import { goToHome } from '../actions';
+import { getAllCollectibles, setCollectibleCollection } from '../collectibles/actions';
 import {
     fetchMarkets,
     setCurrencyPair,
@@ -67,9 +70,12 @@ import {
     getOrderBook,
     getOrderbookAndUserOrders,
     initializeRelayerData,
+    setFeePercentage,
+    setFeeRecipient,
     subscribeToRelayerWebsocketFillEvents,
 } from '../relayer/actions';
 import {
+    getCollectibleCollectionSelected,
     getCurrencyPair,
     getCurrentMarketPlace,
     getEthAccount,
@@ -567,7 +573,7 @@ export const initWallet: ThunkCreator<Promise<any>> = (wallet: Wallet) => {
                     break;
                 case MARKETPLACES.ERC721:
                     // tslint:disable-next-line:no-floating-promises
-                    dispatch(initWalletERC721());
+                    dispatch(initWalletERC721(wallet));
                     break;
                 case MARKETPLACES.Margin:
                     // tslint:disable-next-line:no-floating-promises
@@ -718,20 +724,75 @@ const initWalletMargin: ThunkCreator<Promise<any>> = () => {
     };
 };
 
-const initWalletERC721: ThunkCreator<Promise<any>> = () => {
+const initWalletERC721: ThunkCreator<Promise<any>> = (wallet: Wallet) => {
     return async (dispatch, getState, { getWeb3Wrapper }) => {
         const web3Wrapper = await getWeb3Wrapper();
         if (web3Wrapper) {
+            await dispatch(initCollectionFromUrl(wallet));
             const state = getState();
             const ethAccount = getEthAccount(state);
             // tslint:disable-next-line:no-floating-promises
             dispatch(getAllCollectibles(ethAccount));
         } else {
             // tslint:disable-next-line:no-floating-promises
-            dispatch(initializeAppNoMetamaskOrLocked());
+            dispatch(initializeAppWallet());
 
             // tslint:disable-next-line:no-floating-promises
             dispatch(getAllCollectibles());
+        }
+    };
+};
+
+const initCollectionFromUrl: ThunkCreator<Promise<any>> = (wallet?: Wallet) => {
+    return async (dispatch, getState, { getWeb3Wrapper }) => {
+        const parsedUrl = new URL(window.location.href.replace('#/', ''));
+
+        const collectiblePath = parsedUrl.pathname.split('/');
+        const collections = getCollectibleCollections();
+        const feeRecipient = parsedUrl.searchParams.get('affilliateAddress') || FEE_RECIPIENT;
+        let feePercentage = Number(parsedUrl.searchParams.get('affilliateFee')) || FEE_PERCENTAGE;
+        if (feePercentage > 0.05 || feePercentage < 0) {
+            feePercentage = 0.05;
+        }
+        dispatch(setFeePercentage(feePercentage));
+        dispatch(setFeeRecipient(feeRecipient));
+
+        if (collectiblePath.length > 2) {
+            const collectionSlug = collectiblePath[2];
+            if (Web3Wrapper.isAddress(collectionSlug)) {
+                const collectibleSource = getConfiguredSource();
+                const collectionSea = await collectibleSource.fetchCollectionAsync(collectionSlug);
+                if (collectionSea) {
+                    addCollection(collectionSea);
+                    dispatch(setCollectibleCollection(collectionSea));
+                    return;
+                } else if (!wallet) {
+                    const tokenMetadadata = await getTokenMetaData(collectionSlug);
+                    if (tokenMetadadata) {
+                        const collection = addCollection(tokenMetadadata);
+                        dispatch(setCollectibleCollection(collection));
+                    }
+                } else {
+                    const token = await getTokenMetadaDataFromContract(collectionSlug);
+                    if (token) {
+                        const collection = addCollection(token);
+                        dispatch(setCollectibleCollection(collection));
+                    } else {
+                        dispatch(setCollectibleCollection(collections[0]));
+                        dispatch(goToHome());
+                    }
+                }
+            } else {
+                const findCollection = findCollectibleCollectionsBySlug(collectionSlug);
+                if (findCollection) {
+                    dispatch(setCollectibleCollection(findCollection));
+                } else {
+                    dispatch(setCollectibleCollection(collections[0]));
+                    dispatch(goToHome());
+                }
+            }
+        } else {
+            dispatch(setCollectibleCollection(collections[0]));
         }
     };
 };
@@ -742,7 +803,8 @@ export const unlockCollectible: ThunkCreator<Promise<string>> = (collectible: Co
         const contractWrappers = await getContractWrappers();
         const gasPrice = getGasPriceInWei(state);
         const ethAccount = getEthAccount(state);
-        const erc721Token = new ERC721TokenContract(COLLECTIBLE_ADDRESS, contractWrappers.getProvider());
+        const selectedCollection = getCollectibleCollectionSelected(state);
+        const erc721Token = new ERC721TokenContract(selectedCollection.address, contractWrappers.getProvider());
 
         const tx = await erc721Token
             .setApprovalForAll(contractWrappers.contractAddresses.erc721Proxy, true)
@@ -777,6 +839,7 @@ export const createSignedCollectibleOrder: ThunkCreator = (
         try {
             const web3Wrapper = await getWeb3Wrapper();
             const contractWrappers = await getContractWrappers();
+            const selectedCollection = getCollectibleCollectionSelected(state);
             const wethAddress = getKnownTokens().getWethToken().address;
             const exchangeAddress = contractWrappers.exchange.address;
             let order;
@@ -791,7 +854,7 @@ export const createSignedCollectibleOrder: ThunkCreator = (
                 //     endPrice,
                 //     expirationDate,
                 //     wethAddress,
-                //     collectibleAddress: COLLECTIBLE_ADDRESS,
+                //     collectibleAddress: selectedCollection.address,
                 //     collectibleId,
                 //     exchangeAddress,
                 //     senderAddress,
@@ -806,7 +869,7 @@ export const createSignedCollectibleOrder: ThunkCreator = (
                         exchangeAddress,
                         expirationDate,
                         collectibleId,
-                        collectibleAddress: COLLECTIBLE_ADDRESS,
+                        collectibleAddress: selectedCollection.address,
                         wethAddress,
                     },
                     side,
@@ -818,51 +881,6 @@ export const createSignedCollectibleOrder: ThunkCreator = (
         } catch (error) {
             throw new SignedOrderException(error.message);
         }
-    };
-};
-/**
- *  Initializes the app with a default state if the user does not have metamask, with permissions rejected
- *  or if the user diNd not connected metamask to the dApp. Takes the info from the ETWORK_ID configured in the env vars
- */
-export const initializeAppNoMetamaskOrLocked: ThunkCreator = () => {
-    return async (dispatch, getState) => {
-        if (isMetamaskInstalled()) {
-            dispatch(setWeb3State(Web3State.Locked));
-        } else {
-            dispatch(setWeb3State(Web3State.NotInstalled));
-        }
-        const state = getState();
-        const currencyPair = getCurrencyPair(state);
-        const knownTokens = getKnownTokens();
-        const baseToken = knownTokens.getTokenBySymbol(currencyPair.base);
-        const quoteToken = knownTokens.getTokenBySymbol(currencyPair.quote);
-
-        dispatch(
-            initializeRelayerData({
-                orders: [],
-                userOrders: [],
-            }),
-        );
-
-        // tslint:disable-next-line:no-floating-promises
-        dispatch(setMarketTokens({ baseToken, quoteToken }));
-
-        const currentMarketPlace = getCurrentMarketPlace(state);
-        if (currentMarketPlace === MARKETPLACES.ERC20) {
-            // tslint:disable-next-line:no-floating-promises
-            dispatch(getOrderBook());
-
-            // tslint:disable-next-line:no-floating-promises
-            await dispatch(fetchMarkets());
-            // tslint:disable-next-line: no-floating-promises
-            dispatch(updateMarketPriceQuote());
-        } else {
-            // tslint:disable-next-line:no-floating-promises
-            dispatch(getAllCollectibles());
-        }
-
-        // tslint:disable-next-line:no-floating-promises
-        dispatch(updateMarketPriceEther());
     };
 };
 
@@ -970,6 +988,7 @@ export const initializeAppWallet: ThunkCreator = () => {
                 dispatch(updateMarketPriceQuote());
                 break;
             case MARKETPLACES.ERC721:
+                await dispatch(initCollectionFromUrl());
                 // tslint:disable-next-line:no-floating-promises
                 dispatch(getAllCollectibles());
                 break;

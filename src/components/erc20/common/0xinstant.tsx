@@ -98,7 +98,9 @@ export const ZeroXInstantComponent = (props: Props) => {
             if (tokenName && !Web3Wrapper.isAddress(tokenName)) {
                 isBot
                     ? (token = knownTokensIEO.getTokenBotByName(tokenName))
-                    : (isEIO ? token = knownTokensIEO.getTokenByName(tokenName) : token = knownTokens.getTokenByName(tokenName));
+                    : isEIO
+                    ? (token = knownTokensIEO.getTokenByName(tokenName))
+                    : (token = knownTokens.getTokenByName(tokenName));
             }
             // if TokenName and address and not IEO
             // console.log(tokenName);
@@ -115,7 +117,9 @@ export const ZeroXInstantComponent = (props: Props) => {
             if (tokenSymbol) {
                 isBot
                     ? (token = knownTokensIEO.getTokenBotBySymbol(tokenSymbol))
-                    : (isEIO ? token = knownTokensIEO.getTokenBySymbol(tokenSymbol) : token = knownTokens.getTokenBySymbol(tokenSymbol));
+                    : isEIO
+                    ? (token = knownTokensIEO.getTokenBySymbol(tokenSymbol))
+                    : (token = knownTokens.getTokenBySymbol(tokenSymbol));
             }
             // Allows for any token address launch automatically an IEO with maker address
             if (
