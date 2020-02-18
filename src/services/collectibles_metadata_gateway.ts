@@ -1,7 +1,6 @@
 import { assetDataUtils } from '@0x/order-utils';
 import { ERC721AssetData, SignedOrder } from '@0x/types';
 
-import { COLLECTIBLE_ADDRESS } from '../common/constants';
 import { getRelayer, Relayer } from '../services/relayer';
 import { getKnownTokens } from '../util/known_tokens';
 import { getLogger } from '../util/logger';
@@ -20,7 +19,7 @@ export class CollectiblesMetadataGateway {
         this._source = source;
     }
 
-    public fetchAllCollectibles = async (userAddress?: string): Promise<Collectible[]> => {
+    public fetchAllCollectibles = async (collectibleAddress: string, userAddress?: string): Promise<Collectible[]> => {
         const knownTokens = getKnownTokens();
 
         const wethAddress = knownTokens.getWethToken().address;
@@ -28,7 +27,7 @@ export class CollectiblesMetadataGateway {
         // Step 1: Get all sell orders in the relayer
         let orders: any[] = [];
         try {
-            orders = await this._relayer.getSellCollectibleOrdersAsync(COLLECTIBLE_ADDRESS, wethAddress);
+            orders = await this._relayer.getSellCollectibleOrdersAsync(collectibleAddress, wethAddress);
         } catch (err) {
             logger.error(err);
             throw err;
@@ -43,7 +42,7 @@ export class CollectiblesMetadataGateway {
         // Step 2: Get all the user's collectibles and add the order
         let collectiblesWithOrders: Collectible[] = [];
         if (userAddress) {
-            const userCollectibles = await this._source.fetchAllUserCollectiblesAsync(userAddress);
+            const userCollectibles = await this._source.fetchAllUserCollectiblesAsync(userAddress, collectibleAddress);
             collectiblesWithOrders = userCollectibles.map(collectible => {
                 if (tokenIdToOrder[collectible.tokenId]) {
                     return {
@@ -63,7 +62,10 @@ export class CollectiblesMetadataGateway {
         );
         for (let chunkBegin = 0; chunkBegin < tokenIds.length; chunkBegin += 10) {
             const tokensIdsChunk = tokenIds.slice(chunkBegin, chunkBegin + 10);
-            const collectiblesChunkFetched = await this._source.fetchCollectiblesAsync(tokensIdsChunk);
+            const collectiblesChunkFetched = await this._source.fetchCollectiblesAsync(
+                tokensIdsChunk,
+                collectibleAddress,
+            );
             const collectiblesChunkWithOrders = collectiblesChunkFetched.map(collectible => ({
                 ...collectible,
                 order: tokenIdToOrder[collectible.tokenId],

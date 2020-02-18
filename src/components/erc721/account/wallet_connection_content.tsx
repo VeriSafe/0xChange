@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import styled from 'styled-components';
 
 import { ETH_DECIMALS } from '../../../common/constants';
+import { logoutWallet } from '../../../store/actions';
 import { getEthAccount, getEthBalance } from '../../../store/selectors';
 import { themeDimensions } from '../../../themes/commons';
 import { tokenAmountInUnits } from '../../../util/tokens';
@@ -17,10 +18,6 @@ import { DropdownTextItem } from '../../common/dropdown_text_item';
 
 const truncateAddress = (address: string) => {
     return `${address.slice(0, 7)}...${address.slice(address.length - 5)}`;
-};
-
-const connectToWallet = () => {
-    alert('connect to another wallet');
 };
 
 const WalletConnectionWrapper = styled(CardBase)`
@@ -80,7 +77,11 @@ interface StateProps {
     ethBalance: BigNumber;
 }
 
-type Props = StateProps & OwnProps;
+interface DispatchProps {
+    onLogoutWallet: () => any;
+}
+
+type Props = StateProps & OwnProps & DispatchProps;
 
 interface State {
     isEthModalOpen: boolean;
@@ -91,7 +92,7 @@ class WalletConnectionContent extends React.Component<Props, State> {
         isEthModalOpen: false,
     };
     public render = () => {
-        const { ethAccount, ethBalance, ...restProps } = this.props;
+        const { ethAccount, ethBalance, onLogoutWallet, ...restProps } = this.props;
         const ethAccountText = ethAccount ? `${truncateAddress(ethAccount)}` : 'Not connected';
         const status: string = ethAccount ? 'active' : '';
         const ethBalanceText = ethBalance ? `${tokenAmountInUnits(ethBalance, ETH_DECIMALS)} ETH` : 'No connected';
@@ -112,7 +113,7 @@ class WalletConnectionContent extends React.Component<Props, State> {
                 <CopyToClipboard text={ethAccount ? ethAccount : ''}>
                     <DropdownTextItemStyled text="Copy Address" />
                 </CopyToClipboard>
-                <DropdownTextItemStyled onClick={connectToWallet} text="Connect a different address" />
+                <DropdownTextItem onClick={onLogoutWallet} text="Logout Wallet" />
             </WalletConnectionWrapper>
         );
 
@@ -143,6 +144,12 @@ const mapStateToProps = (state: StoreState): StateProps => {
     };
 };
 
-const WalletConnectionContentContainer = connect(mapStateToProps, {})(WalletConnectionContent);
+const mapDispatchToProps = (dispatch: any): DispatchProps => {
+    return {
+        onLogoutWallet: () => dispatch(logoutWallet()),
+    };
+};
+
+const WalletConnectionContentContainer = connect(mapStateToProps, mapDispatchToProps)(WalletConnectionContent);
 
 export { WalletConnectionContent, WalletConnectionContentContainer };

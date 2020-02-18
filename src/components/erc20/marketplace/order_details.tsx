@@ -9,7 +9,7 @@ import { fetchTakerAndMakerFee } from '../../../store/relayer/actions';
 import { getOpenBuyOrders, getOpenSellOrders, getQuoteInUsd } from '../../../store/selectors';
 import { getKnownTokens } from '../../../util/known_tokens';
 import { buildMarketOrders, sumTakerAssetFillableOrders } from '../../../util/orders';
-import { formatTokenSymbol, tokenAmountInUnits, tokenSymbolToDisplayString } from '../../../util/tokens';
+import { formatTokenSymbol, tokenAmountInUnits } from '../../../util/tokens';
 import { CurrencyPair, OrderFeeData, OrderSide, OrderType, StoreState, UIOrder } from '../../../util/types';
 
 const Row = styled.div`
@@ -207,7 +207,7 @@ class OrderDetails extends React.Component<Props, State> {
         }
     };
 
-    private readonly _getFeeStringForRender = () => {
+    /*private readonly _getFeeStringForRender = () => {
         const { orderType } = this.props;
         const { makerFeeAmount, makerFeeAssetData, takerFeeAmount, takerFeeAssetData } = this.state;
         // If its a Limit order the user is paying a maker fee
@@ -223,7 +223,7 @@ class OrderDetails extends React.Component<Props, State> {
             feeToken.decimals,
             feeToken.displayDecimals,
         )} ${tokenSymbolToDisplayString(feeToken.symbol)}`;
-    };
+    };*/
 
     private readonly _getCostStringForRender = () => {
         const { canOrderBeFilled } = this.state;

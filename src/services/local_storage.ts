@@ -1,6 +1,6 @@
 import { BigNumber } from '@0x/utils';
 
-import { FILLS_LIMIT, NETWORK_ID, NOTIFICATIONS_LIMIT } from '../common/constants';
+import { CHAIN_ID, FILLS_LIMIT, NETWORK_ID, NOTIFICATIONS_LIMIT } from '../common/constants';
 import { Fill, MarketFill, Notification, Wallet } from '../util/types';
 
 const addPrefix = (key: string) => `VeriDex.${key}`;
@@ -151,7 +151,7 @@ export class LocalStorage {
     }
     // Accumulate market fills
     public saveMarketFills(marketFills: MarketFill, account: string): void {
-        const currentFills = JSON.parse(this._storage.getItem(fillsKey) || '{}');
+        const currentFills = JSON.parse(this._storage.getItem(fillsKey) || `{"${CHAIN_ID}": {"markets": {}}}`);
         const newFills = {
             ...currentFills,
             [NETWORK_ID]: {

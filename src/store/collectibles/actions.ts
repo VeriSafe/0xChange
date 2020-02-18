@@ -1,6 +1,5 @@
 import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
-import { Web3Wrapper } from '@0x/web3-wrapper';
 import { createAction, createAsyncAction } from 'typesafe-actions';
 
 import { FEE_PERCENTAGE, FEE_RECIPIENT } from '../../common/constants';
@@ -8,8 +7,15 @@ import { cancelSignedOrder } from '../../services/orders';
 import { getLogger } from '../../util/logger';
 import { calculateWorstCaseProtocolFee, isDutchAuction } from '../../util/orders';
 import { getTransactionOptions } from '../../util/transactions';
-import { Collectible, ThunkCreator } from '../../util/types';
-import { getEthAccount, getGasPriceInWei } from '../selectors';
+import { Collectible, CollectibleCollection, ThunkCreator } from '../../util/types';
+import { goToHome } from '../actions';
+import {
+    getCollectibleCollectionSelected,
+    getEthAccount,
+    getFeePercentage,
+    getFeeRecipient,
+    getGasPriceInWei,
+} from '../selectors';
 
 const logger = getLogger('Collectibles::Actions');
 
@@ -29,6 +35,14 @@ export const selectCollectible = createAction('collectibles/selectCollectible', 
     return (collectible: Collectible | null) => resolve(collectible);
 });
 
+export const setCollectibleCollection = createAction('collectibles/COLLECTIBLE_COLLECTION_set', resolve => {
+    return (collectibleCollection: CollectibleCollection) => resolve(collectibleCollection);
+});
+
+export const setCollectionLoaded = createAction('collectibles/COLLECTIBLE_COLLECTION_LOADED_set', resolve => {
+    return (isLoaded: boolean) => resolve(isLoaded);
+});
+
 export const getAllCollectibles: ThunkCreator = () => {
     return async (dispatch, getState, { getCollectiblesMetadataGateway, getWeb3Wrapper }) => {
         dispatch(fetchAllCollectiblesAsync.request());
@@ -36,7 +50,8 @@ export const getAllCollectibles: ThunkCreator = () => {
             const state = getState();
             const ethAccount = getEthAccount(state);
             const collectiblesMetadataGateway = getCollectiblesMetadataGateway();
-            const collectibles = await collectiblesMetadataGateway.fetchAllCollectibles(ethAccount);
+            const collection = getCollectibleCollectionSelected(state);
+            const collectibles = await collectiblesMetadataGateway.fetchAllCollectibles(collection.address, ethAccount);
             dispatch(fetchAllCollectiblesAsync.success({ collectibles }));
         } catch (err) {
             logger.error('There was a problem fetching the collectibles', err);
@@ -53,7 +68,8 @@ export const submitBuyCollectible: ThunkCreator<Promise<string>> = (order: Signe
         const state = getState();
         const gasPrice = getGasPriceInWei(state);
         const protocolFee = calculateWorstCaseProtocolFee([order], gasPrice);
-
+        const feePercentage = getFeePercentage(state) || FEE_PERCENTAGE;
+        const feeRecipient = getFeeRecipient(state) || FEE_RECIPIENT;
         let tx;
         if (isDutchAuction(order)) {
             throw new Error('DutchAuction currently unsupported');
@@ -80,15 +96,16 @@ export const submitBuyCollectible: ThunkCreator<Promise<string>> = (order: Signe
         } else {
             const affiliateFeeAmount = order.takerAssetAmount
                 .plus(protocolFee)
-                .multipliedBy(FEE_PERCENTAGE)
+                .multipliedBy(feePercentage)
                 .integerValue(BigNumber.ROUND_CEIL);
+
             tx = await contractWrappers.forwarder
                 .marketBuyOrdersWithEth(
                     [order],
                     order.makerAssetAmount,
                     [order.signature],
-                    [Web3Wrapper.toBaseUnitAmount(FEE_PERCENTAGE, 18)],
-                    [FEE_RECIPIENT],
+                    [affiliateFeeAmount],
+                    [feeRecipient],
                 )
                 .sendTransactionAsync({
                     from: ethAccount,
@@ -113,5 +130,17 @@ export const cancelOrderCollectible: ThunkCreator = (order: any) => {
             // tslint:disable-next-line:no-floating-promises
             dispatch(getAllCollectibles());
         });
+    };
+};
+
+export const changeCollection: ThunkCreator = (collection: CollectibleCollection) => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const collectionSelected = getCollectibleCollectionSelected(state);
+        dispatch(setCollectibleCollection(collection));
+        if (collectionSelected !== collection) {
+            dispatch(getAllCollectibles());
+        }
+        dispatch(goToHome());
     };
 };

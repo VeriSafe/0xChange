@@ -10,7 +10,8 @@ import 'sanitize.css';
 import {
     DEFAULT_BASE_PATH,
     ERC20_APP_BASE_PATH,
-    /*ERC721_APP_BASE_PATH,*/ FIAT_RAMP_APP_BASE_PATH,
+    ERC721_APP_BASE_PATH,
+    FIAT_RAMP_APP_BASE_PATH,
     INSTANT_APP_BASE_PATH,
     LAUNCHPAD_APP_BASE_PATH,
     LOGGER_ID,
@@ -22,6 +23,7 @@ import { PageLoading } from './components/common/page_loading';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import { history, store } from './store';
+import { envUtil } from './util/env';
 /*import Erc20App from './components/erc20/erc20_app';
 import LaunchpadApp from './components/erc20/launchpad_app';
 import MarginApp from './components/erc20/margin_app';*/
@@ -45,6 +47,7 @@ const Erc20App = lazy(() => import('./components/erc20/erc20_app'));
 const LaunchpadApp = lazy(() => import('./components/erc20/launchpad_app'));
 const MarginApp = lazy(() => import('./components/erc20/margin_app'));
 const InstantApp = lazy(() => import('./components/erc20/instant_app'));
+const Erc721App = lazy(() => import('./components/erc721/erc721_app'));
 const FiatApp = lazy(() => import('./components/erc20/fiat_ramp_app'));
 const MarketTradeApp = lazy(() => import('./components/erc20/market_trade_app'));
 
@@ -58,9 +61,9 @@ const Web3WrappedApp = (
                         <Route path={LAUNCHPAD_APP_BASE_PATH} component={LaunchpadApp} />
                         <Route path={MARGIN_APP_BASE_PATH} component={MarginApp} />
                         <Route path={INSTANT_APP_BASE_PATH} component={InstantApp} />
+                        <Route path={ERC721_APP_BASE_PATH} component={Erc721App} />
                         <Route path={FIAT_RAMP_APP_BASE_PATH} component={FiatApp} />
                         <Route path={MARKET_APP_BASE_PATH} component={MarketTradeApp} />
-                        {/* <Route path={ERC721_APP_BASE_PATH} component={Erc721App} />*/}
                         <Route component={RedirectToHome} />
                     </Switch>
                 </Suspense>
@@ -74,4 +77,6 @@ ReactDOM.render(Web3WrappedApp, document.getElementById('root'));
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
+if (!envUtil.isMobileOperatingSystem()) {
+    serviceWorker.register();
+}

@@ -78,11 +78,11 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     let fiat_link: string = 'link';
     let description;
     const frame_width = isMobile(size.width) ? `${size.width - 10}px` : '500px';
-    const frame_height = size.height < 710 ? `${size.height - 100}px` : '610px';
+    const frame_height = size.height < 710 ? `${size.height - 100}px` : `${size.height - 150}px`;
     switch (fiatType) {
         case 'APPLE_PAY':
             fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=apple-pay&accountId=${WYRE_ID}`;
-            if (fiatLink !== fiat_link) {
+            if (fiatLink !== fiat_link && isOpen) {
                 setFiatLink(fiat_link);
             }
             description = `Disclaimer  <br />
@@ -91,7 +91,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
             break;
         case 'DEBIT_CARD':
             fiat_link = `https://pay.sendwyre.com?destCurrency=ETH&dest=${ethAccount}&paymentMethod=debit-card&accountId=${WYRE_ID}`;
-            if (fiatLink !== fiat_link) {
+            if (fiatLink !== fiat_link && isOpen) {
                 setFiatLink(fiat_link);
             }
             description = `Disclaimer  <br />
@@ -99,7 +99,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
             break;
         case 'CREDIT_CARD':
             fiat_link = `https://business.coindirect.com/buy?merchantId=${COINDIRECT_MERCHANT_ID}&to=eth&address=${ethAccount}`;
-            if (fiatLink !== fiat_link) {
+            if (fiatLink !== fiat_link && isOpen) {
                 setFiatLink(fiat_link);
             }
             description = `Disclaimer  <br />
@@ -109,10 +109,11 @@ export const FiatOnRampModal: React.FC<Props> = props => {
             break;
         case 'CARDS':
             const baseMoonPay = 'https://buy.moonpay.io/';
-
             if (ethAccount) {
                 if (!isMoonPayLoaded) {
-                    const link = `${baseMoonPay}?apiKey=${MOONPAY_API_KEY}&enabledPaymentMethods=credit_debit_card,sepa_bank_transfer,gbp_bank_transfer&currencyCode=eth&walletAddress=${ethAccount}`;
+                    const link = `${baseMoonPay}?apiKey=${MOONPAY_API_KEY}&enabledPaymentMethods=${encodeURIComponent(
+                        'credit_debit_card,sepa_bank_transfer,gbp_bank_transfer',
+                    )}&currencyCode=eth&walletAddress=${ethAccount}`;
                     postMoonpaySignature({ url: link }).then(response => {
                         if (response) {
                             setFiatLink(response.urlWithSignature);
@@ -142,7 +143,6 @@ export const FiatOnRampModal: React.FC<Props> = props => {
         e.preventDefault();
         window.open(fiat_link);
     };
-
     return (
         <Modal isOpen={isOpen} style={theme.modalTheme}>
             <CloseModalButton onClick={reset} />
@@ -154,7 +154,8 @@ export const FiatOnRampModal: React.FC<Props> = props => {
                         Use our Provider Wyre
                     </ApplePayLink>
                 ) : (
-                    fiatLink !== 'link' && (
+                    fiatLink !== 'link' &&
+                    isOpen && (
                         <iframe
                             title="fiat_on_ramp"
                             src={fiatLink}

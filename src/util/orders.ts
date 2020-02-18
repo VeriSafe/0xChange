@@ -83,7 +83,7 @@ export const buildSellCollectibleOrder = async (params: BuildSellCollectibleOrde
         expirationTimeSeconds: expirationDate,
     };
 
-    return orderHelper.getOrderWithTakerAndFeeConfigFromRelayer(orderConfigRequest);
+    return orderHelper.getOrderWithTakerAndFeeConfigFromRelayer(orderConfigRequest, true);
 };
 
 export const buildLimitOrder = async (
@@ -170,24 +170,40 @@ export const buildLimitOrderIEO = async (
     };
 };
 
-export const getOrderWithTakerAndFeeConfigFromRelayer = async (orderConfigRequest: OrderConfigRequest) => {
+export const getOrderWithTakerAndFeeConfigFromRelayer = async (
+    orderConfigRequest: OrderConfigRequest,
+    isCollectible?: boolean,
+) => {
     let orderResult: OrderConfigResponse;
     if (USE_RELAYER_ORDER_CONFIG) {
         const client = getRelayer();
         orderResult = await client.getOrderConfigAsync(orderConfigRequest);
     } else {
-        orderResult = {
-            feeRecipientAddress: FEE_RECIPIENT,
-            senderAddress: ZERO_ADDRESS,
-            makerFeeAssetData: new BigNumber(MAKER_FEE_PERCENTAGE).isGreaterThan('0')
-                ? orderConfigRequest.makerAssetData
-                : NULL_BYTES,
-            takerFeeAssetData: new BigNumber(TAKER_FEE_PERCENTAGE).isGreaterThan('0')
-                ? orderConfigRequest.takerAssetData
-                : NULL_BYTES,
-            makerFee: orderConfigRequest.makerAssetAmount.multipliedBy(new BigNumber(MAKER_FEE_PERCENTAGE)),
-            takerFee: orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
-        };
+        if (isCollectible) {
+            orderResult = {
+                feeRecipientAddress: FEE_RECIPIENT,
+                senderAddress: ZERO_ADDRESS,
+                makerFeeAssetData: NULL_BYTES,
+                takerFeeAssetData: new BigNumber(TAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                    ? orderConfigRequest.takerAssetData
+                    : NULL_BYTES,
+                makerFee: new BigNumber(0),
+                takerFee: orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
+            };
+        } else {
+            orderResult = {
+                feeRecipientAddress: FEE_RECIPIENT,
+                senderAddress: ZERO_ADDRESS,
+                makerFeeAssetData: new BigNumber(MAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                    ? orderConfigRequest.takerAssetData
+                    : NULL_BYTES,
+                takerFeeAssetData: new BigNumber(TAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                    ? orderConfigRequest.makerAssetData
+                    : NULL_BYTES,
+                makerFee: orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(MAKER_FEE_PERCENTAGE)),
+                takerFee: orderConfigRequest.makerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
+            };
+        }
     }
 
     return {

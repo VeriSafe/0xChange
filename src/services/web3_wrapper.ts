@@ -1,6 +1,7 @@
 // tslint:disable-next-line: no-implicit-dependencies
 import { providerUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
+import Torus from '@toruslabs/torus-embed';
 
 import { FORTMATIC_APP_ID, NETWORK_ID, NETWORK_NAME, PORTIS_APP_ID } from '../common/constants';
 import { providerFactory } from '../util/provider_factory';
@@ -228,27 +229,16 @@ export const initTorus = async (): Promise<Web3Wrapper | null> => {
     };
 
     const enableTorus = async () => {
-        let { web3 } = window;
-        // Torus need some time to inject web3
-        while (!web3) {
-            web3 = window.web3;
-            // if web3Wrapper is not set yet, wait and retry
-            await sleep(100);
-        }
-        const { ethereum, location } = window;
+        const torus = new Torus({});
+        await torus.init({ buildEnv: 'production', network: { host: 'mainnet' } });
+        await torus.login({});
         const isTorus = sessionStorage.getItem('pageUsingTorus');
         if (isTorus) {
-            return (web3Wrapper = new Web3Wrapper(web3.currentProvider));
+            // @ts-ignore
+            return (web3Wrapper = new Web3Wrapper(torus.provider));
         }
-        await ethereum.enable();
-        ethereum.on('accountsChanged', async (accounts: []) => {
-            // Reload to avoid MetaMask bug: "MetaMask - RPC Error: Internal JSON-RPC"
-            location.reload();
-        });
-        ethereum.on('networkChanged', async (network: number) => {
-            location.reload();
-        });
-        web3Wrapper = new Web3Wrapper(web3.currentProvider);
+        // @ts-ignore
+        web3Wrapper = new Web3Wrapper(torus.provider);
         localStorage.saveWalletConnected(Wallet.Torus);
         sessionStorage.setItem('pageUsingTorus', 'true');
         return web3Wrapper;

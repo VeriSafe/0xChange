@@ -17,7 +17,7 @@ interface Props {
 const options: { [key: string]: string } = {
     [CollectibleFilterType.ShowAll]: 'Show all',
     [CollectibleFilterType.FixedPrice]: 'Fixed Price',
-    [CollectibleFilterType.DecliningAuction]: 'Declining Auction',
+    // [CollectibleFilterType.DecliningAuction]: 'Declining Auction',
 };
 
 const DropdownItemFilter = styled(DropdownTextItemWrapper)`

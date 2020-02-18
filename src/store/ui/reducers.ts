@@ -50,7 +50,7 @@ const initialUIState: UIState = {
     startTour: false,
     openFiatOnRampModal: false,
     openFiatOnRampChooseModal: false,
-    erc20Layout: localStorage.getErc20Layout() || JSON.stringify(initialLayouts),
+    erc20Layout: JSON.stringify(initialLayouts),
     isDynamicLayout: localStorage.getDynamicLayout(),
     themeName: ERC20_THEME_NAME,
     erc20Theme: getThemeByName(ERC20_THEME_NAME),

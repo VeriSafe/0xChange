@@ -1,11 +1,13 @@
 import React, { HTMLAttributes } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 
 import { Config } from '../../common/config';
 import { GIT_COMMIT } from '../../common/constants';
 import { goToListedTokens, goToListings } from '../../store/actions';
+import { getCurrentMarketPlace } from '../../store/selectors';
 import { themeBreakPoints, themeDimensions } from '../../themes/commons';
+import { MARKETPLACES } from '../../util/types';
 
 import { SocialIcon } from './icons/social_icon';
 
@@ -143,6 +145,7 @@ const poweredBySVG = () => {
 export const Footer: React.FC<Props> = props => {
     const config = Config.getConfig();
     const dispatch = useDispatch();
+    const marketplace = useSelector(getCurrentMarketPlace);
     let socialButtons;
     if (config.general && config.general.social) {
         const social_urls_keys = Object.keys(config.general.social);
@@ -183,10 +186,12 @@ export const Footer: React.FC<Props> = props => {
     return (
         <FooterWrapper title={GIT_COMMIT} {...props}>
             <LinksContainer>
-                <HrefStyled href={`/listed-tokens`} onClick={handleListTokensClick}>
-                    Tokens
-                </HrefStyled>
-                <Pipe>|</Pipe>
+                {marketplace !== MARKETPLACES.ERC721 && (
+                    <HrefStyled href={`/listed-tokens`} onClick={handleListTokensClick}>
+                        Tokens
+                    </HrefStyled>
+                )}
+                {marketplace !== MARKETPLACES.ERC721 && <Pipe>|</Pipe>}
                 <HrefStyled
                     href="https://www.verisafe.io/terms-and-conditions"
                     target="_blank"
@@ -200,18 +205,22 @@ export const Footer: React.FC<Props> = props => {
                 <HrefStyled href="https://www.verisafe.io/privacy-policy" target="_blank" rel="noopener noreferrer">
                     Privacy Policy
                 </HrefStyled>
+                {marketplace !== MARKETPLACES.ERC721 && <Pipe>|</Pipe>}
+                {marketplace !== MARKETPLACES.ERC721 && (
+                    <HrefStyled
+                        href="https://steemit.com/veridex/@joaocampos/tutorial-to-use-veridex-at-dex-verisafe-io-https-dex-verisafe-io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Tutorial
+                    </HrefStyled>
+                )}
                 <Pipe>|</Pipe>
-                <HrefStyled
-                    href="https://steemit.com/veridex/@joaocampos/tutorial-to-use-veridex-at-dex-verisafe-io-https-dex-verisafe-io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Tutorial
-                </HrefStyled>
-                <Pipe>|</Pipe>
-                <HrefStyled href={`/listings`} onClick={handleListingsClick}>
-                    Listings
-                </HrefStyled>
+                {marketplace !== MARKETPLACES.ERC721 && (
+                    <HrefStyled href={`/listings`} onClick={handleListingsClick}>
+                        Listings
+                    </HrefStyled>
+                )}
                 {/*<StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
                     {themeName === 'DARK_THEME' ? '☼' : '🌑'}
                 </StyledButton>
