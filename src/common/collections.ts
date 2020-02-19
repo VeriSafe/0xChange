@@ -36,7 +36,7 @@ export const getCollectibleCollections = (): CollectibleCollection[] => {
                         lower: true,
                     }),
                     name: c.name,
-                    address: getContractFromChainId(c.addresses) || '0x',
+                    address: (getContractFromChainId(c.addresses) as string).toLowerCase(),
                     description: c.description,
                     icon: c.icon,
                     symbol: c.symbol || c.name.toLowerCase(),
