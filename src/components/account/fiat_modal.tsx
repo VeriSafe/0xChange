@@ -69,7 +69,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     const ethAccount = useSelector(getEthAccount);
     const fiatType = useSelector(getFiatType);
     const isOpen = useSelector(getOpenFiatOnRampModalState);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const [fiatLink, setFiatLink] = useState('link');
     const [isMoonPayLoaded, setIsMoonPayLoaded] = useState(false);
     const reset = () => {
@@ -114,6 +114,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
                     const link = `${baseMoonPay}?apiKey=${MOONPAY_API_KEY}&enabledPaymentMethods=${encodeURIComponent(
                         'credit_debit_card,sepa_bank_transfer,gbp_bank_transfer',
                     )}&currencyCode=eth&walletAddress=${ethAccount}`;
+                    // tslint:disable-next-line:no-floating-promises
                     postMoonpaySignature({ url: link }).then(response => {
                         if (response) {
                             setFiatLink(response.urlWithSignature);
@@ -137,7 +138,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
     }
     const toolTip = <TooltipStyled description={description} iconType={IconType.Fill} />;
     const onload = () => {
-        setLoading(false);
+        setIsLoading(false);
     };
     const handleApplePay: React.EventHandler<React.MouseEvent> = e => {
         e.preventDefault();
@@ -148,7 +149,7 @@ export const FiatOnRampModal: React.FC<Props> = props => {
             <CloseModalButton onClick={reset} />
             <ModalContent style={{ height: `${size.height}px` }}>
                 <Title>BUY ETH {toolTip}</Title>
-                {loading && fiatType !== 'APPLE_PAY' && <LoadingWrapper minHeight="120px" />}
+                {isLoading && fiatType !== 'APPLE_PAY' && <LoadingWrapper minHeight="120px" />}
                 {fiatType === 'APPLE_PAY' ? (
                     <ApplePayLink href="/apple-pay" onClick={handleApplePay} className={'apple-pay'}>
                         Use our Provider Wyre

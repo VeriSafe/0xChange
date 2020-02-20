@@ -184,6 +184,7 @@ export interface UIState {
     readonly stepsModal: StepsModalState;
     readonly startTour: boolean;
     readonly orderPriceSelected: BigNumber | null;
+    readonly makerAmountSelected: BigNumber | null;
     readonly sidebarOpen: boolean;
     readonly openFiatOnRampModal: boolean;
     readonly openFiatOnRampChooseModal: boolean;

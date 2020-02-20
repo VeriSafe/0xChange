@@ -129,11 +129,8 @@ class BuySellTokenStep extends React.Component<Props, State> {
     private readonly _getAmountOfQuoteTokenString = (): string => {
         let quoteToken;
         const { context } = this.props.step;
-        if (context === 'order') {
-            quoteToken = this.props.quoteToken;
-        } else {
-            quoteToken = this.props.swapQuoteToken;
-        }
+        context === 'order' ? (quoteToken = this.props.quoteToken) : (quoteToken = this.props.swapQuoteToken);
+
         const quoteTokenSymbol = tokenSymbolToDisplayString(quoteToken.symbol);
         const { amountInReturn } = this.state;
         return `${tokenAmountInUnits(

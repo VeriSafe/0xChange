@@ -54,6 +54,8 @@ interface State {
     isSubmitting: boolean;
     tokenBalanceSelected: TokenBalance | null;
     isEth: boolean;
+    isHideZeroBalance: boolean;
+    currencySelector: 'USD' | 'ETH';
 }
 
 const THStyled = styled(TH)`
@@ -141,6 +143,14 @@ const TokenName = styled.span`
         display: block;
     }
 `;
+const Settings = styled.div`
+    display: flex;
+    justify-content: space-between;
+`;
+const SettingsItem = styled.div`
+    display: flex;
+`;
+
 const TokenNameSeparator = styled.span`
     @media (max-width: ${themeBreakPoints.sm}) {
         display: none;
@@ -165,6 +175,24 @@ const ButtonsContainer = styled.span`
 
 const LockIcon = styled.span`
     cursor: pointer;
+`;
+const LabelContainer = styled.div`
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: row;
+    display: flex;
+    padding-right: 8px;
+`;
+const FieldContainer = styled.div`
+    position: relative;
+`;
+
+const Label = styled.label<{ color?: string }>`
+    color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
+    font-size: 12px;
+    padding-right: 4px;
+    line-height: normal;
+    margin: 0;
 `;
 
 const lockedIcon = () => {
@@ -232,6 +260,8 @@ class WalletTokenBalances extends React.PureComponent<Props, State> {
         isSubmitting: false,
         tokenBalanceSelected: null,
         isEth: false,
+        isHideZeroBalance: false,
+        currencySelector: 'USD',
     };
 
     public render = () => {
@@ -252,6 +282,18 @@ class WalletTokenBalances extends React.PureComponent<Props, State> {
         if (!wethTokenBalance) {
             return null;
         }
+        /*const walletInnerTabs = [
+            {
+                active: this.state.currencySelector === 'USD',
+                onClick: this._switchToUSD,
+                text: 'USD',
+            },
+            {
+                active: this.state.currencySelector === 'ETH',
+                onClick: this._switchToETH,
+                text: 'ETH',
+            },
+        ];*/
 
         const wethToken = wethTokenBalance.token;
         const totalEth = wethTokenBalance.balance.plus(ethBalance);
@@ -313,74 +355,80 @@ class WalletTokenBalances extends React.PureComponent<Props, State> {
             </TR>
         );
 
-        const tokensRows = tokenBalances.map((tokenBalance, index) => {
-            const { token, balance, isUnlocked } = tokenBalance;
-            const { symbol } = token;
-            const formattedBalance = tokenAmountInUnits(balance, token.decimals, token.displayDecimals);
-            const onClick = () => onStartToggleTokenLockSteps(token, isUnlocked);
-            const openTransferModal = () => {
-                this.setState({
-                    modalIsOpen: true,
-                    tokenBalanceSelected: tokenBalance,
-                    isEth: false,
-                });
-            };
-            const tokenPrice = tokensPrice && tokensPrice.find(t => t.c_id === token.c_id);
+        const tokensRows = tokenBalances
+            .filter(tb => (this.state.isHideZeroBalance ? tb.balance.gt(0) : true))
+            .map((tokenBalance, index) => {
+                const { token, balance, isUnlocked } = tokenBalance;
+                const { symbol } = token;
+                const formattedBalance = tokenAmountInUnits(balance, token.decimals, token.displayDecimals);
+                const onClick = () => onStartToggleTokenLockSteps(token, isUnlocked);
+                const openTransferModal = () => {
+                    this.setState({
+                        modalIsOpen: true,
+                        tokenBalanceSelected: tokenBalance,
+                        isEth: false,
+                    });
+                };
+                const tokenPrice = tokensPrice && tokensPrice.find(t => t.c_id === token.c_id);
 
-            return (
-                <TR key={symbol}>
-                    <TokenTD>
-                        <TokenIconStyled symbol={token.symbol} primaryColor={token.primaryColor} icon={token.icon} />
-                    </TokenTD>
-                    <CustomTDTokenName styles={{ borderBottom: true }}>
-                        <TokenEtherscanLink href={getEtherscanLinkForToken(token)} target={'_blank'}>
-                            <TokenName>{token.symbol.toUpperCase()}</TokenName>{' '}
-                            <TokenNameSeparator>{` - `}</TokenNameSeparator>
-                            {`${token.name}`}
-                        </TokenEtherscanLink>
-                    </CustomTDTokenName>
-                    <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>
-                        <QuantityEtherscanLink
-                            href={getEtherscanLinkForTokenAndAddress(token, ethAccount)}
-                            target={'_blank'}
-                        >
-                            {formattedBalance}
-                        </QuantityEtherscanLink>
-                    </CustomTD>
-                    <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>
-                        {tokenPrice ? `${tokenPrice.price_usd.toString()}$` : '-'}
-                    </CustomTD>
-                    <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>
-                        {tokenPrice
-                            ? `${tokenPrice.price_usd.multipliedBy(new BigNumber(formattedBalance)).toFixed(3)}$`
-                            : '-'}
-                    </CustomTD>
-                    {tokenPrice ? (
-                        <PriceChangeCell price_usd_24h_change={tokenPrice.price_usd_24h_change} />
-                    ) : (
-                        <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>-</CustomTD>
-                    )}
-                    <LockCell
-                        isUnlocked={isUnlocked}
-                        onClick={onClick}
-                        styles={{ borderBottom: true, textAlign: 'center' }}
-                    />
-                    <CustomTD styles={{ borderBottom: true, textAlign: 'left' }}>
-                        <ButtonsContainer>
-                            <Button onClick={openTransferModal} variant={ButtonVariant.Primary}>
-                                Send
-                            </Button>
-                            <ZeroXInstantWidget
-                                orderSource={RELAYER_URL}
-                                tokenAddress={token.address}
-                                networkId={NETWORK_ID}
-                                walletDisplayName={wallet}
+                return (
+                    <TR key={symbol}>
+                        <TokenTD>
+                            <TokenIconStyled
+                                symbol={token.symbol}
+                                primaryColor={token.primaryColor}
+                                icon={token.icon}
                             />
-                        </ButtonsContainer>
-                    </CustomTD>
-                </TR>
-            );
-        });
+                        </TokenTD>
+                        <CustomTDTokenName styles={{ borderBottom: true }}>
+                            <TokenEtherscanLink href={getEtherscanLinkForToken(token)} target={'_blank'}>
+                                <TokenName>{token.symbol.toUpperCase()}</TokenName>{' '}
+                                <TokenNameSeparator>{` - `}</TokenNameSeparator>
+                                {`${token.name}`}
+                            </TokenEtherscanLink>
+                        </CustomTDTokenName>
+                        <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>
+                            <QuantityEtherscanLink
+                                href={getEtherscanLinkForTokenAndAddress(token, ethAccount)}
+                                target={'_blank'}
+                            >
+                                {formattedBalance}
+                            </QuantityEtherscanLink>
+                        </CustomTD>
+                        <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>
+                            {tokenPrice ? `${tokenPrice.price_usd.toString()}$` : '-'}
+                        </CustomTD>
+                        <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>
+                            {tokenPrice
+                                ? `${tokenPrice.price_usd.multipliedBy(new BigNumber(formattedBalance)).toFixed(3)}$`
+                                : '-'}
+                        </CustomTD>
+                        {tokenPrice ? (
+                            <PriceChangeCell price_usd_24h_change={tokenPrice.price_usd_24h_change} />
+                        ) : (
+                            <CustomTD styles={{ borderBottom: true, textAlign: 'right' }}>-</CustomTD>
+                        )}
+                        <LockCell
+                            isUnlocked={isUnlocked}
+                            onClick={onClick}
+                            styles={{ borderBottom: true, textAlign: 'center' }}
+                        />
+                        <CustomTD styles={{ borderBottom: true, textAlign: 'left' }}>
+                            <ButtonsContainer>
+                                <Button onClick={openTransferModal} variant={ButtonVariant.Primary}>
+                                    Send
+                                </Button>
+                                <ZeroXInstantWidget
+                                    orderSource={RELAYER_URL}
+                                    tokenAddress={token.address}
+                                    networkId={NETWORK_ID}
+                                    walletDisplayName={wallet}
+                                />
+                            </ButtonsContainer>
+                        </CustomTD>
+                    </TR>
+                );
+            });
         const totalHoldingsRow = () => {
             const totalHoldingsValue: BigNumber =
                 (tokenBalances.length &&
@@ -425,6 +473,19 @@ class WalletTokenBalances extends React.PureComponent<Props, State> {
         } else {
             content = (
                 <>
+                    <Settings>
+                        <SettingsItem>{/*<InnerTabs tabs={walletInnerTabs} />*/}</SettingsItem>
+                        <LabelContainer>
+                            <Label>Hide Zero</Label>
+                            <FieldContainer>
+                                <input
+                                    type="checkbox"
+                                    checked={this.state.isHideZeroBalance}
+                                    onChange={this.onHideZeroBalance}
+                                />
+                            </FieldContainer>
+                        </LabelContainer>
+                    </Settings>
                     <Table isResponsive={true}>
                         <THead>
                             <TR>
@@ -467,6 +528,12 @@ class WalletTokenBalances extends React.PureComponent<Props, State> {
         });
     };
 
+    public onHideZeroBalance = () => {
+        this.setState({
+            isHideZeroBalance: !this.state.isHideZeroBalance,
+        });
+    };
+
     public openModal = () => {
         this.setState({
             modalIsOpen: true,
@@ -486,6 +553,17 @@ class WalletTokenBalances extends React.PureComponent<Props, State> {
             this.closeModal();
         }
     };
+    /*private readonly _switchToUSD = () => {
+        this.setState({
+            currencySelector: 'USD',
+        });
+    };*/
+
+    /*private readonly _switchToETH = () => {
+        this.setState({
+            currencySelector: 'ETH',
+        });
+    };*/
 }
 
 const mapStateToProps = (state: StoreState): StateProps => {

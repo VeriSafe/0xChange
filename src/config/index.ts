@@ -1,12 +1,12 @@
 // Use this on production
 import configFileProduction from '../config/files/config.json';
 
+import collectibleCollectionConfig from './collectibles-config.json';
 import configTemplateFile from './config-template.json';
 import configFileTest from './config-test.json';
 import configFileIEOProduction from './files/config-ieo.json';
 import configTipBot from './files/settingsAssets.json';
 import configTipBotWhitelistAddresses from './files/settingsAssetsWhitelistAddresses.json';
-import collectibleCollectionConfig from './collectibles-config.json';
 // import configFileProduction from '../config/files/config2.json';
 // Using this due to CI error
 

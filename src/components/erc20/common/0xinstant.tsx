@@ -129,11 +129,9 @@ export const ZeroXInstantComponent = (props: Props) => {
                 Web3Wrapper.isAddress(makerAddress) &&
                 isEIO
             ) {
-                if (knownTokensIEO.isKnownAddress(tokenName)) {
-                    token = knownTokensIEO.getTokenByAddress(tokenName);
-                } else {
-                    token = (await knownTokensIEO.addTokenByAddress(tokenName, makerAddress)) as TokenIEO;
-                }
+                knownTokensIEO.isKnownAddress(tokenName)
+                    ? (token = knownTokensIEO.getTokenByAddress(tokenName))
+                    : (token = (await knownTokensIEO.addTokenByAddress(tokenName, makerAddress)) as TokenIEO);
             }
 
             if (token) {

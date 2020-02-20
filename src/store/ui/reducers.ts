@@ -45,6 +45,7 @@ const initialUIState: UIState = {
     hasUnreadNotifications: false,
     stepsModal: initialStepsModalState,
     orderPriceSelected: null,
+    makerAmountSelected: null,
     sidebarOpen: false,
     fiatType: 'APPLE_PAY',
     startTour: false,
@@ -98,6 +99,8 @@ export function ui(state: UIState = initialUIState, action: RootAction): UIState
             return { ...state, hasUnreadNotifications: action.payload };
         case getType(actions.setOrderPriceSelected):
             return { ...state, orderPriceSelected: action.payload };
+        case getType(actions.setMakerAmountSelected):
+            return { ...state, makerAmountSelected: action.payload };
         case getType(actions.setNotifications):
             return { ...state, notifications: action.payload };
         case getType(actions.setConfigData):

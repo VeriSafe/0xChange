@@ -65,8 +65,8 @@ export const createBuySellLimitSteps = (
     if (isWeth(baseToken.symbol) || isWeth(quoteToken.symbol)) {
         let feeBalance = new BigNumber(0);
         // check if maker fee data is Weth
-        try{
-                if(orderFeeData.makerFee.isGreaterThan(0)){
+        try {
+            if (orderFeeData.makerFee.isGreaterThan(0)) {
                 const { tokenAddress } = assetDataUtils.decodeAssetDataOrThrow(
                     orderFeeData.makerFeeAssetData,
                 ) as ERC20AssetData;
@@ -74,11 +74,11 @@ export const createBuySellLimitSteps = (
                 if (wethTokenBalance.token.address.toLowerCase() === tokenAddress.toLowerCase()) {
                     feeBalance = orderFeeData.makerFee;
                 }
-           }
-        }catch(e){
+            }
+        } catch (e) {
             //
         }
-        
+
         const wrapEthStep = getWrapEthStepIfNeeded(amount, price, side, wethTokenBalance, undefined, feeBalance);
         if (wrapEthStep) {
             buySellLimitFlow.push(wrapEthStep);
@@ -527,3 +527,4 @@ export const getUnlockZrxStepIfNeeded = (tokenBalances: TokenBalance[]): StepTog
         };
     }
 };
+// tslint:disable:max-file-line-count

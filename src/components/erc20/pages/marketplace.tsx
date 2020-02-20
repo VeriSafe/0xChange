@@ -148,13 +148,14 @@ const Marketplace = () => {
     const layouts = JSON.parse(useSelector(getERC20Layout));
     const isDynamicLayout = useSelector(getDynamicLayout);
     const ethAccount = useSelector(getEthAccount);
-    const startTour = useSelector(getTourStarted);
+    const isStartTour = useSelector(getTourStarted);
     const baseToken = useSelector(getBaseToken);
     const isListed = baseToken ? baseToken.listed : true;
     /**
      * TODO: Remove this workaround. In some states, react-grid-layoyt is not
      * finding the correct way to get the correct width.
-     * */
+     *
+     **/
     /*useEffect(()=>{
         setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
@@ -290,7 +291,7 @@ const Marketplace = () => {
                     <StyledButton onClick={onTakeTutorial}>Take Tour </StyledButton>
                 </StyledDiv>*/}
                 <Joyride
-                    run={startTour}
+                    run={isStartTour}
                     steps={ethAccount ? allSteps : noWalletSteps}
                     callback={handleJoyrideCallback}
                     continuous={true}

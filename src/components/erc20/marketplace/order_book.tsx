@@ -14,7 +14,7 @@ import {
     getUserOrders,
     getWeb3State,
 } from '../../../store/selectors';
-import { setOrderPriceSelected } from '../../../store/ui/actions';
+import { setMakerAmountSelected, setOrderPriceSelected } from '../../../store/ui/actions';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
 import { formatTokenSymbol, tokenAmountInUnits } from '../../../util/tokens';
 import {
@@ -206,6 +206,7 @@ interface OrderToRowPropsOwn {
     count: number;
     baseToken: Token;
     priceColor: string;
+    orders: OrderBookItem[];
     mySizeOrders: OrderBookItem[];
     web3State?: Web3State;
     currencyPair: CurrencyPair;
@@ -213,6 +214,7 @@ interface OrderToRowPropsOwn {
 
 interface OrderToRowDispatchProps {
     onSetOrderPriceSelected: (orderPriceSelected: BigNumber) => Promise<any>;
+    onSetMakerAmountSelected: (makerAmountSelected: BigNumber) => Promise<any>;
 }
 
 type OrderToRowProps = OrderToRowPropsOwn & OrderToRowDispatchProps;
@@ -287,13 +289,34 @@ class OrderToRow extends React.Component<OrderToRowProps> {
     };
 
     private readonly _setOrderPriceSelected = async (size: BigNumber) => {
+        const { order, orders } = this.props;
+        let totalSize = ZERO;
+        if (order.side === OrderSide.Buy) {
+            totalSize = orders.reduce((sumSize, sizeItem) => {
+                if (order.price.lte(sizeItem.price)) {
+                    return sumSize.plus(sizeItem.size);
+                }
+                return sumSize;
+            }, ZERO);
+        } else {
+            totalSize = orders.reduce((sumSize, sizeItem) => {
+                if (order.price.gte(sizeItem.price)) {
+                    return sumSize.plus(sizeItem.size);
+                }
+                return sumSize;
+            }, ZERO);
+        }
+
         await this.props.onSetOrderPriceSelected(size);
+        await this.props.onSetMakerAmountSelected(totalSize);
     };
 }
 
 const mapOrderToRowDispatchToProps = (dispatch: any): OrderToRowDispatchProps => {
     return {
         onSetOrderPriceSelected: (orderPriceSelected: BigNumber) => dispatch(setOrderPriceSelected(orderPriceSelected)),
+        onSetMakerAmountSelected: (makerAmountSelected: BigNumber) =>
+            dispatch(setMakerAmountSelected(makerAmountSelected)),
     };
 };
 
@@ -435,7 +458,8 @@ class OrderBookTable extends React.Component<Props, StateOrderBook> {
                                     <option value="50">50</option>
                                 </DepthSelect>
                             </CustomTH>
-                        </TotalRow>}
+                        </TotalRow>
+                    }
                     <TotalRow isBottom={true}>
                         <THTotal as="div" styles={{ textAlign: 'left' }}>{`Asks`}</THTotal>
                         <CustomTH as="div" styles={{ textAlign: 'right' }}>
@@ -471,6 +495,7 @@ class OrderBookTable extends React.Component<Props, StateOrderBook> {
                                                 order={order}
                                                 index={index}
                                                 count={sellOrders.length}
+                                                orders={sellOrders}
                                                 baseToken={baseToken}
                                                 priceColor={getColor(order)}
                                                 mySizeOrders={mySizeSellArray}
@@ -500,6 +525,7 @@ class OrderBookTable extends React.Component<Props, StateOrderBook> {
                                             order={order}
                                             index={index}
                                             count={buyOrders.length}
+                                            orders={buyOrders}
                                             baseToken={baseToken}
                                             priceColor={getColor(order)}
                                             mySizeOrders={mySizeBuyArray}

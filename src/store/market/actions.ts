@@ -255,6 +255,7 @@ export const updateMarketPriceTokens: ThunkCreator = () => {
 
         const currentMarketPlace = getCurrentMarketPlace(state);
         if (currentMarketPlace === MARKETPLACES.Margin) {
+            // tslint:disable-next-line:no-floating-promises
             dispatch(updateBZXStore());
         }
     };

@@ -53,11 +53,9 @@ export const SideTD = styled(CustomTDFills)<{ side: OrderSide }>`
 
 const fillToRow = (fill: Fill, index: number) => {
     let amountBase;
-    if (USE_RELAYER_MARKET_UPDATES) {
-        amountBase = fill.amountBase.toFixed(fill.tokenBase.displayDecimals);
-    } else {
-        amountBase = tokenAmountInUnits(fill.amountBase, fill.tokenBase.decimals, fill.tokenBase.displayDecimals);
-    }
+    USE_RELAYER_MARKET_UPDATES
+        ? (amountBase = fill.amountBase.toFixed(fill.tokenBase.displayDecimals))
+        : (amountBase = tokenAmountInUnits(fill.amountBase, fill.tokenBase.decimals, fill.tokenBase.displayDecimals));
 
     const displayAmountBase = `${amountBase} ${formatTokenSymbol(fill.tokenBase.symbol)}`;
     let currencyPair: CurrencyPair;
