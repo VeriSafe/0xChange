@@ -154,8 +154,8 @@ export const localStorageMiddleware: Middleware = ({ getState }: MiddlewareAPI) 
         }
         case getType(actions.setDynamicLayout): {
             const state = getState();
-            const layout = getDynamicLayout(state);
-            localStorage.saveDynamicLayout(layout);
+            const isLayout = getDynamicLayout(state);
+            localStorage.saveDynamicLayout(isLayout);
             break;
         }
 

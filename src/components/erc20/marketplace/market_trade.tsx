@@ -234,6 +234,7 @@ const MarketTrade = (props: Props) => {
                 }
             }
         };
+        // tslint:disable-next-line:no-floating-promises
         fetchToken();
     }, [queryToken, baseToken]);
 

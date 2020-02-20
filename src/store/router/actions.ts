@@ -20,6 +20,7 @@ export const goToHome: ThunkCreator = () => {
         const isRoutes =
             currentRoute.includes(ERC20_APP_BASE_PATH) ||
             currentRoute.includes(MARGIN_APP_BASE_PATH) ||
+            currentRoute.includes(LAUNCHPAD_APP_BASE_PATH) ||
             currentRoute.includes(MARKET_APP_BASE_PATH);
         isRoutes ? dispatch(goToHomeErc20()) : dispatch(goToHomeErc721());
     };

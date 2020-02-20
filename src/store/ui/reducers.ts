@@ -30,7 +30,7 @@ const initialLayouts = {
         { w: 6, h: 40, x: 2, y: 0, i: 'b' },
         { w: 4, h: 26, x: 8, y: 30, i: 'd' },
         { w: 2, h: 30, x: 8, y: 0, i: 'e' },
-        { w: 6, h: 19, x: 2, y: 37, i: 'f' },
+        { w: 6, h: 16, x: 2, y: 37, i: 'f' },
         { w: 2, h: 30, x: 10, y: 0, i: 'g' },
     ],
 };
@@ -45,6 +45,7 @@ const initialUIState: UIState = {
     hasUnreadNotifications: false,
     stepsModal: initialStepsModalState,
     orderPriceSelected: null,
+    makerAmountSelected: null,
     sidebarOpen: false,
     fiatType: 'APPLE_PAY',
     startTour: false,
@@ -98,6 +99,8 @@ export function ui(state: UIState = initialUIState, action: RootAction): UIState
             return { ...state, hasUnreadNotifications: action.payload };
         case getType(actions.setOrderPriceSelected):
             return { ...state, orderPriceSelected: action.payload };
+        case getType(actions.setMakerAmountSelected):
+            return { ...state, makerAmountSelected: action.payload };
         case getType(actions.setNotifications):
             return { ...state, notifications: action.payload };
         case getType(actions.setConfigData):

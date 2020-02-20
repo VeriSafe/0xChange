@@ -139,8 +139,10 @@ export const changeCollection: ThunkCreator = (collection: CollectibleCollection
         const collectionSelected = getCollectibleCollectionSelected(state);
         dispatch(setCollectibleCollection(collection));
         if (collectionSelected !== collection) {
+            // tslint:disable-next-line:no-floating-promises
             dispatch(getAllCollectibles());
         }
+        // tslint:disable-next-line:no-floating-promises
         dispatch(goToHome());
     };
 };

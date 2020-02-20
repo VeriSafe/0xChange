@@ -117,6 +117,10 @@ export const setOrderPriceSelected = createAction('ui/ORDER_PRICE_SELECTED_set',
     return (orderPriceSelected: BigNumber) => resolve(orderPriceSelected);
 });
 
+export const setMakerAmountSelected = createAction('ui/MAKER_AMOUNT_SELECTED_set', resolve => {
+    return (makerAmountSelected: BigNumber) => resolve(makerAmountSelected);
+});
+
 export const setStepsModalPendingSteps = createAction('ui/steps_modal/PENDING_STEPS_set', resolve => {
     return (pendingSteps: Step[]) => resolve(pendingSteps);
 });

@@ -63,7 +63,23 @@ export const createBuySellLimitSteps = (
 
     // wrap the necessary ether if it is one of the traded tokens
     if (isWeth(baseToken.symbol) || isWeth(quoteToken.symbol)) {
-        const wrapEthStep = getWrapEthStepIfNeeded(amount, price, side, wethTokenBalance);
+        let feeBalance = new BigNumber(0);
+        // check if maker fee data is Weth
+        try {
+            if (orderFeeData.makerFee.isGreaterThan(0)) {
+                const { tokenAddress } = assetDataUtils.decodeAssetDataOrThrow(
+                    orderFeeData.makerFeeAssetData,
+                ) as ERC20AssetData;
+                // check if needs to pay fee token
+                if (wethTokenBalance.token.address.toLowerCase() === tokenAddress.toLowerCase()) {
+                    feeBalance = orderFeeData.makerFee;
+                }
+            }
+        } catch (e) {
+            //
+        }
+
+        const wrapEthStep = getWrapEthStepIfNeeded(amount, price, side, wethTokenBalance, undefined, feeBalance);
         if (wrapEthStep) {
             buySellLimitFlow.push(wrapEthStep);
         }
@@ -438,13 +454,17 @@ export const getWrapEthStepIfNeeded = (
     side: OrderSide,
     wethTokenBalance: TokenBalance,
     ethBalance?: BigNumber,
+    feeBalance?: BigNumber,
 ): StepWrapEth | null => {
     // Weth needed only when creating a buy order
     if (side === OrderSide.Sell) {
         return null;
     }
 
-    const wethAmountNeeded = amount.multipliedBy(price);
+    let wethAmountNeeded = amount.multipliedBy(price);
+    if (feeBalance) {
+        wethAmountNeeded = wethAmountNeeded.plus(feeBalance);
+    }
 
     // If we have enough WETH, we don't need to wrap
     if (wethTokenBalance.balance.isGreaterThan(wethAmountNeeded)) {
@@ -507,3 +527,4 @@ export const getUnlockZrxStepIfNeeded = (tokenBalances: TokenBalance[]): StepTog
         };
     }
 };
+// tslint:disable:max-file-line-count

@@ -49,11 +49,9 @@ export const getThemeByMarketplace = (marketplace: MARKETPLACES): Theme => {
 export const getThemeFromConfigDex = (themeN?: string): Theme => {
     let themeName;
     // If user have already defined a theme use it.
-    if (themeN) {
-        themeName = themeN;
-    } else {
-        themeName = Config.getConfig().theme_name ? Config.getConfig().theme_name : ERC20_THEME_NAME;
-    }
+    themeN
+        ? (themeName = themeN)
+        : (themeName = Config.getConfig().theme_name ? Config.getConfig().theme_name : ERC20_THEME_NAME);
     const themeBase = getThemeByName(themeName as string);
     const themeConfig = themeName === 'DARK_THEME' ? Config.getConfig().theme_dark : Config.getConfig().theme_light;
     const componentsTheme = themeConfig

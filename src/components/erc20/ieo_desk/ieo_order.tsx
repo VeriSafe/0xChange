@@ -501,3 +501,4 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
 const IEOOrderContainer = connect(mapStateToProps, mapDispatchToProps)(IEOOrder);
 
 export { IEOOrder, IEOOrderContainer };
+// tslint:disable:max-file-line-count

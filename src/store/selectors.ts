@@ -54,6 +54,7 @@ export const getWethBalance = (state: StoreState) =>
 export const getOrders = (state: StoreState) => state.relayer.orders;
 export const getUserOrders = (state: StoreState) => state.relayer.userOrders;
 export const getOrderPriceSelected = (state: StoreState) => state.ui.orderPriceSelected;
+export const getMakerAmountSelected = (state: StoreState) => state.ui.makerAmountSelected;
 export const getNotifications = (state: StoreState) => state.ui.notifications;
 export const getFills = (state: StoreState) => state.ui.fills;
 export const getUserFills = (state: StoreState) => state.ui.userFills;

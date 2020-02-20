@@ -8,8 +8,8 @@ export class Opensea implements CollectibleMetadataSource {
     private readonly _rateLimit: () => Promise<void>;
 
     private readonly _endpointsUrls: { [key: number]: string } = {
-        // 1: 'https://api.opensea.io/api/v1',
-        1: 'https://vsf-cors-proxy.herokuapp.com',
+        1: 'https://api.opensea.io/api/v1',
+        // 1: 'https://vsf-cors-proxy.herokuapp.com',
         4: 'https://rinkeby-api.opensea.io/api/v1',
     };
 
@@ -86,7 +86,8 @@ export class Opensea implements CollectibleMetadataSource {
     private readonly _fetch = async (url: string) => {
         await this._rateLimit();
         return fetch(url, {
-            headers: { 'X-API-KEY': OPENSEA_API_KEY || '', 'Target-URL': 'https://api.opensea.io/api/v1' } as any,
+            // headers: { 'X-API-KEY': OPENSEA_API_KEY || '', 'Target-URL': 'https://api.opensea.io/api/v1' } as any,
+            headers: { 'X-API-KEY': OPENSEA_API_KEY || '' } as any,
         });
     };
 }

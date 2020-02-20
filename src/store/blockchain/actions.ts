@@ -176,6 +176,7 @@ export const toggleTokenLock: ThunkCreator<Promise<any>> = (
 
         const erc20Token = new ERC20TokenContract(token.address, contractWrappers.getProvider());
         const amount = isUnlocked ? ZERO : UNLIMITED_ALLOWANCE_IN_BASE_UNITS;
+
         const tx = await erc20Token
             .approve(contractWrappers.contractAddresses.erc20Proxy, amount)
             .sendTransactionAsync({
@@ -635,7 +636,7 @@ const initWalletBeginCommon: ThunkCreator<Promise<any>> = (wallet: Wallet) => {
         }
     };
 };
-export let isInitedERC20 = false;
+
 const initWalletERC20: ThunkCreator<Promise<any>> = () => {
     return async (dispatch, getState, { getWeb3Wrapper }) => {
         const web3Wrapper = await getWeb3Wrapper();
@@ -697,7 +698,6 @@ const initWalletERC20: ThunkCreator<Promise<any>> = () => {
             }
             // tslint:disable-next-line:no-floating-promises
             dispatch(updateMarketPriceQuote());
-            isInitedERC20 = true;
         }
     };
 };
@@ -776,9 +776,12 @@ const initCollectionFromUrl: ThunkCreator<Promise<any>> = (wallet?: Wallet) => {
                     const token = await getTokenMetadaDataFromContract(collectionSlug);
                     if (token) {
                         const collection = addCollection(token);
+                        // tslint:disable-next-line:no-floating-promises
                         dispatch(setCollectibleCollection(collection));
                     } else {
+                        // tslint:disable-next-line:no-floating-promises
                         dispatch(setCollectibleCollection(collections[0]));
+                        // tslint:disable-next-line:no-floating-promises
                         dispatch(goToHome());
                     }
                 }
@@ -788,6 +791,7 @@ const initCollectionFromUrl: ThunkCreator<Promise<any>> = (wallet?: Wallet) => {
                     dispatch(setCollectibleCollection(findCollection));
                 } else {
                     dispatch(setCollectibleCollection(collections[0]));
+                    // tslint:disable-next-line:no-floating-promises
                     dispatch(goToHome());
                 }
             }

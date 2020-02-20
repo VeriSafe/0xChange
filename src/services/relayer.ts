@@ -36,7 +36,7 @@ export class Relayer {
         this._rateLimit = RateLimit(options.rps); // requests per second
     }
 
-    public getOrderbook() {
+    public getOrderbook(): Orderbook {
         return this._orderbook;
     }
 

@@ -272,6 +272,7 @@ class IEOWalletBalance extends React.Component<Props, State> {
                 onClickOpenFiatOnRampModal();
             };*/
             const joinAsMaker = () => {
+                // tslint:disable-next-line:no-floating-promises
                 joinAsMakerToPool(ethAccount);
             };
 

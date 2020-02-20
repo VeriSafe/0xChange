@@ -14,6 +14,9 @@ import { fetchTakerAndMakerFee } from '../../../store/relayer/actions';
 import {
     getBaseTokenBalance,
     getCurrencyPair,
+    getMakerAmountSelected,
+    getOpenBuyOrders,
+    getOpenSellOrders,
     getOrderPriceSelected,
     getQuoteTokenBalance,
     getTotalEthBalance,
@@ -21,7 +24,12 @@ import {
 } from '../../../store/selectors';
 import { themeDimensions } from '../../../themes/commons';
 import { getKnownTokens, isWeth } from '../../../util/known_tokens';
-import { formatTokenSymbol, tokenAmountInUnits, unitsInTokenAmount } from '../../../util/tokens';
+import {
+    formatTokenSymbol,
+    tokenAmountInUnits,
+    tokenAmountInUnitsToBigNumber,
+    unitsInTokenAmount,
+} from '../../../util/tokens';
 import {
     ButtonIcons,
     ButtonVariant,
@@ -31,6 +39,7 @@ import {
     OrderType,
     StoreState,
     TokenBalance,
+    UIOrder,
     Web3State,
 } from '../../../util/types';
 import { BigNumberInput } from '../../common/big_number_input';
@@ -45,9 +54,12 @@ interface StateProps {
     web3State: Web3State;
     currencyPair: CurrencyPair;
     orderPriceSelected: BigNumber | null;
+    makerAmountSelected: BigNumber | null;
     baseTokenBalance: TokenBalance | null;
     quoteTokenBalance: TokenBalance | null;
     totalEthBalance: BigNumber;
+    openSellOrders: UIOrder[];
+    openBuyOrders: UIOrder[];
 }
 
 interface DispatchProps {
@@ -247,10 +259,19 @@ class BuySell extends React.Component<Props, State> {
                 price: newProps.orderPriceSelected,
             });
         }
+
+        if (
+            newProps.makerAmountSelected !== prevProps.makerAmountSelected &&
+            this.state.orderType === OrderType.Market
+        ) {
+            this.setState({
+                makerAmount: newProps.makerAmountSelected,
+            });
+        }
     };
 
     public render = () => {
-        const { currencyPair, web3State } = this.props;
+        const { currencyPair, web3State, quoteTokenBalance, baseTokenBalance } = this.props;
         const { makerAmount, price, tab, orderType, error } = this.state;
 
         const buySellInnerTabs = [
@@ -266,6 +287,7 @@ class BuySell extends React.Component<Props, State> {
             },
         ];
         const decimals = getKnownTokens().getTokenBySymbol(currencyPair.base).decimals;
+        const quoteDecimals = getKnownTokens().getTokenBySymbol(currencyPair.quote).decimals;
         // Configs
         const pricePrecision = currencyPair.config.pricePrecision;
         const minAmount = currencyPair.config.minAmount;
@@ -275,7 +297,14 @@ class BuySell extends React.Component<Props, State> {
         const stepAmount = new BigNumber(1).div(new BigNumber(10).pow(basePrecision));
         const stepAmountUnits = unitsInTokenAmount(String(stepAmount), decimals);
 
+        const quoteUnits = tokenAmountInUnitsToBigNumber(
+            (quoteTokenBalance && quoteTokenBalance.balance) || ZERO,
+            quoteDecimals,
+        );
+        const baseBalance = (baseTokenBalance && baseTokenBalance.balance) || ZERO;
+
         const amount = makerAmount || minAmountUnits;
+        const makerAmountUnits = tokenAmountInUnitsToBigNumber(amount, decimals);
         const isMakerAmountEmpty = amount === null || amount.isZero();
         const isMakerAmountMin = amount === null || amount.isLessThan(minAmountUnits);
 
@@ -284,6 +313,11 @@ class BuySell extends React.Component<Props, State> {
             price === null || price.isLessThan(new BigNumber(1).div(new BigNumber(10).pow(pricePrecision)));
         const isOrderTypeLimitIsEmpty =
             orderType === OrderType.Limit && (isMakerAmountEmpty || isPriceEmpty || isPriceMin);
+        const isBuy = tab === OrderSide.Buy;
+        const isOrderTypeLimitOverflow =
+            (orderType === OrderType.Limit && isBuy && makerAmountUnits.multipliedBy(price || ZERO).gt(quoteUnits)) ||
+            (!isBuy && amount.gt(baseBalance));
+
         const isOrderTypeMarketIsEmpty = orderType === OrderType.Market && (isMakerAmountEmpty || isMakerAmountMin);
         const baseSymbol = formatTokenSymbol(currencyPair.base);
         const btnPrefix = tab === OrderSide.Buy ? 'Buy ' : 'Sell ';
@@ -360,7 +394,10 @@ class BuySell extends React.Component<Props, State> {
                         />
                         <Button
                             disabled={
-                                web3State !== Web3State.Done || isOrderTypeLimitIsEmpty || isOrderTypeMarketIsEmpty
+                                web3State !== Web3State.Done ||
+                                isOrderTypeLimitIsEmpty ||
+                                isOrderTypeMarketIsEmpty ||
+                                isOrderTypeLimitOverflow
                             }
                             icon={error && error.btnMsg ? ButtonIcons.Warning : undefined}
                             onClick={this.submit}
@@ -490,7 +527,6 @@ class BuySell extends React.Component<Props, State> {
     private readonly _reset = () => {
         this.setState({
             makerAmount: null,
-            price: null,
         });
     };
 
@@ -512,6 +548,9 @@ const mapStateToProps = (state: StoreState): StateProps => {
         web3State: getWeb3State(state),
         currencyPair: getCurrencyPair(state),
         orderPriceSelected: getOrderPriceSelected(state),
+        makerAmountSelected: getMakerAmountSelected(state),
+        openSellOrders: getOpenSellOrders(state),
+        openBuyOrders: getOpenBuyOrders(state),
         quoteTokenBalance: getQuoteTokenBalance(state),
         baseTokenBalance: getBaseTokenBalance(state),
         totalEthBalance: getTotalEthBalance(state),
@@ -539,3 +578,4 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
 const BuySellContainer = connect(mapStateToProps, mapDispatchToProps)(BuySell);
 
 export { BuySell, BuySellContainer };
+// tslint:disable:max-file-line-count
