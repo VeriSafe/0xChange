@@ -178,6 +178,41 @@
             "c_id": "livepeer",
             "description": "Open Source Video Infrastructure Services, Built On The Ethereum Blockchain..",
             "id": "livepeer"
+        },
+        {
+            "decimals": 8,
+            "displayDecimals": 2,
+            "symbol": "bsov",
+            "name": "BitcoinSoV",
+            "primaryColor": "#68CCBB",
+            "icon": "assets/icons/bsov.svg",
+            "addresses": {
+                "1": "0x26946ada5ecb57f3a1f91605050ce45c482c9eb1"
+            },
+            "website": "https://www.btcsov.com/"
+        },
+        {
+            "decimals": 5,
+            "displayDecimals": 2,
+            "symbol": "res",
+            "name": "Resfinex",
+            "primaryColor": "#090d21",
+            "icon": "assets/icons/res.svg",
+            "addresses": {
+                "1": "0x0a9f693fce6f00a51a8e0db4351b5a8078b4242e"
+            },
+            "website": "https://resfinex.com/"
+        },
+        {
+            "decimals": 2,
+            "displayDecimals": 2,
+            "symbol": "lit",
+            "name": "LITonium",
+            "primaryColor": "#68CCBB",
+            "icon": "assets/icons/lit.svg",
+            "addresses": {
+                "1": "0x2e3c062e16c1a3a04ddc5003c62e294305d83684"
+            }
         }
     ],
     "pairs": [
@@ -283,7 +318,48 @@
                 "basePrecision": 8,
                 "pricePrecision": 2
             }
+        },
+        {
+            "base": "bsov",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 4
+            }
+        },
+        {
+            "base": "res",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 8
+            }
+        },
+        {
+            "base": "res",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 8,
+                "pricePrecision": 4
+            }
+        },
+        {
+            "base": "lit",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 6
+            }
+        },
+        {
+            "base": "vsf",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 0,
+                "pricePrecision": 4
+            }
         }
+
     ],
     "marketFilters": [
         {
@@ -293,6 +369,10 @@
         {
             "text": "DAI",
             "value": "dai"
+        },
+        {
+            "text": "0xBTC",
+            "value": "0xbtc"
         }
     ]
 }

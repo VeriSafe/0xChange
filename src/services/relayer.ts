@@ -5,6 +5,7 @@ import { BigNumber } from '@0x/utils';
 import { RateLimit } from 'async-sema';
 
 import { RELAYER_RPS, RELAYER_URL, RELAYER_WS_URL } from '../common/constants';
+import { getAvailableMarkets } from '../common/markets';
 import { getLogger } from '../util/logger';
 import { serializeOrder } from '../util/orders';
 import { tokenAmountInUnitsToBigNumber } from '../util/tokens';
@@ -218,6 +219,28 @@ export const getMarketStatsFromRelayer = async (pair: string): Promise<RelayerMa
     const response = await fetch(`${RELAYER_URL}/markets/stats/${pair}`, init);
     if (response.ok) {
         return (await response.json()) as RelayerMarketStats;
+    } else {
+        return null;
+    }
+};
+
+export const getAllMarketsStatsFromRelayer = async (): Promise<RelayerMarketStats[] | null> => {
+    const headers = new Headers({
+        'content-type': 'application/json',
+    });
+
+    const init: RequestInit = {
+        method: 'GET',
+        headers,
+    };
+    const pairs = getAvailableMarkets()
+        .map(c => `${c.base.toUpperCase()}-${c.quote.toUpperCase()}`)
+        .join(',');
+
+    // Get only last 100 trades
+    const response = await fetch(`${RELAYER_URL}/markets/all-stats?pairs=${pairs}`, init);
+    if (response.ok) {
+        return (await response.json()) as RelayerMarketStats[];
     } else {
         return null;
     }

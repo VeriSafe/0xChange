@@ -148,8 +148,21 @@ export const buildLimitOrderIEO = async (
         takerAddress: ZERO_ADDRESS,
         expirationTimeSeconds: timestamp ? getExpirationTimeFromDate(timestamp) : getExpirationTimeOrdersFromConfig(),
     };
+    const orderResult = {
+        feeRecipientAddress: FEE_RECIPIENT,
+        senderAddress: ZERO_ADDRESS,
+        makerFeeAssetData: NULL_BYTES,
+        takerFeeAssetData: NULL_BYTES,
+        makerFee: new BigNumber('0'),
+        takerFee: new BigNumber('0'),
+    };
 
-    return orderHelper.getOrderWithTakerAndFeeConfigFromRelayer(orderConfigRequest);
+    return {
+        ...orderConfigRequest,
+        ...orderResult,
+        chainId: CHAIN_ID,
+        salt: new BigNumber(Date.now()),
+    };
 };
 
 export const getOrderWithTakerAndFeeConfigFromRelayer = async (orderConfigRequest: OrderConfigRequest) => {

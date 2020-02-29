@@ -1,16 +1,24 @@
+import { BigNumber } from '@0x/utils';
 import React, { HTMLAttributes } from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { UI_DECIMALS_DISPLAYED_SPREAD_PERCENT, USE_RELAYER_MARKET_UPDATES } from '../../../common/constants';
+import { USE_RELAYER_MARKET_UPDATES } from '../../../common/constants';
 import { marketFilters } from '../../../common/markets';
 import { changeMarket, goToHome } from '../../../store/actions';
-import { getBaseToken, getCurrencyPair, getMarkets, getQuoteToken, getWeb3State } from '../../../store/selectors';
+import {
+    getBaseToken,
+    getCurrencyPair,
+    getMarkets,
+    getMarketsStats,
+    getQuoteToken,
+    getWeb3State,
+} from '../../../store/selectors';
 import { themeBreakPoints, themeDimensions } from '../../../themes/commons';
 import { getKnownTokens } from '../../../util/known_tokens';
-import { filterMarketsByString, filterMarketsByTokenSymbol } from '../../../util/markets';
+import { filterMarketsByString, filterMarketsByTokenSymbol, marketToString } from '../../../util/markets';
 import { formatTokenSymbol } from '../../../util/tokens';
-import { CurrencyPair, Filter, Market, StoreState, Token, Web3State } from '../../../util/types';
+import { CurrencyPair, Filter, Market, RelayerMarketStats, StoreState, Token, Web3State } from '../../../util/types';
 import { Card } from '../../common/card';
 import { EmptyContent } from '../../common/empty_content';
 import { MagnifierIcon } from '../../common/icons/magnifier_icon';
@@ -29,6 +37,7 @@ interface PropsToken {
     baseToken: Token | null;
     currencyPair: CurrencyPair;
     markets: Market[] | null;
+    marketsStats: RelayerMarketStats[] | null | undefined;
     web3State?: Web3State;
     quoteToken: Token | null;
 }
@@ -51,7 +60,7 @@ interface MarketRowProps {
 
 const rowHeight = '48px';
 
-const MarketListCard = styled(Card)`
+const MarketStatsListCard = styled(Card)`
     height: 100%;
     overflow: auto;
     margin-top: 5px;
@@ -202,21 +211,21 @@ const TokenLabel = styled.div`
     margin: 0 0 0 12px;
 `;
 
-class MarketsList extends React.Component<Props, State> {
+class MarketsStatsList extends React.Component<Props, State> {
     public readonly state: State = {
         selectedFilter: marketFilters[0],
         search: '',
     };
 
     public render = () => {
-        const { baseToken, quoteToken, web3State, markets } = this.props;
+        const { baseToken, quoteToken, web3State, markets, marketsStats } = this.props;
         let content: React.ReactNode;
         const defaultBehaviour = () => {
             if (web3State !== Web3State.Error && (!baseToken || !quoteToken)) {
                 content = <LoadingWrapper minHeight="120px" />;
             } else if (!baseToken || !quoteToken) {
                 content = <EmptyContent alignAbsoluteCenter={true} text="There are no market details to show" />;
-            } else if (!markets) {
+            } else if (!markets && !marketsStats) {
                 content = <LoadingWrapper minHeight="120px" />;
             } else {
                 content = (
@@ -251,7 +260,7 @@ class MarketsList extends React.Component<Props, State> {
             }
         }
 
-        return <MarketListCard title="Markets">{content}</MarketListCard>;
+        return <MarketStatsListCard title="Markets">{content}</MarketStatsListCard>;
     };
 
     private readonly _getTokensFilterTabs = () => {
@@ -294,7 +303,7 @@ class MarketsList extends React.Component<Props, State> {
     };
 
     private readonly _getMarkets = () => {
-        const { baseToken, currencyPair, markets } = this.props;
+        const { baseToken, currencyPair, markets, marketsStats } = this.props;
         const { search, selectedFilter } = this.state;
 
         if (!baseToken || !markets) {
@@ -312,9 +321,9 @@ class MarketsList extends React.Component<Props, State> {
                 <THead>
                     <TR>
                         <THFirstStyled styles={{ textAlign: 'left' }}>Market</THFirstStyled>
-                        <THLastStyled styles={{ textAlign: 'center' }}>Best Ask</THLastStyled>
-                        <THLastStyled styles={{ textAlign: 'center' }}>Best Bid</THLastStyled>
-                        <THLastStyled styles={{ textAlign: 'center' }}>Spread</THLastStyled>
+                        <THLastStyled styles={{ textAlign: 'center' }}>Last Price</THLastStyled>
+                        {/*  <THLastStyled styles={{ textAlign: 'center' }}>Change (%)</THLastStyled>*/}
+                        <THLastStyled styles={{ textAlign: 'center' }}>Volume 24H</THLastStyled>
                     </TR>
                 </THead>
                 <TBody>
@@ -328,7 +337,16 @@ class MarketsList extends React.Component<Props, State> {
 
                         const baseSymbol = formatTokenSymbol(market.currencyPair.base).toUpperCase();
                         const quoteSymbol = formatTokenSymbol(market.currencyPair.quote).toUpperCase();
-
+                        const marketStats =
+                            marketsStats &&
+                            marketsStats.find(m => m.pair.toUpperCase() === marketToString(market.currencyPair));
+                        /*const color = marketStats
+                            ? marketStats.last_price_change > 0
+                                ? 'green'
+                                : marketStats.last_price_change >= 0
+                                ? ''
+                                : 'red'
+                            : '';*/
                         return (
                             <TRStyled active={isActive} key={index} onClick={setSelectedMarket}>
                                 <CustomTDFirstStyled styles={{ textAlign: 'left', borderBottom: true }}>
@@ -344,13 +362,15 @@ class MarketsList extends React.Component<Props, State> {
                                     </TokenIconAndLabel>
                                 </CustomTDFirstStyled>
                                 <CustomTDLastStyled styles={{ textAlign: 'center', borderBottom: true, tabular: true }}>
-                                    {this._getBestAsk(market)}
+                                    {this._getLastPrice(market, marketStats)}
                                 </CustomTDLastStyled>
+                                {/*<CustomTDLastStyled
+                                    styles={{ textAlign: 'center', borderBottom: true, tabular: true, color }}
+                                >
+                                    {this._getPriceChange(marketStats)}
+                                </CustomTDLastStyled>*/}
                                 <CustomTDLastStyled styles={{ textAlign: 'center', borderBottom: true, tabular: true }}>
-                                    {this._getBestBid(market)}
-                                </CustomTDLastStyled>
-                                <CustomTDLastStyled styles={{ textAlign: 'center', borderBottom: true, tabular: true }}>
-                                    {this._getSpreadInPercentage(market)}
+                                    {this._getVolume(marketStats)}
                                 </CustomTDLastStyled>
                             </TRStyled>
                         );
@@ -365,23 +385,23 @@ class MarketsList extends React.Component<Props, State> {
         this.props.goToHome();
     };
 
-    private readonly _getBestAsk: any = (market: Market) => {
-        if (market.bestAsk) {
-            return market.bestAsk.toFixed(market.currencyPair.config.pricePrecision);
+    private readonly _getLastPrice: any = (market: Market, marketStat: RelayerMarketStats) => {
+        if (marketStat && marketStat.last_price) {
+            return new BigNumber(marketStat.last_price).toFixed(market.currencyPair.config.pricePrecision);
         }
 
         return '-';
     };
-    private readonly _getBestBid: any = (market: Market) => {
-        if (market.bestBid) {
-            return market.bestBid.toFixed(market.currencyPair.config.pricePrecision);
+    /*private readonly _getPriceChange: any = (marketStat: RelayerMarketStats) => {
+        if (marketStat && marketStat.last_price_change) {
+            return `${new BigNumber(marketStat.last_price_change).toFixed(2)} %`;
         }
 
         return '-';
-    };
-    private readonly _getSpreadInPercentage: any = (market: Market) => {
-        if (market.spreadInPercentage) {
-            return `${market.spreadInPercentage.toFixed(UI_DECIMALS_DISPLAYED_SPREAD_PERCENT)} %`;
+    };*/
+    private readonly _getVolume: any = (marketStat: RelayerMarketStats) => {
+        if (marketStat && marketStat.quote_volume_24) {
+            return new BigNumber(marketStat.quote_volume_24).toFixed(2);
         }
 
         return '-';
@@ -395,6 +415,7 @@ const mapStateToProps = (state: StoreState): PropsToken => {
         markets: getMarkets(state),
         quoteToken: getQuoteToken(state),
         web3State: getWeb3State(state),
+        marketsStats: getMarketsStats(state),
     };
 };
 
@@ -405,6 +426,6 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
     };
 };
 
-const MarketsListContainer = connect(mapStateToProps, mapDispatchToProps)(MarketsList);
+const MarketsStatsListContainer = connect(mapStateToProps, mapDispatchToProps)(MarketsStatsList);
 
-export { MarketsList, MarketsListContainer };
+export { MarketsStatsList, MarketsStatsListContainer };

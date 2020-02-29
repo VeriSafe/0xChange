@@ -70,31 +70,30 @@ export const FieldContainer = styled.div`
 `;
 
 const defaultLayouts = {
-    a: { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-    b: { i: 'b', x: 4, y: 0, w: 8, h: 4 },
-    c: { i: 'c', x: 0, y: 4, w: 3, h: 1 },
-    d: { i: 'd', x: 0, y: 5, w: 3, h: 3 },
-    e: { i: 'e', x: 3, y: 4, w: 3, h: 4 },
-    f: { i: 'f', x: 6, y: 4, w: 6, h: 1 },
-    g: { i: 'g', x: 6, y: 5, w: 6, h: 2 },
-    h: { i: 'h', x: 6, y: 7, w: 6, h: 1 },
+    b: { i: 'b', w: 6, h: 1, x: 6, y: 0 },
+    c: { i: 'c', w: 3, h: 1, x: 0, y: 0 },
+    d: { i: 'd', w: 3, h: 3, x: 0, y: 1 },
+    e: { i: 'e', w: 3, h: 4, x: 3, y: 0 },
+    f: { i: 'f', w: 6, h: 1, x: 6, y: 1 },
+    g: { i: 'g', w: 6, h: 1, x: 6, y: 2 },
+    h: { i: 'h', w: 6, h: 1, x: 6, y: 3 },
 };
 
 const resetLayouts = {
     lg: [
-        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-        { i: 'b', x: 4, y: 0, w: 8, h: 4 },
-        { i: 'c', x: 0, y: 4, w: 3, h: 1 },
-        { i: 'd', x: 0, y: 5, w: 3, h: 3 },
-        { i: 'e', x: 3, y: 4, w: 3, h: 4 },
-        { i: 'f', x: 6, y: 4, w: 6, h: 1 },
-        { i: 'g', x: 6, y: 5, w: 6, h: 2 },
-        { i: 'h', x: 6, y: 7, w: 6, h: 1 },
+        { w: 6, h: 1, x: 6, y: 0, i: 'b', moved: false, static: false },
+        { w: 3, h: 1, x: 0, y: 0, i: 'c', moved: false, static: false },
+        { w: 3, h: 3, x: 0, y: 1, i: 'd', moved: false, static: false },
+        { w: 3, h: 4, x: 3, y: 0, i: 'e', moved: false, static: false },
+        { w: 6, h: 1, x: 6, y: 1, i: 'f', moved: false, static: false },
+        { w: 6, h: 1, x: 6, y: 2, i: 'g', moved: false, static: false },
+        { w: 6, h: 1, x: 6, y: 3, i: 'h', moved: false, static: false },
     ],
 };
 
+
 // const defaultBreakPoints = ['lg', 'md', 'xs', 'sm', 'xs', 'xss'];
-type keyType = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
+type keyType =  'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
 const mutateLayoutsByReference = (layouts: ReactGridLayout.Layouts, isSet: boolean, key: keyType) => {
     if (isSet) {
         Object.keys(layouts).forEach(lay => {
@@ -127,7 +126,7 @@ export const LayoutDropdownContainer = (props: any) => {
     const layouts: ReactGridLayout.Layouts = JSON.parse(useSelector(getERC20Layout));
     const dispatch = useDispatch();
 
-    const [isMarketList, setMarketList] = useState(getLayoutValue(layouts, 'a'));
+    // const [isMarketList, setMarketList] = useState(getLayoutValue(layouts, 'a'));
     const [isMarketDetails, setMarketDetails] = useState(getLayoutValue(layouts, 'b'));
     const [isWalletBalance, setWalletBalance] = useState(getLayoutValue(layouts, 'c'));
     const [isBuySell, setBuySell] = useState(getLayoutValue(layouts, 'd'));
@@ -138,7 +137,7 @@ export const LayoutDropdownContainer = (props: any) => {
 
     const onResetLayout = () => {
         dispatch(setERC20Layout(JSON.stringify(resetLayouts)));
-        setMarketList(true);
+        //setMarketList(true);
         setMarketDetails(true);
         setWalletBalance(true);
         setBuySell(true);
@@ -148,11 +147,11 @@ export const LayoutDropdownContainer = (props: any) => {
         set0xLastTrades(true);
     };
 
-    const onMarketListChecked = () => {
+   /* const onMarketListChecked = () => {
         setMarketList(!isMarketList);
         mutateLayoutsByReference(layouts, !isMarketList, 'a');
         dispatch(setERC20Layout(JSON.stringify(layouts)));
-    };
+    };*/
     const onMarketDetailsChecked = () => {
         setMarketDetails(!isMarketDetails);
         mutateLayoutsByReference(layouts, !isMarketDetails, 'b');

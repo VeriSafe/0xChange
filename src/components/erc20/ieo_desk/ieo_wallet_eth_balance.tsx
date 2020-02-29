@@ -238,6 +238,7 @@ class IEOWalletEthBalance extends React.Component<Props, State> {
             totalEthBalance,
             onConnectingWallet,
             wallet,
+            ethAccount,
         } = this.props;
 
         if (quoteTokenBalance) {
@@ -259,6 +260,9 @@ class IEOWalletEthBalance extends React.Component<Props, State> {
             /*const openFiatOnRamp = () => {
                 onClickOpenFiatOnRampModal();
             };*/
+            /*const joinAsMaker = () => {
+                joinAsMakerToPool(ethAccount);
+            };*/
 
             content = (
                 <>
@@ -271,7 +275,10 @@ class IEOWalletEthBalance extends React.Component<Props, State> {
                     </LabelWrapper>
                     {/*  <ButtonStyled onClick={openFiatOnRamp} variant={ButtonVariant.Buy}>
                         Buy ETH
-            </ButtonStyled>*/}
+            </ButtonStyled>
+                <ButtonStyled onClick={joinAsMaker} variant={ButtonVariant.Buy}>
+                           Join As Market Maker
+                </ButtonStyled>*/}
                 </>
             );
         }

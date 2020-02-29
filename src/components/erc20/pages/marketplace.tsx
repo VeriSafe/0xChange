@@ -16,6 +16,7 @@ import { Content } from '../common/content_wrapper';
 import { LayoutDropdownContainer } from '../common/layout_dropdown';
 import { MarketDetailsContainer } from '../common/market_details';
 // import { MarketsListContainer } from '../common/markets_list';
+import { MarketsStatsListContainer } from '../common/markets_stats_list';
 import { BuySellContainer } from '../marketplace/buy_sell';
 import { allSteps, noWalletSteps } from '../marketplace/joyride-steps';
 import { MarketFillsContainer } from '../marketplace/market_fills';
@@ -150,7 +151,6 @@ const Marketplace = () => {
     const size = useWindowSize();
     const onLayoutChange = (lay: any) => {
         // setLayout(layout);
-        console.log(JSON.stringify({ lay }));
         //  dispatch(setERC20Layout(JSON.stringify({...layouts, [`${breakpoint}`]:layout}, )))
         dispatch(setERC20Layout(JSON.stringify({ lg: lay })));
     };

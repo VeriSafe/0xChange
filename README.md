@@ -12,11 +12,12 @@ This source code is used on the [VeriSafe Dex as a service](https://steemit.com/
 
 This repo ships with both an ERC-20 token trading interface and an ERC-721 marketplace interface. However, for now, only improvements on ERC-20 token trading will be done.
 
-Support this fork with the following actions:
+To use this fork the following actions are required:
 
 -   Add VSF, 0xbitcoin and 0x as pairs
 -   Lets us know you are using this fork
 -   Add a Powered by 0x and VeriSafe
+-   Don't use another pool associated with this code besides the one on: [Veridex Pool](https://0x.org/zrx/staking/pool/16). If you are market maker you can join Veridex market pool at [Join as Maker](https://dex.verisafe.io/#/erc20/join-as-maker)
 
 With your help, we can be self-sustainable and complete the long list of TODO's. If you want a feature that is not present on the TODO list, please open an issue requesting a feature request.
 

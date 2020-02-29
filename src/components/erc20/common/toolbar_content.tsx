@@ -24,7 +24,7 @@ import { LogoIcon } from '../../common/icons/logo_icon';
 import { MenuBurguer } from '../../common/icons/menu_burguer';
 import { WalletConnectionContentContainer } from '../account/wallet_connection_content';
 
-import { MarketsDropdownContainer } from './markets_dropdown';
+import { MarketsDropdownStatsContainer } from './markets_dropdown_stats';
 
 interface DispatchProps {
     onGoToHome: () => any;
@@ -57,7 +57,7 @@ const LogoHeader = styled(Logo)`
     ${separatorTopbar}
 `;
 
-const MarketsDropdownHeader = styled<any>(MarketsDropdownContainer)`
+const MarketsDropdownHeader = styled<any>(MarketsDropdownStatsContainer)`
     align-items: center;
     display: flex;
 

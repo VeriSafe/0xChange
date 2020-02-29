@@ -167,7 +167,7 @@ export interface UIState {
     readonly sidebarOpen: boolean;
     readonly openFiatOnRampModal: boolean;
     readonly openFiatOnRampChooseModal: boolean;
-    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD';
+    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD';
     readonly erc20Theme: Theme;
     readonly erc20Layout: string;
     readonly isDynamicLayout: boolean;
@@ -186,6 +186,7 @@ export interface MarketState {
     readonly tokensPrice: TokenPrice[] | null;
     readonly marketStats: RelayerMarketStats | null;
     readonly makerAddresses: string[] | null;
+    readonly marketsStats?: RelayerMarketStats[] | null;
 }
 
 export interface StoreState {
@@ -469,6 +470,7 @@ export interface RelayerMarketStats {
     utc_date: string;
     utc_timestamp: number;
     updated_at: number;
+    quote_volume_24: number;
     resolution: 'D';
 }
 
