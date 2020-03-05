@@ -107,7 +107,7 @@ export const createBuySellLimitMatchingSteps = (
     side: OrderSide,
     price: BigNumber,
     price_avg: BigNumber,
-    orderFeeData: OrderFeeData,
+    ordersToFill: SignedOrder[],
 ): Step[] => {
     const buySellLimitMatchingFlow: Step[] = [];
     const isBuy = side === OrderSide.Buy;
@@ -128,12 +128,10 @@ export const createBuySellLimitMatchingSteps = (
     if (isSell || isBuyWithWethConditions) {
         buySellLimitMatchingFlow.push(unlockTokenStep as Step);
     }
-
-    if (orderFeeData.makerFee.isGreaterThan(0)) {
-        const { tokenAddress } = assetDataUtils.decodeAssetDataOrThrow(
-            orderFeeData.makerFeeAssetData,
-        ) as ERC20AssetData;
-        if (!unlockTokenStep || unlockTokenStep.token.address !== tokenAddress) {
+    const order = ordersToFill[0];
+    if (order.takerFee.isGreaterThan(0)) {
+        const { tokenAddress } = assetDataUtils.decodeAssetDataOrThrow(order.takerFeeAssetData) as ERC20AssetData;
+        if (!unlockTokenStep || (unlockTokenStep && unlockTokenStep.token.address !== tokenAddress)) {
             const unlockFeeTokenStep = getUnlockFeeAssetStepIfNeeded(
                 [...tokenBalances, wethTokenBalance],
                 tokenAddress,
@@ -242,7 +240,7 @@ export const createBuySellMarketSteps = (
     amount: BigNumber,
     side: OrderSide,
     price: BigNumber,
-    orderFeeData: OrderFeeData,
+    ordersToFill: SignedOrder[],
 ): Step[] => {
     const buySellMarketFlow: Step[] = [];
     const isBuy = side === OrderSide.Buy;
@@ -263,12 +261,11 @@ export const createBuySellMarketSteps = (
     if (isSell || isBuyWithWethConditions) {
         buySellMarketFlow.push(unlockTokenStep as Step);
     }
-
+    // Note: We assume that fees are constructed the same way on the other orders
+    const order = ordersToFill[0];
     // unlock fees if the taker fee is positive
-    if (orderFeeData.takerFee.isGreaterThan(0)) {
-        const { tokenAddress } = assetDataUtils.decodeAssetDataOrThrow(
-            orderFeeData.takerFeeAssetData,
-        ) as ERC20AssetData;
+    if (order.takerFee.isGreaterThan(0)) {
+        const { tokenAddress } = assetDataUtils.decodeAssetDataOrThrow(order.takerFeeAssetData) as ERC20AssetData;
         if (!unlockTokenStep || (unlockTokenStep && unlockTokenStep.token.address !== tokenAddress)) {
             const unlockFeeStep = getUnlockFeeAssetStepIfNeeded([...tokenBalances, wethTokenBalance], tokenAddress);
             if (unlockFeeStep) {

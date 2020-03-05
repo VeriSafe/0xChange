@@ -15,7 +15,7 @@ import {
 } from '../common/constants';
 import { getRelayer } from '../services/relayer';
 
-import { getKnownTokens } from './known_tokens';
+import { getKnownTokens, getWethAssetData } from './known_tokens';
 import { getKnownTokensIEO } from './known_tokens_ieo';
 import * as orderHelper from './orders';
 import { getExpirationTimeFromDate, getExpirationTimeOrdersFromConfig } from './time_utils';
@@ -191,18 +191,41 @@ export const getOrderWithTakerAndFeeConfigFromRelayer = async (
                 takerFee: orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
             };
         } else {
-            orderResult = {
-                feeRecipientAddress: FEE_RECIPIENT,
-                senderAddress: ZERO_ADDRESS,
-                makerFeeAssetData: new BigNumber(MAKER_FEE_PERCENTAGE).isGreaterThan('0')
-                    ? orderConfigRequest.takerAssetData
-                    : NULL_BYTES,
-                takerFeeAssetData: new BigNumber(TAKER_FEE_PERCENTAGE).isGreaterThan('0')
-                    ? orderConfigRequest.makerAssetData
-                    : NULL_BYTES,
-                makerFee: orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(MAKER_FEE_PERCENTAGE)),
-                takerFee: orderConfigRequest.makerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
-            };
+            const wethAssetData = getWethAssetData();
+            const isWethTaker = orderConfigRequest.takerAssetData.toLowerCase() === wethAssetData;
+            // Use always Weth as fee, when ETH is on the order. Forwarder needs to make approve asset proxy for all assets.
+            // As 0x team always deploying new versions of Forwarder this is needed
+            if (isWethTaker || orderConfigRequest.takerAssetData.toLowerCase() === wethAssetData) {
+                orderResult = {
+                    feeRecipientAddress: FEE_RECIPIENT,
+                    senderAddress: ZERO_ADDRESS,
+                    makerFeeAssetData: new BigNumber(MAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                        ? wethAssetData
+                        : NULL_BYTES,
+                    takerFeeAssetData: new BigNumber(TAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                        ? wethAssetData
+                        : NULL_BYTES,
+                    makerFee: isWethTaker
+                        ? orderConfigRequest.makerAssetAmount.multipliedBy(new BigNumber(MAKER_FEE_PERCENTAGE))
+                        : orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(MAKER_FEE_PERCENTAGE)),
+                    takerFee: isWethTaker
+                        ? orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE))
+                        : orderConfigRequest.makerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
+                };
+            } else {
+                orderResult = {
+                    feeRecipientAddress: FEE_RECIPIENT,
+                    senderAddress: ZERO_ADDRESS,
+                    makerFeeAssetData: new BigNumber(MAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                        ? orderConfigRequest.takerAssetData
+                        : NULL_BYTES,
+                    takerFeeAssetData: new BigNumber(TAKER_FEE_PERCENTAGE).isGreaterThan('0')
+                        ? orderConfigRequest.makerAssetData
+                        : NULL_BYTES,
+                    makerFee: orderConfigRequest.takerAssetAmount.multipliedBy(new BigNumber(MAKER_FEE_PERCENTAGE)),
+                    takerFee: orderConfigRequest.makerAssetAmount.multipliedBy(new BigNumber(TAKER_FEE_PERCENTAGE)),
+                };
+            }
         }
     }
 

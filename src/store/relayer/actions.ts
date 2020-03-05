@@ -2,7 +2,7 @@ import { SignedOrder } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { createAction } from 'typesafe-actions';
 
-import { FEE_PERCENTAGE, FEE_RECIPIENT } from '../../common/constants';
+import { FEE_PERCENTAGE, FEE_RECIPIENT, ZERO } from '../../common/constants';
 import { INSUFFICIENT_ORDERS_TO_FILL_AMOUNT_ERR } from '../../exceptions/common';
 import { InsufficientOrdersAmountException } from '../../exceptions/insufficient_orders_amount_exception';
 import { RelayerException } from '../../exceptions/relayer_exception';
@@ -23,7 +23,7 @@ import {
     startWebsocketMarketsSubscription,
 } from '../../services/relayer';
 import { mapRelayerFillToFill } from '../../util/fills';
-import { getKnownTokens, isWeth } from '../../util/known_tokens';
+import { getKnownTokens, getWethAssetData, isWeth } from '../../util/known_tokens';
 import { getLogger } from '../../util/logger';
 import { marketToString } from '../../util/markets';
 import {
@@ -315,6 +315,14 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
             /*const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
             }, ZERO);*/
+            const wethAssetData = getWethAssetData();
+            let takerWethFee: BigNumber = new BigNumber(0);
+
+            for (const or of ordersToFill) {
+                if (or.takerFeeAssetData.toLowerCase() === wethAssetData && or.takerFee.gt(0)) {
+                    takerWethFee = takerWethFee.plus(or.takerFee);
+                }
+            }
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
             // const feeAmount = ordersToFill.map(o => o.makerFee).reduce((p, c) => p.plus(c));
             const affiliateFeeAmount = amount
@@ -322,7 +330,10 @@ export const submitLimitMatchingOrder: ThunkCreator = (amount: BigNumber, price:
                 .multipliedBy(feePercentange)
                 .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = amount.plus(protocolFee).plus(affiliateFeeAmount);
+            const totalEthAmount = amount
+                .plus(protocolFee.multipliedBy(1.3))
+                .plus(affiliateFeeAmount)
+                .plus(takerWethFee);
 
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
@@ -425,20 +436,30 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
             const baseToken = getBaseToken(state) as Token;
             const quoteToken = getQuoteToken(state) as Token;
             const contractWrappers = await getContractWrappers();
-
+            const wethAssetData = getWethAssetData();
+            let takerWethFee: BigNumber = new BigNumber(0);
             // Check if the order is fillable using the forwarder
             const ethBalance = getEthBalance(state) as BigNumber;
-            /* const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
+            const ethAmountRequired = amounts.reduce((total: BigNumber, currentValue: BigNumber) => {
                 return total.plus(currentValue);
-            }, ZERO);*/
+            }, ZERO);
+
+            for (const or of ordersToFill) {
+                if (or.takerFeeAssetData.toLowerCase() === wethAssetData && or.takerFee.gt(0)) {
+                    takerWethFee = takerWethFee.plus(or.takerFee);
+                }
+            }
             const protocolFee = calculateWorstCaseProtocolFee(ordersToFill, gasPrice);
 
-            const affiliateFeeAmount = amount
+            const affiliateFeeAmount = ethAmountRequired
                 .plus(protocolFee)
                 .multipliedBy(feePercentange)
                 .integerValue(BigNumber.ROUND_UP);
 
-            const totalEthAmount = amount.plus(protocolFee).plus(affiliateFeeAmount);
+            const totalEthAmount = ethAmountRequired
+                .plus(protocolFee.multipliedBy(1.3))
+                .plus(affiliateFeeAmount)
+                .plus(takerWethFee);
 
             const isEthBalanceEnough = ethBalance.isGreaterThan(totalEthAmount);
             // HACK(dekz): Forwarder not currently deployed in Ganache
@@ -471,7 +492,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                             .marketBuyOrdersFillOrKill(ordersToFill, amount, orderSignatures)
                             .sendTransactionAsync({
                                 from: ethAccount,
-                                value: protocolFee,
+                                value: protocolFee.multipliedBy(1.2),
                                 ...getTransactionOptions(gasPrice),
                             });
                     } else {
@@ -479,7 +500,7 @@ export const submitMarketOrder: ThunkCreator<Promise<{ txHash: string; amountInR
                             .marketSellOrdersFillOrKill(ordersToFill, amount, orderSignatures)
                             .sendTransactionAsync({
                                 from: ethAccount,
-                                value: protocolFee,
+                                value: protocolFee.multipliedBy(1.2),
                                 ...getTransactionOptions(gasPrice),
                             });
                     }
