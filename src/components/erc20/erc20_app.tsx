@@ -22,6 +22,7 @@ const ShopDeposits = lazy(() => import('./pages/shop-deposits'));
 //const LendingPage = lazy(() => import('./pages/lending'));
 // const WizardPage = lazy(() => import('./pages/wizard'));
 const JoinAsMakerPage = lazy(() => import('./pages/join_as_maker'));
+//const TokenListingPage = lazy(() => import('./pages/listing'));
 
 const Erc20App = () => {
     const themeColor = useSelector(getERC20Theme);

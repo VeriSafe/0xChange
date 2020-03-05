@@ -539,3 +539,4 @@ describe('getUnlockZrxStepIfNeeded', () => {
         expect(stepLockZrx).toBeNull();
     });
 });
+// tslint:disable:max-file-line-count

@@ -27,7 +27,6 @@ const ContentScroll = styled.div`
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-
     @media (min-width: ${themeBreakPoints.xl}) {
         height: calc(100% - ${themeDimensions.toolbarHeight});
         overflow: auto;

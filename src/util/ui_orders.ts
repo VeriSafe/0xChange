@@ -1,6 +1,6 @@
 import { SignedOrder } from '@0x/connect';
 import { assetDataUtils } from '@0x/order-utils';
-import { OrderInfo } from '@0x/types';
+import { ERC20AssetData, OrderInfo } from '@0x/types';
 
 import { UI_DECIMALS_DISPLAYED_PRICE_ETH } from '../common/constants';
 
@@ -32,14 +32,25 @@ const ordersToUIOrdersWithoutOrderInfo = (orders: SignedOrder[], baseToken: Toke
     const baseTokenEncoded = assetDataUtils.encodeERC20AssetData(baseToken.address);
 
     return orders.map((order, i) => {
+        const makerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.makerAssetData) as ERC20AssetData)
+            .tokenAddress;
+        const makerAssetTokenDecimals = getKnownTokens().getTokenByAddress(makerAssetAddress).decimals;
+        const makerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.makerAssetAmount, makerAssetTokenDecimals);
+
+        const takerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.takerAssetData) as ERC20AssetData)
+            .tokenAddress;
+        const takerAssetTokenDecimals = getKnownTokens().getTokenByAddress(takerAssetAddress).decimals;
+        const takerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.takerAssetAmount, takerAssetTokenDecimals);
+
         const side = order.takerAssetData === baseTokenEncoded ? OrderSide.Buy : OrderSide.Sell;
+        const isSell = side === OrderSide.Sell;
+
         const size = side === OrderSide.Sell ? order.makerAssetAmount : order.takerAssetAmount;
         const filled = null;
         const status = null;
-        const price =
-            side === OrderSide.Sell
-                ? order.takerAssetAmount.div(order.makerAssetAmount)
-                : order.makerAssetAmount.div(order.takerAssetAmount);
+        const price = isSell
+            ? takerAssetAmountInUnits.div(makerAssetAmountInUnits)
+            : makerAssetAmountInUnits.div(takerAssetAmountInUnits);
 
         return {
             rawOrder: order,
@@ -73,11 +84,13 @@ const ordersToUIOrdersWithOrdersInfo = (
         const isSell = side === OrderSide.Sell;
         const size = isSell ? order.makerAssetAmount : order.takerAssetAmount;
 
-        const makerAssetAddress = assetDataUtils.decodeERC20AssetData(order.makerAssetData).tokenAddress;
+        const makerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.makerAssetData) as ERC20AssetData)
+            .tokenAddress;
         const makerAssetTokenDecimals = getKnownTokens().getTokenByAddress(makerAssetAddress).decimals;
         const makerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.makerAssetAmount, makerAssetTokenDecimals);
 
-        const takerAssetAddress = assetDataUtils.decodeERC20AssetData(order.takerAssetData).tokenAddress;
+        const takerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.takerAssetData) as ERC20AssetData)
+            .tokenAddress;
         const takerAssetTokenDecimals = getKnownTokens().getTokenByAddress(takerAssetAddress).decimals;
         const takerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.takerAssetAmount, takerAssetTokenDecimals);
 
@@ -153,11 +166,13 @@ const ordersToIEOUIOrdersWithOrdersInfo = (
         const isSell = side === OrderSide.Sell;
         const size = isSell ? order.makerAssetAmount : order.takerAssetAmount;
 
-        const makerAssetAddress = assetDataUtils.decodeERC20AssetData(order.makerAssetData).tokenAddress;
+        const makerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.makerAssetData) as ERC20AssetData)
+            .tokenAddress;
         const makerAssetTokenDecimals = getKnownTokensIEO().getTokenByAddress(makerAssetAddress).decimals;
         const makerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.makerAssetAmount, makerAssetTokenDecimals);
 
-        const takerAssetAddress = assetDataUtils.decodeERC20AssetData(order.takerAssetData).tokenAddress;
+        const takerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(order.takerAssetData) as ERC20AssetData)
+            .tokenAddress;
         const takerAssetTokenDecimals = getKnownTokensIEO().getTokenByAddress(takerAssetAddress).decimals;
         const takerAssetAmountInUnits = tokenAmountInUnitsToBigNumber(order.takerAssetAmount, takerAssetTokenDecimals);
 

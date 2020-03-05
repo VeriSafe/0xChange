@@ -2,10 +2,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 
-import { COLLECTIBLE_NAME } from '../../../common/constants';
-import { getCollectibleById, getEthAccount } from '../../../store/selectors';
+import { getCollectibleById, getCollectibleCollectionSelected, getEthAccount } from '../../../store/selectors';
 import { truncateAddress } from '../../../util/number_utils';
-import { Collectible, StoreState } from '../../../util/types';
+import { Collectible, CollectibleCollection, StoreState } from '../../../util/types';
 import { Card } from '../../common/card';
 import { OutsideUrlIcon } from '../../common/icons/outside_url_icon';
 
@@ -110,16 +109,18 @@ interface OwnProps {
 interface StateProps {
     collectible: Collectible | undefined;
     ethAccount: string;
+    collectibleCollection: CollectibleCollection;
 }
 
 type Props = OwnProps & StateProps;
 
 const CollectibleDescription = (props: Props) => {
-    const { collectible, ethAccount, ...restProps } = props;
+    const { collectible, ethAccount, collectibleCollection, ...restProps } = props;
 
     if (!collectible) {
         return null;
     }
+    const collectionName = collectibleCollection.name;
 
     const { currentOwner, description, name, assetUrl } = collectible;
     const typeImage = 'https://placeimg.com/32/32/any';
@@ -134,7 +135,7 @@ const CollectibleDescription = (props: Props) => {
                     <CollectibleDescriptionTitle>{name}</CollectibleDescriptionTitle>
                     <CollectibleDescriptionType href={assetUrl} target="_blank">
                         <CollectibleDescriptionTypeImage backgroundImage={typeImage} />
-                        <CollectibleDescriptionTypeText>{COLLECTIBLE_NAME}</CollectibleDescriptionTypeText>
+                        <CollectibleDescriptionTypeText>{collectionName}</CollectibleDescriptionTypeText>
                         {OutsideUrlIcon()}
                     </CollectibleDescriptionType>
                 </CollectibleDescriptionTitleWrapper>
@@ -166,6 +167,7 @@ const mapStateToProps = (state: StoreState, props: OwnProps): StateProps => {
     return {
         collectible: getCollectibleById(state, props),
         ethAccount: getEthAccount(state),
+        collectibleCollection: getCollectibleCollectionSelected(state),
     };
 };
 

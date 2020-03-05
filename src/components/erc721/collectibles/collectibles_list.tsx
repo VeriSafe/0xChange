@@ -6,6 +6,7 @@ import styled, { css } from 'styled-components';
 import { setCollectiblesListFilterType, setCollectiblesListSortType } from '../../../store/actions';
 import {
     getAllCollectiblesFetchStatus,
+    getCollectibleCollectionSelected,
     getRouterLocationSearch,
     getUserCollectibles,
     getUsersCollectiblesAvailableToList,
@@ -13,7 +14,7 @@ import {
 import { themeBreakPoints } from '../../../themes/commons';
 import { CollectibleFilterType } from '../../../util/filterable_collectibles';
 import { CollectibleSortType } from '../../../util/sortable_collectibles';
-import { AllCollectiblesFetchStatus, Collectible, StoreState } from '../../../util/types';
+import { AllCollectiblesFetchStatus, Collectible, CollectibleCollection, StoreState } from '../../../util/types';
 import { CenteredWrapper } from '../../common/centered_wrapper';
 import { SellCollectiblesButton } from '../marketplace/sell_collectibles_button';
 
@@ -29,6 +30,7 @@ interface StateProps {
     collectibles: { [key: string]: Collectible };
     search: string;
     fetchStatus: AllCollectiblesFetchStatus;
+    collectibleCollection: CollectibleCollection;
 }
 
 interface DispatchProps {
@@ -105,11 +107,11 @@ export class CollectiblesList extends React.Component<Props, {}> {
     };
 
     public render = () => {
-        const { title, search, fetchStatus } = this.props;
+        const { search, fetchStatus, collectibleCollection } = this.props;
         const collectibles = Object.keys(this.props.collectibles).map(key => this.props.collectibles[key]);
         const { sortType, filterType } = this._getSortTypeAndFilterTypeFromLocationSearch(search);
         const isLoading = fetchStatus !== AllCollectiblesFetchStatus.Success;
-
+        const title = collectibleCollection.name;
         return (
             <CenteredWrapper>
                 <FiltersMenu>
@@ -149,6 +151,7 @@ export class CollectiblesList extends React.Component<Props, {}> {
 const allMapStateToProps = (state: StoreState): StateProps => {
     return {
         collectibles: getUsersCollectiblesAvailableToList(state),
+        collectibleCollection: getCollectibleCollectionSelected(state),
         search: getRouterLocationSearch(state),
         fetchStatus: getAllCollectiblesFetchStatus(state),
     };
@@ -158,6 +161,7 @@ const myMapStateToProps = (state: StoreState): StateProps => {
     return {
         collectibles: getUserCollectibles(state),
         search: getRouterLocationSearch(state),
+        collectibleCollection: getCollectibleCollectionSelected(state),
         fetchStatus: getAllCollectiblesFetchStatus(state),
     };
 };

@@ -28,6 +28,7 @@ export const getWethTokenFromTokensMetaDataByNetworkId = (tokensMetaData: TokenM
         website: tokenMetaData.website || undefined,
         description: tokenMetaData.description || undefined,
         verisafe_sticker: undefined,
+        listed: true,
     };
 };
 
@@ -64,6 +65,7 @@ export const mapTokensMetaDataToTokenByNetworkId = (tokensMetaData: TokenMetaDat
                     website: tokenMetaData.website || undefined,
                     description: tokenMetaData.description || undefined,
                     verisafe_sticker: tokenMetaData.verisafe_sticker || undefined,
+                    listed: true,
                 };
             },
         );
@@ -96,6 +98,7 @@ export const mapTokensMetaDataFromForm = (tokensMetaData: TokenMetaData[]): Toke
                     website: tokenMetaData.website || undefined,
                     description: tokenMetaData.description || undefined,
                     verisafe_sticker: tokenMetaData.verisafe_sticker || undefined,
+                    listed: true,
                 };
             },
         );

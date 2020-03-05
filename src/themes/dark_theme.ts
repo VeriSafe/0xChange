@@ -1,17 +1,19 @@
-import { ThemeModalStyle, ThemeProperties } from './commons';
+import { Styles } from 'react-modal';
+
+import { fontSizes, ThemeProperties } from './commons';
 import { DefaultTheme } from './default_theme';
 
-const modalThemeStyle: ThemeModalStyle = {
+const modalThemeStyle: Styles = {
     content: {
         backgroundColor: '#202123',
         borderColor: '#000',
         bottom: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        flexGrow: '0',
+        flexGrow: 0,
         left: 'auto',
         maxHeight: '90%',
-        minWidth: '310px',
+        minWidth: '340px',
         overflow: 'hidden',
         padding: '16px',
         position: 'relative',
@@ -23,10 +25,10 @@ const modalThemeStyle: ThemeModalStyle = {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         display: 'flex',
         justifyContent: 'center',
-        zIndex: '12345',
+        zIndex: 12345,
     },
 };
-
+// cardBackgroundColor: '#02112c',
 const darkThemeColors: ThemeProperties = {
     background: '#000',
     backgroundERC721: '#000',
@@ -49,9 +51,11 @@ const darkThemeColors: ThemeProperties = {
     buttonTextColor: '#fff',
     cardImageBackgroundColor: '#EBF0F5',
     cardBackgroundColor: '#202123',
+    cardHeaderBackgroundColor: '#202123',
     cardBorderColor: '#000',
     cardTitleColor: '#fff',
     cardTitleOwnerColor: '#3CB34F',
+    cardTitleFontSize: '13px',
     chartColor: '#00AE99',
     darkBlue: '#002979',
     darkGray: '#474747',
@@ -116,6 +120,7 @@ const darkThemeColors: ThemeProperties = {
     // topbarBackgroundColor: '#081e6e',
     topbarBorderColor: '#000',
     topbarSeparatorColor: '#5A5A5A',
+    ...fontSizes,
 };
 
 export class DarkTheme extends DefaultTheme {

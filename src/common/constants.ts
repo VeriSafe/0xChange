@@ -1,8 +1,11 @@
+import { ERC20BridgeSource, SwapQuoteRequestOpts } from '@0x/asset-swapper';
 import { BigNumber } from '@0x/utils';
 
 import { Network, ProviderType } from '../util/types';
+import { ChainId } from '../util/types/swap';
 
 export const ERC20_APP_BASE_PATH = '/erc20';
+export const MARKET_APP_BASE_PATH = '/market-trade';
 export const LAUNCHPAD_APP_BASE_PATH = '/launchpad';
 export const MARGIN_APP_BASE_PATH = '/margin';
 export const INSTANT_APP_BASE_PATH = '/instant';
@@ -10,7 +13,7 @@ export const FIAT_RAMP_APP_BASE_PATH = '/fiat-onramp';
 
 export const USE_RELAYER_MARKET_UPDATES = process.env.REACT_APP_USE_RELAYER_MARKET_UPDATES === 'true' ? true : false;
 
-export const ERC721_APP_BASE_PATH = '/erc721';
+export const ERC721_APP_BASE_PATH = '/marketplace';
 export const DEFAULT_BASE_PATH = process.env.REACT_APP_DEFAULT_BASE_PATH || ERC20_APP_BASE_PATH;
 
 export const RELAYER_URL = process.env.REACT_APP_RELAYER_URL || 'http://localhost:3001/api/v3';
@@ -19,7 +22,7 @@ export const RELAYER_WS_URL = process.env.REACT_APP_RELAYER_WS_URL || 'ws://loca
 
 export const TX_DEFAULTS = {
     gas: 1000000,
-    // gasLimit: 1000000,
+   // gasLimit: 1000000,
     //  gasTransferToken: 21000,
     //  shouldValidate: true,
 };
@@ -39,6 +42,7 @@ export const ZERO = new BigNumber(0);
 export const VERIDEX_ORIGIN = process.env.REACT_APP_VERIDEX_ORIGIN || 'http://localhost:3001';
 
 export const FEE_RECIPIENT = process.env.REACT_APP_FEE_RECIPIENT || ZERO_ADDRESS;
+export const AFFILIATE_FEE_RECIPIENT = process.env.REACT_APP_AFFILIATE_FEE_RECIPIENT || FEE_RECIPIENT;
 export const AFFILIATE_FEE_PERCENTAGE: number = process.env.REACT_APP_AFFILIATE_FEE_PERCENTAGE
     ? Number(process.env.REACT_APP_AFFILIATE_FEE_PERCENTAGE)
     : 0;
@@ -81,6 +85,8 @@ export const PORTIS_APP_ID = process.env.REACT_APP_PORTIS_APP_ID;
 export const FORTMATIC_APP_ID = process.env.REACT_APP_FORTMATIC_APP_ID;
 
 export const COINDIRECT_MERCHANT_ID = process.env.REACT_APP_COINDIRECT_MERCHANT_ID || '';
+
+export const MOONPAY_API_KEY = process.env.REACT_APP_MOONPAY_API_KEY || '';
 
 export const WYRE_ID = process.env.REACT_APP_WYRE_ID || '';
 
@@ -169,4 +175,21 @@ export const PROVIDER_TYPE_TO_NAME: { [key in ProviderType]: string } = {
     [ProviderType.TrustWallet]: 'Trust Wallet',
     [ProviderType.Opera]: 'Opera Wallet',
     [ProviderType.Fallback]: 'Fallback',
+};
+
+export const ONE_SECOND_MS = 1000;
+
+export const QUOTE_ORDER_EXPIRATION_BUFFER_MS = ONE_SECOND_MS * 30; // Ignore orders that expire in 30 seconds
+
+export const ASSET_SWAPPER_MARKET_ORDERS_OPTS: Partial<SwapQuoteRequestOpts> = {
+    noConflicts: true,
+    excludedSources:
+        CHAIN_ID === ChainId.Mainnet
+            ? []
+            : [ERC20BridgeSource.Eth2Dai, ERC20BridgeSource.Kyber, ERC20BridgeSource.Uniswap],
+    numSamples: 10,
+    runLimit: 4096,
+    bridgeSlippage: 0.0005,
+    dustFractionThreshold: 0.0025,
+    sampleDistributionBase: 1.05,
 };

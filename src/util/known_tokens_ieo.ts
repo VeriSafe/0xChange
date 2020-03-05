@@ -1,10 +1,12 @@
 import { ExchangeFillEventArgs, LogWithDecodedArgs } from '@0x/contract-wrappers';
-import { assetDataUtils } from '@0x/order-utils';
+import { assetDataUtils, ERC20AssetData } from '@0x/order-utils';
+import { AssetProxyId } from '@0x/types';
 
 import { ConfigIEO } from '../common/config';
 import { KNOWN_TOKENS_META_DATA } from '../common/tokens_meta_data';
 import { KNOWN_TOKENS_IEO_META_DATA, TokenIEOMetaData } from '../common/tokens_meta_data_ieo';
 
+import { getKnownTokens, getTokenMetadaDataFromContract, getTokenMetadaDataFromServer } from './known_tokens';
 import { getLogger } from './logger';
 import { mapTokensBotToTokenIEO, mapTokensIEOMetaDataToTokenByNetworkId } from './token_ieo_meta_data';
 import { TokenIEO } from './types';
@@ -99,7 +101,7 @@ export class KnownTokensIEO {
     };
 
     public getTokenByAssetData = (assetData: string): TokenIEO => {
-        const tokenAddress = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
+        const tokenAddress = (assetDataUtils.decodeAssetDataOrThrow(assetData) as ERC20AssetData).tokenAddress;
         return this.getTokenByAddress(tokenAddress);
     };
 
@@ -110,6 +112,34 @@ export class KnownTokensIEO {
         } catch (e) {
             return false;
         }
+    };
+    public addTokenByAddress = async (address: string, makerAddress: string): Promise<TokenIEO | null> => {
+        if (this.isKnownAddress(address.toLowerCase())) {
+            return null;
+        }
+        let token;
+        try {
+            token = await getTokenMetadaDataFromContract(address);
+        } catch {
+            token = await getTokenMetadaDataFromServer(address);
+        }
+        if (!token) {
+            return null;
+        }
+        const tokenToAdd = {
+            ...token,
+            social: {},
+            owners: [makerAddress.toLowerCase()],
+            feePercentage: '0.05',
+        };
+        // TODO refactor to remove this
+        const tokens = getKnownTokens();
+        if (!tokens.isIEOKnownAddress(token.address)) {
+            tokens.pushTokenIEO(tokenToAdd);
+        }
+
+        this._tokens.push(tokenToAdd);
+        return tokenToAdd;
     };
 
     /**
@@ -125,8 +155,10 @@ export class KnownTokensIEO {
             return false;
         }
 
-        const makerAssetAddress = assetDataUtils.decodeERC20AssetData(makerAssetData).tokenAddress;
-        const takerAssetAddress = assetDataUtils.decodeERC20AssetData(takerAssetData).tokenAddress;
+        const makerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(makerAssetData) as ERC20AssetData)
+            .tokenAddress;
+        const takerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(takerAssetData) as ERC20AssetData)
+            .tokenAddress;
 
         if (!this.isKnownAddress(makerAssetAddress) || !this.isKnownAddress(takerAssetAddress)) {
             return false;
@@ -168,8 +200,12 @@ export const isWeth = (token: string): boolean => {
 
 export const isERC20AssetData = (assetData: string): boolean => {
     try {
-        assetDataUtils.decodeERC20AssetData(assetData);
-        return true;
+        const asset = assetDataUtils.decodeAssetDataOrThrow(assetData);
+        if (asset.assetProxyId === AssetProxyId.ERC20) {
+            return true;
+        } else {
+            return false;
+        }
     } catch (e) {
         return false;
     }

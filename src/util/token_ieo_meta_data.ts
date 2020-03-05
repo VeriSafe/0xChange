@@ -43,6 +43,7 @@ export const mapTokensIEOMetaDataToTokenByNetworkId = (tokensMetaData: TokenIEOM
                     },
                     feePercentage: tokenMetaData.feePercentage || undefined,
                     endDate: tokenMetaData.endDate || undefined,
+                    listed: true,
                 };
             },
         );
@@ -80,6 +81,7 @@ export const mapTokensBotToTokenIEO = (assetTokens: AssetBot[]): TokenIEO[] => {
                 },
                 feePercentage: asset.feePercentage,
                 endDate: undefined,
+                listed: true,
             };
         },
     );

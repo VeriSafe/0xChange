@@ -65,35 +65,79 @@ export const StyledButton = styled(Button)`
     margin-bottom: 2px;
 `;
 
+
+
+
 export const FieldContainer = styled.div`
     position: relative;
 `;
 
 const defaultLayouts = {
-    b: { i: 'b', w: 6, h: 1, x: 6, y: 0 },
-    c: { i: 'c', w: 3, h: 1, x: 0, y: 0 },
-    d: { i: 'd', w: 3, h: 3, x: 0, y: 1 },
-    e: { i: 'e', w: 3, h: 4, x: 3, y: 0 },
-    f: { i: 'f', w: 6, h: 1, x: 6, y: 1 },
-    g: { i: 'g', w: 6, h: 1, x: 6, y: 2 },
-    h: { i: 'h', w: 6, h: 1, x: 6, y: 3 },
+    a: { "i": "a", "w": 2, "h": 52, "x": 0, "y": 0 },
+    b: { i: 'b', "w": 6, "h": 8, "x": 2, "y": 0 },
+    d: {i: 'd', "w": 3, "h": 26, "x": 2, "y": 8 },
+    e: { i: 'e', "w": 3, "h": 26, "x": 5, "y": 8 },
+    f: { i: 'f', "w": 6, "h": 18, "x": 2, "y": 34 },
+    g: { i: 'g', "w": 4, "h": 25, "x": 8, "y": 0 },
+    h: { i: 'h', "w": 4, "h": 27, "x": 8, "y": 25 },
 };
 
 const resetLayouts = {
     lg: [
-        { w: 6, h: 1, x: 6, y: 0, i: 'b', moved: false, static: false },
-        { w: 3, h: 1, x: 0, y: 0, i: 'c', moved: false, static: false },
-        { w: 3, h: 3, x: 0, y: 1, i: 'd', moved: false, static: false },
-        { w: 3, h: 4, x: 3, y: 0, i: 'e', moved: false, static: false },
-        { w: 6, h: 1, x: 6, y: 1, i: 'f', moved: false, static: false },
-        { w: 6, h: 1, x: 6, y: 2, i: 'g', moved: false, static: false },
-        { w: 6, h: 1, x: 6, y: 3, i: 'h', moved: false, static: false },
-    ],
+    { "w": 2, "h": 52, "x": 0, "y": 0, "i": "a", "moved": false, "static": false },
+    { "w": 6, "h": 8, "x": 2, "y": 0, "i": "b", "moved": false, "static": false },
+    { "w": 3, "h": 26, "x": 2, "y": 8, "i": "d", "moved": false, "static": false },
+    { "w": 3, "h": 26, "x": 5, "y": 8, "i": "e", "moved": false, "static": false },
+    { "w": 6, "h": 18, "x": 2, "y": 34, "i": "f", "moved": false, "static": false },
+    { "w": 4, "h": 25, "x": 8, "y": 0, "i": "g", "moved": false, "static": false },
+    { "w": 4, "h": 27, "x": 8, "y": 25, "i": "h", "moved": false, "static": false }]
 };
+
+/*const defaultLayouts = {
+    a: { i: 'a', x: 0, y: 0, w: 4, h: 4 },
+    b: { i: 'b', x: 4, y: 0, w: 8, h: 4 },
+    c: { i: 'c', x: 0, y: 4, w: 3, h: 1 },
+    d: { i: 'd', x: 0, y: 5, w: 3, h: 3 },
+    e: { i: 'e', x: 3, y: 4, w: 3, h: 4 },
+    f: { i: 'f', x: 6, y: 4, w: 6, h: 1 },
+    g: { i: 'g', x: 6, y: 5, w: 6, h: 2 },
+    h: { i: 'h', x: 6, y: 7, w: 6, h: 1 },
+};*/
+
+/*const defaultLayouts = {
+    a: { w: 2, h: 6, x: 0, y: 0, i: 'a' },
+    b: { w: 6, h: 3, x: 2, y: 0, i: 'b' },
+    d: { w: 4, h: 3, x: 8, y: 3, i: 'd' },
+    e: { w: 2, h: 3, x: 8, y: 0, i: 'e' },
+    f: { w: 6, h: 3, x: 2, y: 3, i: 'f' },
+    g: { w: 2, h: 3, x: 10, y: 0, i: 'g' },
+};*/
+
+/*const resetLayouts = {
+     lg: [
+        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
+        { i: 'b', x: 4, y: 0, w: 8, h: 4 },
+        { i: 'c', x: 0, y: 4, w: 3, h: 1 },
+        { i: 'd', x: 0, y: 5, w: 3, h: 3 },
+        { i: 'e', x: 3, y: 4, w: 3, h: 4 },
+        { i: 'f', x: 6, y: 4, w: 6, h: 1 },
+        { i: 'g', x: 6, y: 5, w: 6, h: 2 },
+        { i: 'h', x: 6, y: 7, w: 6, h: 1 },
+    ],
+    lg: [
+        { w: 2, h: 6, x: 0, y: 0, i: 'a' },
+        { w: 6, h: 3, x: 2, y: 0, i: 'b' },
+        { w: 4, h: 3, x: 8, y: 3, i: 'd' },
+        { w: 2, h: 3, x: 8, y: 0, i: 'e' },
+        { w: 6, h: 3, x: 2, y: 3, i: 'f' },
+        { w: 2, h: 3, x: 10, y: 0, i: 'g' },
+    ],
+};*/
 
 
 // const defaultBreakPoints = ['lg', 'md', 'xs', 'sm', 'xs', 'xss'];
-type keyType =  'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h';
+type keyType = 'a' | 'b' |  'd' | 'e' | 'f' | 'g' | 'h';
+
 const mutateLayoutsByReference = (layouts: ReactGridLayout.Layouts, isSet: boolean, key: keyType) => {
     if (isSet) {
         Object.keys(layouts).forEach(lay => {
@@ -126,43 +170,43 @@ export const LayoutDropdownContainer = (props: any) => {
     const layouts: ReactGridLayout.Layouts = JSON.parse(useSelector(getERC20Layout));
     const dispatch = useDispatch();
 
-    // const [isMarketList, setMarketList] = useState(getLayoutValue(layouts, 'a'));
+    const [isMarketList, setMarketList] = useState(getLayoutValue(layouts, 'a'));
     const [isMarketDetails, setMarketDetails] = useState(getLayoutValue(layouts, 'b'));
-    const [isWalletBalance, setWalletBalance] = useState(getLayoutValue(layouts, 'c'));
+    // const [isWalletBalance, setWalletBalance] = useState(getLayoutValue(layouts, 'c'));
     const [isBuySell, setBuySell] = useState(getLayoutValue(layouts, 'd'));
     const [isOrderBook, setOrderBook] = useState(getLayoutValue(layouts, 'e'));
     const [isOrderHistory, setOrderHistory] = useState(getLayoutValue(layouts, 'f'));
     const [isMarketFills, setMarketFills] = useState(getLayoutValue(layouts, 'g'));
-    const [is0xLastTrades, set0xLastTrades] = useState(getLayoutValue(layouts, 'h'));
+    // const [is0xLastTrades, set0xLastTrades] = useState(getLayoutValue(layouts, 'h'));
 
     const onResetLayout = () => {
         dispatch(setERC20Layout(JSON.stringify(resetLayouts)));
-        //setMarketList(true);
+        setMarketList(true);
         setMarketDetails(true);
-        setWalletBalance(true);
+        //  setWalletBalance(true);
         setBuySell(true);
         setOrderBook(true);
         setOrderHistory(true);
         setMarketFills(true);
-        set0xLastTrades(true);
+        // set0xLastTrades(true);
     };
 
-   /* const onMarketListChecked = () => {
-        setMarketList(!isMarketList);
-        mutateLayoutsByReference(layouts, !isMarketList, 'a');
-        dispatch(setERC20Layout(JSON.stringify(layouts)));
-    };*/
+     const onMarketListChecked = () => {
+         setMarketList(!isMarketList);
+         mutateLayoutsByReference(layouts, !isMarketList, 'a');
+         dispatch(setERC20Layout(JSON.stringify(layouts)));
+     };
     const onMarketDetailsChecked = () => {
         setMarketDetails(!isMarketDetails);
         mutateLayoutsByReference(layouts, !isMarketDetails, 'b');
         dispatch(setERC20Layout(JSON.stringify(layouts)));
     };
 
-    const onWalletBalanceChecked = () => {
+    /*const onWalletBalanceChecked = () => {
         setWalletBalance(!isWalletBalance);
         mutateLayoutsByReference(layouts, !isWalletBalance, 'c');
         dispatch(setERC20Layout(JSON.stringify(layouts)));
-    };
+    };*/
 
     const onBuySellChecked = () => {
         setBuySell(!isBuySell);
@@ -186,33 +230,33 @@ export const LayoutDropdownContainer = (props: any) => {
         mutateLayoutsByReference(layouts, !isMarketFills, 'g');
         dispatch(setERC20Layout(JSON.stringify(layouts)));
     };
-    const on0xLastTradesChecked = () => {
+    /*const on0xLastTradesChecked = () => {
         set0xLastTrades(!is0xLastTrades);
         mutateLayoutsByReference(layouts, !is0xLastTrades, 'h');
         dispatch(setERC20Layout(JSON.stringify(layouts)));
-    };
+    };*/
 
     const body = (
         <>
             <DropdownBody>
-                {/*<LabelContainer>
+                <LabelContainer>
                     <Label>Markets List</Label>
                     <FieldContainer>
                         <input type="checkbox" checked={isMarketList} onChange={onMarketListChecked} />
                     </FieldContainer>
-                </LabelContainer>*/ }
+                </LabelContainer>
                 <LabelContainer>
                     <Label>Market Details</Label>
                     <FieldContainer>
                         <input type="checkbox" checked={isMarketDetails} onChange={onMarketDetailsChecked} />
                     </FieldContainer>
                 </LabelContainer>
-                <LabelContainer>
+                {/*<LabelContainer>
                     <Label>Wallet Balances</Label>
                     <FieldContainer>
                         <input type="checkbox" checked={isWalletBalance} onChange={onWalletBalanceChecked} />
                     </FieldContainer>
-                </LabelContainer>
+                </LabelContainer>*/}
                 <LabelContainer>
                     <Label>Buy/Sell Card</Label>
                     <FieldContainer>
@@ -237,12 +281,12 @@ export const LayoutDropdownContainer = (props: any) => {
                         <input type="checkbox" checked={isMarketFills} onChange={onMarketFillsChecked} />
                     </FieldContainer>
                 </LabelContainer>
-                <LabelContainer>
+                {/*<LabelContainer>
                     <Label>0x Last Trades</Label>
                     <FieldContainer>
                         <input type="checkbox" checked={is0xLastTrades} onChange={on0xLastTradesChecked} />
                     </FieldContainer>
-                </LabelContainer>
+                </LabelContainer>*/}
                 <ButtonContainer>
                     <StyledButton onClick={onResetLayout} variant={ButtonVariant.Tertiary}>
                         Reset Layout

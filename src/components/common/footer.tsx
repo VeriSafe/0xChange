@@ -7,23 +7,23 @@ import { GIT_COMMIT, ERC20_APP_BASE_PATH } from '../../common/constants';
 import { goToListedTokens, openFiatOnRampChooseModal, setERC20Theme, setThemeName } from '../../store/actions';
 import { getThemeName } from '../../store/selectors';
 import { themeBreakPoints, themeDimensions } from '../../themes/commons';
-import { getThemeFromConfigDex } from '../../themes/theme_meta_data_utils';
+import { MARKETPLACES } from '../../util/types';
 
-import { Button } from './button';
 import { SocialIcon } from './icons/social_icon';
 
 interface Props extends HTMLAttributes<HTMLDivElement> {}
 
 const FooterWrapper = styled.div`
-    display: block;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: space-evenly;
     width: 100%;
     background-color: ${props => props.theme.componentsTheme.background};
 `;
 
 const LinksContainer = styled.div`
-    align-items: center;
+    align-items: left;
     display: flex;
     justify-content: center;
     padding: 0 ${themeDimensions.horizontalPadding} ${themeDimensions.verticalPadding};
@@ -51,14 +51,15 @@ const SocialsContainer = styled.div`
 
 const HrefStyled = styled.a`
     color: ${props => props.theme.componentsTheme.textColorCommon};
+    padding-left: 2px;
     text-decoration: none;
-    padding-left: 5px;
+    font-size: 10px;
     @media (max-width: ${themeBreakPoints.md}) {
         padding-left: 2px;
     }
 `;
 
-const StyledButton = styled(Button)`
+/*const StyledButton = styled(Button)`
     background-color: ${props => props.theme.componentsTheme.background};
     color: ${props => props.theme.componentsTheme.textColorCommon};
     padding: 0px;
@@ -66,6 +67,13 @@ const StyledButton = styled(Button)`
     &:hover {
         text-decoration: underline;
     }
+`;*/
+
+const Pipe = styled.span`
+    color: #888;
+    font-size: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
 `;
 
 const poweredBySVG = () => {
@@ -138,6 +146,7 @@ const poweredBySVG = () => {
 export const Footer: React.FC<Props> = props => {
     const config = Config.getConfig();
     const dispatch = useDispatch();
+   // const marketplace = useSelector(getCurrentMarketPlace);
     let socialButtons;
     if (config.general && config.general.social) {
         const social_urls_keys = Object.keys(config.general.social);
@@ -150,8 +159,8 @@ export const Footer: React.FC<Props> = props => {
         };
     }
 
-    const themeName = useSelector(getThemeName);
-    const handleThemeClick = () => {
+    // const themeName = useSelector(getThemeName);
+    /* const handleThemeClick = () => {
         const themeN = themeName === 'DARK_THEME' ? 'LIGHT_THEME' : 'DARK_THEME';
         dispatch(setThemeName(themeN));
         const theme = getThemeFromConfigDex(themeN);
@@ -159,7 +168,7 @@ export const Footer: React.FC<Props> = props => {
     };
     const handleFiatChooseModal = () => {
         dispatch(openFiatOnRampChooseModal(true));
-    };
+    };*/
 
     /*const handleDexWizardClick: React.EventHandler<React.MouseEvent> = e => {
         e.preventDefault();
@@ -177,13 +186,15 @@ export const Footer: React.FC<Props> = props => {
                 <HrefStyled href={`/listed-tokens`} onClick={handleListTokensClick}>
                     Tokens
                 </HrefStyled>
+                <Pipe>|</Pipe>
                 <HrefStyled href="https://0xbitcoin.org/" target="_blank" rel="noopener noreferrer" className="link">
                     About 0xBitcoin
                 </HrefStyled>
+                <Pipe>|</Pipe>
                 <HrefStyled href="https://0x.org/" target="_blank" rel="noopener noreferrer" className="link">
                     {poweredBySVG()}
                 </HrefStyled>
-                <br className="break" />
+                <Pipe>|</Pipe>
                 <HrefStyled
                     href="https://discord.gg/tT5K63J"
                     target="_blank"
@@ -192,18 +203,27 @@ export const Footer: React.FC<Props> = props => {
                 >
                     About 0xChange
                 </HrefStyled>
-            </LinksContainer>
-            <LinksContainer>
-                {/*<HrefStyled href={`/dex-wizard`} onClick={handleDexWizardClick}>
-                    Dex Wizard
-                 </HrefStyled> */}
-                <StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
+                {/*<StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
                     {themeName === 'DARK_THEME' ? '☼' : '🌑'}
                 </StyledButton>
                 <StyledButton onClick={handleFiatChooseModal} className={'buy-eth-footer'}>
                     Buy ETH
-                </StyledButton>
+    </StyledButton> */}
             </LinksContainer>
+           {/* <LinksContainer>
+                <HrefStyled href="https://0x.org/" target="_blank" rel="noopener noreferrer">
+                    {poweredBySVG()}
+                </HrefStyled>
+                 <HrefStyled href={`/dex-wizard`} onClick={handleDexWizardClick}>
+                    Dex Wizard
+                 </HrefStyled>
+                <StyledButton onClick={handleThemeClick} className={'theme-switcher-footer'}>
+                    {themeName === 'DARK_THEME' ? '☼' : '🌑'}
+                </StyledButton>
+                 <StyledButton onClick={handleFiatChooseModal} className={'buy-eth-footer'}>
+                    Buy ETH
+                </StyledButton>
+            </LinksContainer>*/}
             {socialButtons && <SocialsContainer>{socialButtons()}</SocialsContainer>}
         </FooterWrapper>
     );

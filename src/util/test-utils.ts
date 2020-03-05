@@ -106,6 +106,7 @@ export const tokenFactory = Factory.Sync.makeFactory<Token>({
     // @ts-ignore
     symbol: Factory.each(i => `MOCK${i}`),
     icon: undefined,
+    listed: true,
 });
 
 export const tokenMetaDataFactory = Factory.Sync.makeFactory<TokenMetaData>({

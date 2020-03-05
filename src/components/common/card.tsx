@@ -10,6 +10,8 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
     action?: React.ReactNode;
     children: React.ReactNode;
     minHeightBody?: string;
+    disableOverflowBody?: boolean;
+    disableOverflowYBody?: boolean;
 }
 
 const CardWrapper = styled(CardBase)`
@@ -26,6 +28,7 @@ const CardWrapper = styled(CardBase)`
 const CardHeader = styled.div`
     align-items: center;
     border-bottom: 1px solid ${props => props.theme.componentsTheme.cardBorderColor};
+    background-color: ${props => props.theme.componentsTheme.cardHeaderBackgroundColor};
     display: flex;
     flex-grow: 0;
     flex-shrink: 0;
@@ -35,7 +38,7 @@ const CardHeader = styled.div`
 
 const CardTitle = styled.h1`
     color: ${props => props.theme.componentsTheme.cardTitleColor};
-    font-size: 16px;
+    font-size: ${props => props.theme.componentsTheme.cardTitleFontSize};
     font-style: normal;
     font-weight: 600;
     line-height: 1.2;
@@ -43,10 +46,11 @@ const CardTitle = styled.h1`
     padding: 0 20px 0 0;
 `;
 
-const CardBody = styled.div<{ minHeightBody?: string }>`
+const CardBody = styled.div<{ minHeightBody?: string; disableOverflowBody?: boolean }>`
     margin: 0;
     min-height: ${props => props.minHeightBody};
-    overflow-x: auto;
+    overflow-x: ${props => (props.disableOverflowBody ? 'hidden' : 'auto')};
+    overflow-y: ${props => (props.disableOverflowBody ? 'hidden' : 'auto')};
     padding: ${themeDimensions.verticalPadding} ${themeDimensions.horizontalPadding};
     position: relative;
 `;
@@ -56,7 +60,7 @@ CardBody.defaultProps = {
 };
 
 export const Card: React.FC<Props> = props => {
-    const { title, action, children, minHeightBody, ...restProps } = props;
+    const { title, action, children, minHeightBody, disableOverflowBody, ...restProps } = props;
 
     return (
         <CardWrapper {...restProps}>
@@ -66,7 +70,9 @@ export const Card: React.FC<Props> = props => {
                     {action ? action : null}
                 </CardHeader>
             ) : null}
-            <CardBody minHeightBody={minHeightBody}>{children}</CardBody>
+            <CardBody minHeightBody={minHeightBody} disableOverflowBody={disableOverflowBody}>
+                {children}
+            </CardBody>
         </CardWrapper>
     );
 };

@@ -72,16 +72,15 @@ const fillToRow = (fill: Fill, index: number, _setMarket: any) => {
 
     const setMarket = () => _setMarket(currencyPair);
     return (
-        <TR key={index}>
-            <SideTD side={fill.side}>{sideLabel}</SideTD>
+        <TR key={index}>        
             <ClicableTD styles={{ textAlign: 'right', tabular: true }} onClick={setMarket}>
                 {market}
             </ClicableTD>
-            <CustomTD styles={{ textAlign: 'right', tabular: true }}>{price}</CustomTD>
+            <SideTD side={fill.side}>{price}</SideTD>
             <CustomTD styles={{ textAlign: 'right', tabular: true }}>{displayAmountBase}</CustomTD>
             <CustomTD styles={{ textAlign: 'right', tabular: true }}>{displayAmountQuote}</CustomTD>
             <CustomTD styles={{ textAlign: 'right', tabular: true }}>
-                <TimeAgo date={fill.timestamp} />;
+                {fill.timestamp.toISOString().slice(-13, -5)}
             </CustomTD>
         </TR>
     );
@@ -105,12 +104,11 @@ class OrderFills extends React.Component<Props> {
                     <Table isResponsive={true}>
                         <THead>
                             <TR>
-                                <TH>Side</TH>
                                 <TH styles={{ textAlign: 'right' }}>Market</TH>
                                 <TH styles={{ textAlign: 'right' }}>Price</TH>
                                 <TH styles={{ textAlign: 'right' }}>Base</TH>
                                 <TH styles={{ textAlign: 'right' }}>Quote</TH>
-                                <TH styles={{ textAlign: 'right' }}>Age</TH>
+                                <TH styles={{ textAlign: 'right' }}>Time</TH>
                             </TR>
                         </THead>
                         <tbody>{fills.map((fill, index) => fillToRow(fill, index, _setMarket))}</tbody>

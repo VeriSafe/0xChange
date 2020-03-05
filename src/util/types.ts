@@ -1,14 +1,16 @@
+import { MarketBuySwapQuote, MarketSellSwapQuote } from '@0x/asset-swapper';
 import { SignedOrder } from '@0x/connect';
 import { OrderStatus } from '@0x/types';
 import { BigNumber } from '@0x/utils';
 import { RouterState } from 'connected-react-router';
+import { Styles } from 'react-modal';
 import { ActionCreator, AnyAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 
 import { TokenMetaData } from '../common/tokens_meta_data';
 import { TokenIEOMetaData } from '../common/tokens_meta_data_ieo';
 import { ExtraArgument } from '../store/index';
-import { Theme, ThemeModalStyle, ThemeProperties } from '../themes/commons';
+import { Theme, ThemeProperties } from '../themes/commons';
 
 export interface TabItem {
     active: boolean;
@@ -44,6 +46,7 @@ export interface Token {
     verisafe_sticker?: string;
     price_usd?: BigNumber | null;
     price_usd_24h_change?: BigNumber | null;
+    listed: boolean;
 }
 
 export interface TokenIEO {
@@ -77,6 +80,7 @@ export interface TokenIEO {
     };
     feePercentage?: string;
     endDate?: string | number;
+    listed: boolean;
 }
 
 export interface TokenPrice {
@@ -119,6 +123,13 @@ export enum Web3State {
     Locked = 'Locked',
 }
 
+export enum SwapQuoteState {
+    Done = 'Done',
+    Error = 'Error',
+    Loading = 'Loading',
+    NotLoaded = 'NotLoaded',
+}
+
 export enum BZXLoadingState {
     Done = 'Done',
     Error = 'Error',
@@ -155,6 +166,14 @@ export interface RelayerState {
     readonly feePercentage?: number;
 }
 
+export interface SwapState {
+    readonly baseToken: Token;
+    readonly quoteToken: Token;
+    readonly quote?: MarketBuySwapQuote | MarketSellSwapQuote;
+    readonly isBuy?: boolean;
+    readonly quoteState: SwapQuoteState;
+}
+
 export interface UIState {
     readonly notifications: Notification[];
     readonly fills: Fill[];
@@ -163,11 +182,13 @@ export interface UIState {
     readonly userFills: Fill[];
     readonly hasUnreadNotifications: boolean;
     readonly stepsModal: StepsModalState;
+    readonly startTour: boolean;
     readonly orderPriceSelected: BigNumber | null;
+    readonly makerAmountSelected: BigNumber | null;
     readonly sidebarOpen: boolean;
     readonly openFiatOnRampModal: boolean;
     readonly openFiatOnRampChooseModal: boolean;
-    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD';
+    readonly fiatType: 'APPLE_PAY' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'CARDS';
     readonly erc20Theme: Theme;
     readonly erc20Layout: string;
     readonly isDynamicLayout: boolean;
@@ -197,6 +218,7 @@ export interface StoreState {
     readonly market: MarketState;
     readonly collectibles: CollectiblesState;
     readonly bzx: BZXState;
+    readonly swap: SwapState;
 }
 
 export enum StepKind {
@@ -283,6 +305,8 @@ export interface StepBuySellMarket {
     amount: BigNumber;
     side: OrderSide;
     token: Token;
+    context: 'order' | 'swap';
+    quote?: MarketBuySwapQuote | MarketSellSwapQuote;
 }
 
 export interface StepBuySellLimitMatching {
@@ -466,6 +490,7 @@ export interface RelayerMarketStats {
     price_min_24: number;
     last_price: number;
     last_price_change: number;
+    last_price_change_24: number;
     last_price_usd: string;
     utc_date: string;
     utc_timestamp: number;
@@ -601,6 +626,7 @@ export enum ModalDisplay {
 
 export enum MARKETPLACES {
     ERC20 = 'ERC20',
+    MarketTrade = 'MarketTrade',
     ERC721 = 'ERC721',
     LaunchPad = 'LAUNCHPAD',
     Margin = 'MARGIN',
@@ -645,13 +671,16 @@ export enum ConvertBalanceState {
 
 export interface CollectiblesState {
     readonly allCollectibles: { [tokenId: string]: Collectible };
+    readonly isCollectionLoaded: boolean;
     readonly allCollectiblesFetchStatus: AllCollectiblesFetchStatus;
     readonly collectibleSelected: Collectible | null;
+    readonly collectionSelected: CollectibleCollection;
 }
 
 export interface CollectibleMetadataSource {
-    fetchAllUserCollectiblesAsync(userAddress: string): Promise<Collectible[]>;
-    fetchCollectiblesAsync(tokenIds: string[]): Promise<Collectible[]>;
+    fetchAllUserCollectiblesAsync(userAddress: string, collectibleAddress: string): Promise<Collectible[]>;
+    fetchCollectiblesAsync(tokenIds: string[], collectibleAddress: string): Promise<Collectible[]>;
+    fetchCollectionAsync(collectibleCollectionAddress: string): Promise<CollectibleCollection | null>;
 }
 
 export type ThunkCreator<R = Promise<any>> = ActionCreator<ThunkAction<R, StoreState, ExtraArgument, AnyAction>>;
@@ -681,7 +710,7 @@ export interface Filter {
 
 export interface PartialTheme {
     componentsTheme?: Partial<ThemeProperties>;
-    modalTheme?: Partial<ThemeModalStyle>;
+    modalTheme?: Partial<Styles>;
 }
 
 export interface GeneralConfig {
@@ -812,6 +841,23 @@ export interface TokenMetadataBZX {
     symbol: string;
     type: TokenTypeBZX;
     index: number;
+}
+
+export interface CollectibleCollectionMetadata {
+    name: string;
+    addresses: { [key: string]: string };
+    description: string;
+    icon: string;
+    symbol: string;
+}
+
+export interface CollectibleCollection {
+    slug: string;
+    name: string;
+    address: string;
+    description: string;
+    icon: string;
+    symbol: string;
 }
 
 // tslint:disable-next-line: class-name

@@ -13,6 +13,7 @@ import { ErrorCard, ErrorIcons, FontSize } from './error_card';
 interface OwnProps {
     centerContent?: React.ReactNode;
     endContent: React.ReactNode;
+    endOptContent?: React.ReactNode;
     startContent: React.ReactNode;
 }
 
@@ -86,55 +87,94 @@ const ToolbarEnd = styled.div`
     }
 `;
 
+const ToolbarEndBigWidth = styled.div`
+    align-items: center;
+    display: flex;
+    justify-content: flex-end;
+
+    @media (min-width: ${themeBreakPoints.xxl}) {
+        width: 50%;
+    }
+`;
+
 const ErrorPointer = styled(ErrorCard)`
     cursor: pointer;
 `;
 
 const Toolbar = (props: Props) => {
-    const { startContent, endContent, centerContent, onConnectWallet } = props;
+    const { startContent, endContent, centerContent, onConnectWallet, endOptContent } = props;
 
     const getContentFromWeb3State = (web3State: Web3State): React.ReactNode => {
         switch (web3State) {
             case Web3State.Locked:
-                return <ErrorCard fontSize={FontSize.Large} text={errorsWallet.mmLocked} icon={ErrorIcons.Lock} />;
+                return (
+                    <>
+                        {endOptContent && <ToolbarEndBigWidth>{endOptContent}</ToolbarEndBigWidth>}
+                        <ErrorCard fontSize={FontSize.Large} text={errorsWallet.mmLocked} icon={ErrorIcons.Lock} />
+                    </>
+                );
             case Web3State.NotInstalled:
                 return (
-                    <ErrorCard
-                        fontSize={FontSize.Large}
-                        text={errorsWallet.mmNotInstalled}
-                        icon={ErrorIcons.Metamask}
-                    />
+                    <>
+                        {endOptContent && <ToolbarEndBigWidth>{endOptContent}</ToolbarEndBigWidth>}
+                        <ErrorCard
+                            fontSize={FontSize.Large}
+                            text={errorsWallet.mmNotInstalled}
+                            icon={ErrorIcons.Metamask}
+                        />
+                    </>
                 );
             case Web3State.Connect:
                 return (
-                    <ErrorPointer
-                        className={'connect-wallet'}
-                        onClick={onConnectWallet}
-                        fontSize={FontSize.Large}
-                        text={'Connect Wallet'}
-                        icon={ErrorIcons.Lock}
-                    />
+                    <>
+                        {endOptContent && <ToolbarEndBigWidth>{endOptContent}</ToolbarEndBigWidth>}
+                        <ErrorPointer
+                            className={'connect-wallet'}
+                            onClick={onConnectWallet}
+                            fontSize={FontSize.Large}
+                            text={'Connect Wallet'}
+                            icon={ErrorIcons.Lock}
+                        />
+                    </>
                 );
             case Web3State.Connecting:
-                return <ErrorCard fontSize={FontSize.Large} text={'Connecting Wallet'} icon={ErrorIcons.Lock} />;
+                return (
+                    <>
+                        {endOptContent && <ToolbarEndBigWidth>{endOptContent}</ToolbarEndBigWidth>}
+                        <ErrorCard fontSize={FontSize.Large} text={'Connecting Wallet'} icon={ErrorIcons.Lock} />
+                    </>
+                );
             case Web3State.Loading:
                 return (
-                    <ErrorCard
-                        fontSize={FontSize.Large}
-                        text={errorsWallet.mmLoading}
-                        icon={ErrorIcons.Wallet}
-                        onClick={onConnectWallet}
-                    />
+                    <>
+                        {endOptContent && <ToolbarEndBigWidth>{endOptContent}</ToolbarEndBigWidth>}
+                        <ErrorCard
+                            fontSize={FontSize.Large}
+                            text={errorsWallet.mmLoading}
+                            icon={ErrorIcons.Wallet}
+                            onClick={onConnectWallet}
+                        />
+                    </>
                 );
             case Web3State.Error:
                 return (
-                    <ErrorCard fontSize={FontSize.Large} text={errorsWallet.mmWrongNetwork} icon={ErrorIcons.Warning} />
+                    <>
+                        {endOptContent && <ToolbarEndBigWidth>{endOptContent}</ToolbarEndBigWidth>}
+                        <ErrorCard
+                            fontSize={FontSize.Large}
+                            text={errorsWallet.mmWrongNetwork}
+                            icon={ErrorIcons.Warning}
+                        />
+                    </>
                 );
             case Web3State.Done:
                 return (
                     <>
                         <ToolbarCenter>{centerContent}</ToolbarCenter>
-                        <ToolbarEnd>{endContent}</ToolbarEnd>
+                        <ToolbarEnd>
+                            {endOptContent}
+                            {endContent}
+                        </ToolbarEnd>
                     </>
                 );
             default:

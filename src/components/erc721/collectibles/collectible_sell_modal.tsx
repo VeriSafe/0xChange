@@ -6,11 +6,11 @@ import styled, { css, withTheme } from 'styled-components';
 
 import { ZERO } from '../../../common/constants';
 import { selectCollectible } from '../../../store/collectibles/actions';
-import { getSelectedCollectible } from '../../../store/selectors';
+import { getCollectibleCollectionSelected, getSelectedCollectible } from '../../../store/selectors';
 import { startSellCollectibleSteps } from '../../../store/ui/actions';
 import { Theme, themeDimensions } from '../../../themes/commons';
 import { todayInSeconds, tomorrow } from '../../../util/time_utils';
-import { ButtonVariant, Collectible, OrderSide, StoreState } from '../../../util/types';
+import { ButtonVariant, Collectible, CollectibleCollection, OrderSide, StoreState } from '../../../util/types';
 import { BigNumberInput } from '../../common/big_number_input';
 import { Button } from '../../common/button';
 import { CloseModalButton } from '../../common/icons/close_modal_button';
@@ -18,6 +18,7 @@ import { OutsideUrlIcon } from '../../common/icons/outside_url_icon';
 
 interface StateProps {
     currentCollectible: Collectible | null;
+    collectibleCollection: CollectibleCollection;
 }
 
 interface DispatchProps {
@@ -128,21 +129,21 @@ const CollectibleLinkText = styled.span`
     margin: 0 6px 0 0;
 `;
 
-const CollectibleMainInfoSubtitle = styled.h4`
+/*const CollectibleMainInfoSubtitle = styled.h4`
     color: ${props => props.theme.componentsTheme.textColorCommon};
     font-size: 14px;
     font-weight: 500;
     line-height: 1.2;
     margin: 0 0 10px;
-`;
+`;*/
 
-const CollectibleMainInfoValue = styled.p`
+/*const CollectibleMainInfoValue = styled.p`
     color: ${props => props.theme.componentsTheme.textColorCommon};
     font-size: 14px;
     font-weight: 400;
     line-height: 1.2;
     margin: 0;
-`;
+`;*/
 
 const CollectibleLabel = styled.label`
     color: ${props => props.theme.componentsTheme.textColorCommon};
@@ -215,7 +216,7 @@ const ButtonStyled = styled(Button)`
     width: 100%;
 `;
 
-const SwitchWrapper = styled.div<{ isActive?: boolean }>`
+/*const SwitchWrapper = styled.div<{ isActive?: boolean }>`
     background: ${props => (props.isActive ? '#00ae99' : '#ccc')};
     border-radius: 9px;
     cursor: pointer;
@@ -235,9 +236,9 @@ const Switch = styled.div`
     transition: all 0.15s linear;
     width: 13px;
     z-index: 1;
-`;
+`;*/
 
-const SwitchInput = styled.input`
+/*const SwitchInput = styled.input`
     border-radius: 50%;
     cursor: pointer;
     display: block;
@@ -252,7 +253,7 @@ const SwitchInput = styled.input`
     &:checked + div {
         left: 16px;
     }
-`;
+`;*/
 
 const iconETH = () => {
     return (
@@ -283,12 +284,17 @@ class CollectibleSellModalContainer extends React.Component<Props> {
     };
 
     public render = () => {
-        const { theme, currentCollectible } = this.props;
-        const { startPrice, endingPrice, shouldIncludeEndPrice } = this.state;
+        const { theme, currentCollectible, collectibleCollection } = this.props;
+        const { startPrice } = this.state;
         const dayInSeconds = 60 * 60 * 24;
         const today = todayInSeconds();
-        const expirationDates = [today + dayInSeconds, today + dayInSeconds * 5, today + dayInSeconds * 7];
-
+        const expirationDates = [
+            today + dayInSeconds,
+            today + dayInSeconds * 5,
+            today + dayInSeconds * 7,
+            today + dayInSeconds * 150,
+        ];
+        const collectionName = collectibleCollection.name;
         return (
             <Modal isOpen={currentCollectible !== null} style={theme.modalTheme} onRequestClose={this._closeModal}>
                 <ModalTitleWrapper>
@@ -310,18 +316,18 @@ class CollectibleSellModalContainer extends React.Component<Props> {
                                     href={currentCollectible ? currentCollectible.assetUrl : ''}
                                     target="_blank"
                                 >
-                                    <CollectibleLinkText>CryptoKitties</CollectibleLinkText>
+                                    <CollectibleLinkText>{collectionName}</CollectibleLinkText>
                                     {OutsideUrlIcon()}
                                 </CollectibleLink>
                             </div>
-                            <div>
+                            {/* <div>
                                 <CollectibleMainInfoSubtitle>Last Sale Price</CollectibleMainInfoSubtitle>
                                 <CollectibleMainInfoValue>2.0624 ETH</CollectibleMainInfoValue>
-                            </div>
+                           </div>*/}
                         </CollectibleMainInfo>
                     </CollectibleMainInfoWrapper>
                     <FormRow>
-                        <CollectibleLabel>Enter a starting price</CollectibleLabel>
+                        <CollectibleLabel>Enter price</CollectibleLabel>
                         <FieldContainer>
                             <BigInputNumberStyled
                                 decimals={18}
@@ -336,7 +342,7 @@ class CollectibleSellModalContainer extends React.Component<Props> {
                             </TokenContainer>
                         </FieldContainer>
                     </FormRow>
-                    <FormRow>
+                    {/*<FormRow>
                         <CollectibleLabel>Include ending price</CollectibleLabel>
                         <SwitchWrapper isActive={this.state.shouldIncludeEndPrice}>
                             <SwitchInput
@@ -346,8 +352,8 @@ class CollectibleSellModalContainer extends React.Component<Props> {
                             />
                             <Switch />
                         </SwitchWrapper>
-                    </FormRow>
-                    {shouldIncludeEndPrice ? (
+                    </FormRow>*/}
+                    {/*shouldIncludeEndPrice ? (
                         <FormRow>
                             <CollectibleLabel>Enter ending price</CollectibleLabel>
                             <FieldContainer>
@@ -364,13 +370,14 @@ class CollectibleSellModalContainer extends React.Component<Props> {
                                 </TokenContainer>
                             </FieldContainer>
                         </FormRow>
-                    ) : null}
+                    ) : null*/}
                     <FormRow>
                         <CollectibleLabel>Set Expiration Date</CollectibleLabel>
                         <SelectStyled onChange={this._updateExpDate}>
                             <option value={expirationDates[0]}>1 day</option>
                             <option value={expirationDates[1]}>5 days</option>
                             <option value={expirationDates[2]}>7 days</option>
+                            <option value={expirationDates[3]}>150 days</option>
                         </SelectStyled>
                     </FormRow>
                     <ButtonStyled
@@ -407,9 +414,9 @@ class CollectibleSellModalContainer extends React.Component<Props> {
         return false;
     };
 
-    private readonly _updateIncludeEndPrice = (event: any) => {
+    /* private readonly _updateIncludeEndPrice = (event: any) => {
         this.setState({ shouldIncludeEndPrice: event.target.checked });
-    };
+    };*/
 
     private readonly _updateExpDate = (event: any) => {
         const expirationDate = new BigNumber(event.target.value);
@@ -422,9 +429,9 @@ class CollectibleSellModalContainer extends React.Component<Props> {
         });
     };
 
-    private readonly _updateEndingPrice = (endingPrice: BigNumber) => {
+    /*private readonly _updateEndingPrice = (endingPrice: BigNumber) => {
         this.setState({ endingPrice });
-    };
+    };*/
 
     private readonly _closeModal = () => {
         this.setState({ ...initialState });
@@ -451,6 +458,7 @@ class CollectibleSellModalContainer extends React.Component<Props> {
 const mapStateToProps = (state: StoreState): StateProps => {
     return {
         currentCollectible: getSelectedCollectible(state),
+        collectibleCollection: getCollectibleCollectionSelected(state),
     };
 };
 

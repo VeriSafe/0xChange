@@ -14,6 +14,9 @@ import { fetchTakerAndMakerFee } from '../../../store/relayer/actions';
 import {
     getBaseTokenBalance,
     getCurrencyPair,
+    getMakerAmountSelected,
+    getOpenBuyOrders,
+    getOpenSellOrders,
     getOrderPriceSelected,
     getQuoteTokenBalance,
     getTotalEthBalance,
@@ -21,7 +24,12 @@ import {
 } from '../../../store/selectors';
 import { themeDimensions } from '../../../themes/commons';
 import { getKnownTokens, isWeth } from '../../../util/known_tokens';
-import { formatTokenSymbol, tokenAmountInUnits, unitsInTokenAmount } from '../../../util/tokens';
+import {
+    formatTokenSymbol,
+    tokenAmountInUnits,
+    tokenAmountInUnitsToBigNumber,
+    unitsInTokenAmount,
+} from '../../../util/tokens';
 import {
     ButtonIcons,
     ButtonVariant,
@@ -31,6 +39,7 @@ import {
     OrderType,
     StoreState,
     TokenBalance,
+    UIOrder,
     Web3State,
 } from '../../../util/types';
 import { BigNumberInput } from '../../common/big_number_input';
@@ -45,9 +54,12 @@ interface StateProps {
     web3State: Web3State;
     currencyPair: CurrencyPair;
     orderPriceSelected: BigNumber | null;
+    makerAmountSelected: BigNumber | null;
     baseTokenBalance: TokenBalance | null;
     quoteTokenBalance: TokenBalance | null;
     totalEthBalance: BigNumber;
+    openSellOrders: UIOrder[];
+    openBuyOrders: UIOrder[];
 }
 
 interface DispatchProps {
@@ -88,7 +100,7 @@ const BuySellWrapper = styled(CardBase)`
 const Content = styled.div`
     display: flex;
     flex-direction: column;
-    padding: 20px ${themeDimensions.horizontalPadding};
+    padding: 10px;
 `;
 
 const TabsContainer = styled.div`
@@ -116,7 +128,7 @@ const TabButton = styled.div<{ isSelected: boolean; side: OrderSide }>`
     cursor: ${props => (props.isSelected ? 'default' : 'pointer')};
     display: flex;
     font-weight: 600;
-    height: 47px;
+    height: 35px;
     justify-content: center;
     width: 50%;
 
@@ -137,7 +149,7 @@ const LabelContainer = styled.div`
     align-items: flex-end;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 `;
 
 const LabelAvailableContainer = styled.div`
@@ -149,7 +161,7 @@ const LabelAvailableContainer = styled.div`
 
 const Label = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     line-height: normal;
     margin: 0;
@@ -157,7 +169,7 @@ const Label = styled.label<{ color?: string }>`
 
 const LabelAvaible = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
-    font-size: 12px;
+    font-size: 10px;
     font-weight: normal;
     line-height: normal;
     margin: 0;
@@ -172,12 +184,12 @@ const MinLabel = styled.label<{ color?: string }>`
 `;
 
 const InnerTabs = styled(CardTabSelector)`
-    font-size: 14px;
+    font-size: 12px;
 `;
 
 const FieldContainer = styled.div`
     height: ${themeDimensions.fieldHeight};
-    margin-bottom: 25px;
+    margin-bottom: 5px;
     position: relative;
 `;
 
@@ -193,7 +205,7 @@ const BigInputNumberStyled = styled<any>(BigNumberInput)`
     border: 1px solid ${props => props.theme.componentsTheme.textInputBorderColor};
     color: ${props => props.theme.componentsTheme.textInputTextColor};
     font-feature-settings: 'tnum' 1;
-    font-size: 16px;
+    font-size: 12px;
     height: 100%;
     padding-left: 14px;
     padding-right: 60px;
@@ -213,7 +225,7 @@ const TokenContainer = styled.div`
 
 const TokenText = styled.span`
     color: ${props => props.theme.componentsTheme.textInputTextColor};
-    font-size: 14px;
+    font-size: 12px;
     font-weight: normal;
     line-height: 21px;
     text-align: right;
@@ -232,7 +244,7 @@ class BuySell extends React.Component<Props, State> {
     public state: State = {
         makerAmount: null,
         price: null,
-        orderType: OrderType.Market,
+        orderType: OrderType.Limit,
         tab: OrderSide.Buy,
         error: {
             btnMsg: null,
@@ -247,25 +259,35 @@ class BuySell extends React.Component<Props, State> {
                 price: newProps.orderPriceSelected,
             });
         }
+
+        if (
+            newProps.makerAmountSelected !== prevProps.makerAmountSelected &&
+            this.state.orderType === OrderType.Market
+        ) {
+            this.setState({
+                makerAmount: newProps.makerAmountSelected,
+            });
+        }
     };
 
     public render = () => {
-        const { currencyPair, web3State } = this.props;
+        const { currencyPair, web3State, quoteTokenBalance, baseTokenBalance } = this.props;
         const { makerAmount, price, tab, orderType, error } = this.state;
 
         const buySellInnerTabs = [
-            {
-                active: orderType === OrderType.Market,
-                onClick: this._switchToMarket,
-                text: 'Market',
-            },
             {
                 active: orderType === OrderType.Limit,
                 onClick: this._switchToLimit,
                 text: 'Limit',
             },
+            {
+                active: orderType === OrderType.Market,
+                onClick: this._switchToMarket,
+                text: 'Market',
+            },
         ];
         const decimals = getKnownTokens().getTokenBySymbol(currencyPair.base).decimals;
+        const quoteDecimals = getKnownTokens().getTokenBySymbol(currencyPair.quote).decimals;
         // Configs
         const pricePrecision = currencyPair.config.pricePrecision;
         const minAmount = currencyPair.config.minAmount;
@@ -275,7 +297,14 @@ class BuySell extends React.Component<Props, State> {
         const stepAmount = new BigNumber(1).div(new BigNumber(10).pow(basePrecision));
         const stepAmountUnits = unitsInTokenAmount(String(stepAmount), decimals);
 
+        const quoteUnits = tokenAmountInUnitsToBigNumber(
+            (quoteTokenBalance && quoteTokenBalance.balance) || ZERO,
+            quoteDecimals,
+        );
+        const baseBalance = (baseTokenBalance && baseTokenBalance.balance) || ZERO;
+
         const amount = makerAmount || minAmountUnits;
+        const makerAmountUnits = tokenAmountInUnitsToBigNumber(amount, decimals);
         const isMakerAmountEmpty = amount === null || amount.isZero();
         const isMakerAmountMin = amount === null || amount.isLessThan(minAmountUnits);
 
@@ -284,6 +313,11 @@ class BuySell extends React.Component<Props, State> {
             price === null || price.isLessThan(new BigNumber(1).div(new BigNumber(10).pow(pricePrecision)));
         const isOrderTypeLimitIsEmpty =
             orderType === OrderType.Limit && (isMakerAmountEmpty || isPriceEmpty || isPriceMin);
+        const isBuy = tab === OrderSide.Buy;
+       /* const isOrderTypeLimitOverflow =
+            (orderType === OrderType.Limit && isBuy && makerAmountUnits.multipliedBy(price || ZERO).gt(quoteUnits)) ||
+            (!isBuy && amount.gt(baseBalance));*/
+
         const isOrderTypeMarketIsEmpty = orderType === OrderType.Market && (isMakerAmountEmpty || isMakerAmountMin);
         const baseSymbol = formatTokenSymbol(currencyPair.base);
         const btnPrefix = tab === OrderSide.Buy ? 'Buy ' : 'Sell ';
@@ -355,12 +389,15 @@ class BuySell extends React.Component<Props, State> {
                             orderType={orderType}
                             orderSide={tab}
                             tokenAmount={amount}
-                            tokenPrice={price || new BigNumber(0)}
+                            tokenPrice={price || new BigNumber(1).div(new BigNumber(10).pow(pricePrecision))}
                             currencyPair={currencyPair}
                         />
                         <Button
                             disabled={
-                                web3State !== Web3State.Done || isOrderTypeLimitIsEmpty || isOrderTypeMarketIsEmpty
+                                web3State !== Web3State.Done ||
+                                isOrderTypeLimitIsEmpty ||
+                                isOrderTypeMarketIsEmpty /*||
+                                isOrderTypeLimitOverflow*/
                             }
                             icon={error && error.btnMsg ? ButtonIcons.Warning : undefined}
                             onClick={this.submit}
@@ -490,7 +527,6 @@ class BuySell extends React.Component<Props, State> {
     private readonly _reset = () => {
         this.setState({
             makerAmount: null,
-            price: null,
         });
     };
 
@@ -512,6 +548,9 @@ const mapStateToProps = (state: StoreState): StateProps => {
         web3State: getWeb3State(state),
         currencyPair: getCurrencyPair(state),
         orderPriceSelected: getOrderPriceSelected(state),
+        makerAmountSelected: getMakerAmountSelected(state),
+        openSellOrders: getOpenSellOrders(state),
+        openBuyOrders: getOpenBuyOrders(state),
         quoteTokenBalance: getQuoteTokenBalance(state),
         baseTokenBalance: getBaseTokenBalance(state),
         totalEthBalance: getTotalEthBalance(state),
@@ -539,3 +578,4 @@ const mapDispatchToProps = (dispatch: any): DispatchProps => {
 const BuySellContainer = connect(mapStateToProps, mapDispatchToProps)(BuySell);
 
 export { BuySell, BuySellContainer };
+// tslint:disable:max-file-line-count

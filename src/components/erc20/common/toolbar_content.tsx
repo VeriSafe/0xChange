@@ -1,34 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router';
 import styled, { withTheme } from 'styled-components';
 
-import { UI_GENERAL_TITLE } from '../../../common/constants';
+import { ERC20_APP_BASE_PATH, UI_GENERAL_TITLE, RELAYER_URL, CHAIN_ID, INSTANT_FEE_PERCENTAGE } from '../../../common/constants';
 import { Logo } from '../../../components/common/logo';
 import { separatorTopbar, ToolbarContainer } from '../../../components/common/toolbar';
 import { NotificationsDropdownContainer } from '../../../components/notifications/notifications_dropdown';
 import {
     goToHome,
+    goToHomeMarketTrade,
     goToWallet,
-    openFiatOnRampChooseModal,
+    openFiatOnRampModal,
     openSideBar,
-    setERC20Theme,
-    setThemeName,
+    setFiatType,
+    setTour,
 } from '../../../store/actions';
-import { getGeneralConfig, getThemeName } from '../../../store/selectors';
+import { getCurrentMarketPlace, getGeneralConfig, getFeePercentage, getFeeRecipient } from '../../../store/selectors';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
-import { getThemeFromConfigDex } from '../../../themes/theme_meta_data_utils';
 import { isMobile } from '../../../util/screen';
+import { MARKETPLACES, Token } from '../../../util/types';
 import { Button } from '../../common/button';
 import { withWindowWidth } from '../../common/hoc/withWindowWidth';
 import { LogoIcon } from '../../common/icons/logo_icon';
 import { MenuBurguer } from '../../common/icons/menu_burguer';
+import { SettingsDropdownContainer } from '../account/settings_dropdown';
 import { WalletConnectionContentContainer } from '../account/wallet_connection_content';
 
 import { MarketsDropdownStatsContainer } from './markets_dropdown_stats';
+import { SwapDropdownContainer } from './swap_dropdown';
+import { load0xInstantScript } from './0xinstant';
+import { getKnownTokens } from '../../../util/known_tokens';
+import { getWeb3Wrapper, isWeb3Wrapper } from '../../../services/web3_wrapper';
+
 
 interface DispatchProps {
     onGoToHome: () => any;
     onGoToWallet: () => any;
+    onGoToHomeMarketTrade: () => any;
 }
 
 interface OwnProps {
@@ -38,26 +47,18 @@ interface OwnProps {
 
 type Props = DispatchProps & OwnProps;
 
-const MyWalletLink = styled.a`
-    align-items: center;
-    color: ${props => props.theme.componentsTheme.myWalletLinkColor};
-    display: flex;
-    font-size: 16px;
-    font-weight: 500;
-    text-decoration: none;
-
-    &:hover {
-        text-decoration: underline;
-    }
-
-    ${separatorTopbar}
-`;
-
 const LogoHeader = styled(Logo)`
     ${separatorTopbar}
 `;
 
 const MarketsDropdownHeader = styled<any>(MarketsDropdownStatsContainer)`
+    align-items: center;
+    display: flex;
+
+    ${separatorTopbar}
+`;
+
+const SwapDropdownHeader = styled<any>(SwapDropdownContainer)`
     align-items: center;
     display: flex;
 
@@ -92,36 +93,97 @@ const StyledMenuBurguer = styled(MenuBurguer)`
     fill: ${props => props.theme.componentsTheme.textColorCommon};
 `;
 
+declare var zeroExInstant: any;
+
 const ToolbarContent = (props: Props) => {
     const handleLogoClick: React.EventHandler<React.MouseEvent> = e => {
         e.preventDefault();
         props.onGoToHome();
     };
     const generalConfig = useSelector(getGeneralConfig);
-    const themeName = useSelector(getThemeName);
+    const marketplace = useSelector(getCurrentMarketPlace);
+    const feePercentage = INSTANT_FEE_PERCENTAGE;
+    const feeRecipient = useSelector(getFeeRecipient);
+    const location = useLocation();
+    const isHome = location.pathname === ERC20_APP_BASE_PATH || location.pathname === `${ERC20_APP_BASE_PATH}/`;
+
     const logo = generalConfig && generalConfig.icon ? <LogoIcon icon={generalConfig.icon} /> : null;
     const dispatch = useDispatch();
+    const [isScriptReady, setScripReady] = useState(false);
+    const [isInstant, setIsInstant] = useState(false);
     const setOpenSideBar = () => {
         dispatch(openSideBar(true));
     };
-    const handleThemeClick = () => {
-        const themeN = themeName === 'DARK_THEME' ? 'LIGHT_THEME' : 'DARK_THEME';
-        dispatch(setThemeName(themeN));
-        const theme = getThemeFromConfigDex(themeN);
-        dispatch(setERC20Theme(theme));
-    };
-    const handleFiatChooseModal = () => {
-        dispatch(openFiatOnRampChooseModal(true));
+    if (isScriptReady && isInstant) {
+        const knownToken = getKnownTokens();
+        const token = knownToken.findToken('0xbtc') as Token;
+        const erc20TokenAssetData = zeroExInstant.assetDataForERC20TokenAddress(token.address) as string;
+        const additionalAssetMetaDataMap = {
+            [erc20TokenAssetData]: {
+                assetProxyId: zeroExInstant.ERC20_PROXY_ID,
+                decimals: token.decimals,
+                symbol: token.symbol,
+                name: token.name,
+                primaryColor: token.primaryColor,
+                iconUrl: token.icon,
+            },
+        };
+        const renderInstant = async () => {
+            const onClose = () => {
+                setIsInstant(false);  
+            };
+         zeroExInstant.render(
+                {
+                    //provider: isWeb3Wrapper ? (await getWeb3Wrapper()).getProvider() : undefined,
+                    orderSource: RELAYER_URL,
+                    chainId: CHAIN_ID,
+                    affiliateInfo: {
+                        feeRecipient,
+                        feePercentage,
+                    },
+                    additionalAssetMetaDataMap,
+                    defaultSelectedAssetData: erc20TokenAssetData,
+                    onClose,
+                },
+                'body',
+            );
+        }
+        renderInstant();
+    }
+    if(!isScriptReady){
+        load0xInstantScript(() => {
+            setScripReady(true);
+        });
+    }
+    const handleBuy0xBTC: React.EventHandler<React.MouseEvent> = async e => {
+        e.preventDefault();
+        setIsInstant(true);
+        
+
     };
 
+    const handleFiatModal: React.EventHandler<React.MouseEvent> = e => {
+        e.preventDefault();
+        dispatch(setFiatType('CARDS'));
+        dispatch(openFiatOnRampModal(true));
+    };
+
+    const dropdownHeader =
+        marketplace === MARKETPLACES.MarketTrade ? (
+            <SwapDropdownHeader shouldCloseDropdownBodyOnClick={false} className={'swap-dropdown'} />
+        ) : (
+                <MarketsDropdownHeader shouldCloseDropdownBodyOnClick={false} className={'markets-dropdown'} />
+            );
+
     let startContent;
+    let endOptContent;
     if (isMobile(props.windowWidth)) {
         startContent = (
             <>
                 <MenuStyledButton onClick={setOpenSideBar}>
                     <StyledMenuBurguer />
                 </MenuStyledButton>
-                <MarketsDropdownHeader shouldCloseDropdownBodyOnClick={false} />
+                {dropdownHeader}
             </>
         );
     } else {
@@ -133,15 +195,18 @@ const ToolbarContent = (props: Props) => {
                     text={(generalConfig && generalConfig.title) || UI_GENERAL_TITLE}
                     textColor={props.theme.componentsTheme.logoERC20TextColor}
                 />
-                <MarketsDropdownHeader shouldCloseDropdownBodyOnClick={false} className={'markets-dropdown'} />
+                {!isHome && dropdownHeader}
+                {/* <MyWalletLink href="/market-trade" onClick={handleMarketTradeClick} className={'market-trade'}>
+                   Market Trade
+                </MyWalletLink>*/}
             </>
         );
     }
 
-    const handleMyWalletClick: React.EventHandler<React.MouseEvent> = e => {
-        e.preventDefault();
-        props.onGoToWallet();
+    const handleTour: React.EventHandler<React.MouseEvent> = e => {
+        dispatch(setTour(true));
     };
+
     let endContent;
     if (isMobile(props.windowWidth)) {
         endContent = (
@@ -150,30 +215,39 @@ const ToolbarContent = (props: Props) => {
             </>
         );
     } else {
-        endContent = (
+        endOptContent = (
             <>
-                <StyledButton onClick={handleThemeClick} className={'theme-switcher'}>
-                    {themeName === 'DARK_THEME' ? '☼' : '🌑'}
-                </StyledButton>
-                <StyledButton onClick={handleFiatChooseModal} className={'buy-eth'}>
+                {/*  <SettingsContentContainer  className={'settings-dropdown'} /> */}
+                <SettingsDropdownContainer className={'settings-dropdown'} />
+                <StyledButton onClick={handleTour}>Tour</StyledButton>
+                <StyledButton onClick={handleFiatModal} className={'buy-eth'}>
                     Buy ETH
                 </StyledButton>
-                <MyWalletLink href="/my-wallet" onClick={handleMyWalletClick} className={'my-wallet'}>
+                <StyledButton onClick={handleBuy0xBTC} className={'buy-0xbtc'}>
+                    Buy 0xBTC
+                </StyledButton>
+            </>
+        );
+
+        endContent = (
+            <>
+                {/* <MyWalletLink href="/my-wallet" onClick={handleMyWalletClick} className={'my-wallet'}>
                     My Wallet
-                </MyWalletLink>
+        </MyWalletLink> */}
                 <WalletDropdown className={'wallet-dropdown'} />
                 <NotificationsDropdownContainer className={'notifications'} />
             </>
         );
     }
 
-    return <ToolbarContainer startContent={startContent} endContent={endContent} />;
+    return <ToolbarContainer startContent={startContent} endContent={endContent} endOptContent={endOptContent} />;
 };
 
 const mapDispatchToProps = (dispatch: any): DispatchProps => {
     return {
         onGoToHome: () => dispatch(goToHome()),
         onGoToWallet: () => dispatch(goToWallet()),
+        onGoToHomeMarketTrade: () => dispatch(goToHomeMarketTrade()),
     };
 };
 

@@ -22,6 +22,7 @@ const ButtonStyled = styled(Button)`
 const JoinAsMaker = () => {
     const ethAccount = useSelector(getEthAccount);
     const handleJoinAsMaker = () => {
+        // tslint:disable-next-line:no-floating-promises
         joinAsMakerToPool(ethAccount);
     };
 

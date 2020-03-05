@@ -4,16 +4,21 @@ import Joyride, { CallBackProps, STATUS } from 'react-joyride';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { setDynamicLayout, setERC20Layout } from '../../../store/actions';
-import { getDynamicLayout, getERC20Layout, getEthAccount } from '../../../store/selectors';
+import { setERC20Layout, setTour } from '../../../store/actions';
+import {
+    getBaseToken,
+    getDynamicLayout,
+    getERC20Layout,
+    getEthAccount,
+    getTourStarted,
+} from '../../../store/selectors';
 import { isMobile } from '../../../util/screen';
 import { FiatOnRampModalContainer } from '../../account/fiat_modal';
 import { FiatChooseModalContainer } from '../../account/fiat_onchoose_modal';
-import { Button } from '../../common/button';
 import { CheckWalletStateModalContainer } from '../../common/check_wallet_state_modal_container';
+import { ErrorCard, FontSize } from '../../common/error_card';
 import { useWindowSize } from '../../common/hooks/window_size_hook';
 import { Content } from '../common/content_wrapper';
-import { LayoutDropdownContainer } from '../common/layout_dropdown';
 import { MarketDetailsContainer } from '../common/market_details';
 // import { MarketsListContainer } from '../common/markets_list';
 import { MarketsStatsListContainer } from '../common/markets_stats_list';
@@ -28,24 +33,26 @@ import { WalletBalanceContainer } from '../marketplace/wallet_balance';
 
 // const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
-const StyledDiv = styled.div`
+/*const StyledDiv = styled.div`
     display: flex;
     align-items: flex-end;
     height: 20px;
     width: 100%;
     background-color: ${props => props.theme.componentsTheme.cardBackgroundColor};
     color: ${props => props.theme.componentsTheme.textColorCommon};
-`;
+`;*/
 
 const MarketPlaceDiv = styled.div`
     display: block;
+    padding: 0px;
+    margin: 0px;
 `;
 
 const Grid = styled(Responsive)`
     width: 100%;
 `;
 
-const StyledButton = styled(Button)`
+/*const StyledButton = styled(Button)`
     background-color: ${props => props.theme.componentsTheme.topbarBackgroundColor};
     color: ${props => props.theme.componentsTheme.textColorCommon};
     &:hover {
@@ -54,7 +61,8 @@ const StyledButton = styled(Button)`
     margin: 0;
     padding: 0;
     padding-left: 10px;
-`;
+    font-size: 12px;
+`;*/
 
 /*const Label = styled.label<{ color?: string }>`
     color: ${props => props.color || props.theme.componentsTheme.textColorCommon};
@@ -134,10 +142,14 @@ const Marketplace = () => {
     const layouts = JSON.parse(useSelector(getERC20Layout));
     const isDynamicLayout = useSelector(getDynamicLayout);
     const ethAccount = useSelector(getEthAccount);
+    const isStartTour = useSelector(getTourStarted);
+    const baseToken = useSelector(getBaseToken);
+    /*const isListed = baseToken ? baseToken.listed : true;*/
     /**
      * TODO: Remove this workaround. In some states, react-grid-layoyt is not
      * finding the correct way to get the correct width.
-     * */
+     *
+     **/
     /*useEffect(()=>{
         setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
@@ -146,29 +158,28 @@ const Marketplace = () => {
     },[])*/
 
     const [breakpoint, setBreakPoint] = useState('lg');
-    const [isRun, setIsRun] = useState(false);
-
     const size = useWindowSize();
     const onLayoutChange = (lay: any) => {
         // setLayout(layout);
         //  dispatch(setERC20Layout(JSON.stringify({...layouts, [`${breakpoint}`]:layout}, )))
+        console.log(JSON.stringify({ lg: lay }));
         dispatch(setERC20Layout(JSON.stringify({ lg: lay })));
     };
     const onBreakpointChange = (br: string) => {
         setBreakPoint(br);
     };
-    const onTakeTutorial = () => {
-        /*document.body.style.minHeight = '200vh';
+    /*const onTakeTutorial = () => {
+        document.body.style.minHeight = '200vh';
         const root = document.getElementById('root');
         if (root) {
             root.style.minHeight = '200vh';
-        }*/
+        }
         setIsRun(true);
-    };
+    };*/
 
-    const onDynamicLayout = () => {
+    /*  const onDynamicLayout = () => {
         dispatch(setDynamicLayout(!isDynamicLayout));
-    };
+    };*/
 
     const layout: ReactGridLayout.Layout[] = layouts[breakpoint] ? layouts[breakpoint] : layouts.lg;
     const handleJoyrideCallback = (data: CallBackProps) => {
@@ -176,16 +187,17 @@ const Marketplace = () => {
         const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
         if (finishedStatuses.includes(status)) {
-            setIsRun(false);
-            document.body.style.minHeight = '100vh';
-            const root = document.getElementById('root');
+            dispatch(setTour(false));
+            // document.body.style.minHeight = '100vh';
+            /* const root = document.getElementById('root');
             if (root) {
                 root.style.minHeight = '100vh';
-            }
+            }*/
         }
     };
     /*
     TODO: Add and remove layoyts dynamically*/
+    const isMarketList = layout.find(l => l.i === 'a') ? true : false;
     const isMarketDetails = layout.find(l => l.i === 'b') ? true : false;
     const isWalletBalance = layout.find(l => l.i === 'c') ? true : false;
     const isBuySell = layout.find(l => l.i === 'd') ? true : false;
@@ -194,20 +206,31 @@ const Marketplace = () => {
     const isMarketFills = layout.find(l => l.i === 'g') ? true : false;
     const isOrderFills = layout.find(l => l.i === 'h') ? true : false;
     let content;
+    const msg = 'Token inserted by User. Please proceed with caution and do your own research!';
+
     if (isMobile(size.width)) {
         content = (
             <Content>
+                {/*!isListed && <ErrorCard fontSize={FontSize.Large} text={msg} />*/}
                 <BuySellContainer />
                 <OrderBookTableContainer />
                 <MarketDetailsContainer isTradingGraphic={false} />
-                <WalletBalanceContainer />
+                {/*   <WalletBalanceContainer />*/}
                 <OrderHistoryContainer />
                 <MarketFillsContainer />
-                <OrderFillsContainer />
+                {/*  <OrderFillsContainer />*/}
             </Content>
         );
     } else {
         const cards = [];
+        if (isMarketList) {
+            cards.push(
+                <div key="a" className="markets-list">
+                    <MarketsStatsListContainer />
+                </div>,
+            );
+        }
+
         if (isMarketDetails) {
             cards.push(
                 <div key="b" className="market-details">
@@ -262,15 +285,15 @@ const Marketplace = () => {
 
         content = (
             <MarketPlaceDiv>
-                <StyledDiv>
+                {/*<StyledDiv>
                     <LayoutDropdownContainer />
                     <StyledButton onClick={onDynamicLayout}>
                         {isDynamicLayout ? 'Dynamic Layout' : 'Static Layout'}
                     </StyledButton>
                     <StyledButton onClick={onTakeTutorial}>Take Tour </StyledButton>
-                </StyledDiv>
+                </StyledDiv>*/}
                 <Joyride
-                    run={isRun}
+                    run={isStartTour}
                     steps={ethAccount ? allSteps : noWalletSteps}
                     callback={handleJoyrideCallback}
                     continuous={true}
@@ -288,10 +311,12 @@ const Marketplace = () => {
                 <Grid
                     className="layout"
                     layouts={layouts}
-                    width={size.width}
+                    width={size.width - 8}
                     onLayoutChange={onLayoutChange}
                     isResizable={isDynamicLayout}
                     isDraggable={isDynamicLayout}
+                    margin={[2, 2]}
+                    rowHeight={10}
                     cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                     onBreakpointChange={onBreakpointChange}
                 >

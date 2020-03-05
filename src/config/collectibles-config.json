@@ -1,0 +1,68 @@
+{
+    "collections": [
+        {
+            "symbol": "mumo",
+            "name": "MutantMonsters",
+            "icon": "",
+            "description": "1000s of unique Mutant Monsters. Build a team and see them multiplying secretly by cloning themselves. One day they will take over - make sure you got the best team of Mutants!",
+            "addresses": {
+                "mainnet": "0x3910d4afdf276a0dc8af632ccfceccf5ba04a3b7"
+            }
+        },
+        {
+            "symbol": "vsmr",
+            "name": "VSMR",
+            "icon": "",
+            "description": "Verisafe Masternode Reservation. Reserve your Masternode on the future Verisafe coin with privacy features.",
+            "addresses": {
+                "mainnet": "0xcefbc6085117f3b19c8dd6ce0005040375ce2fef"
+            }
+        },
+
+        {
+            "symbol": "card",
+            "name": "Gods Unchained",
+            "icon": "",
+            "description": "Gods Unchained is a free-to-play, turn-based competitive trading card game.",
+            "addresses": {
+                "mainnet": "0x0e3a2a1f2146d86a604adc220b4967a898d7fe07"
+            }
+        },
+        {
+            "symbol": "axie",
+            "name": "CryptoKitties",
+            "icon": "",
+            "description": "CryptoKitties is a state of the art blockchain-based game, enabling users to trade and sell their cards freely, with the same level of ownership as if they were real, tangible cards.",
+            "addresses": {
+                "mainnet": "0xf5b0a3efb8e8e4c201e2a935f110eaaf3ffecb8d"
+            }
+        },
+        {
+            "symbol": "BTB",
+            "name": "BlockTimeBuddies",
+            "icon": "",
+            "description": "Original characters as crypto collectibles.",
+            "addresses": {
+                "mainnet": "0x07925fbd9a9bad7f7ccad02353d0fe24b99aabb2"
+            }
+        },
+        {
+            "symbol": "0xMEME",
+            "name": "0xBitcoinMeme",
+            "icon": "",
+            "description": "0xBitcoinMemes.",
+            "addresses": {
+                "mainnet": "0x6c10511ddea5f3ed38a0163224198e37b81525bc"
+            }
+        },
+        {
+            "symbol": "LIT",
+            "name": "The LIT Collective",
+            "icon": "",
+            "description": "The LIT Collective is a store filled with work from various artists and backed by the ERC20 token LITonium.",
+            "addresses": {
+                "mainnet": "0xa8f9a747653ce85cc7277a09a986f7b0eacc8b69"
+            }
+        }
+    ]
+}

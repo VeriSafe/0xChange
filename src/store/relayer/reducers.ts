@@ -1,6 +1,6 @@
 import { getType } from 'typesafe-actions';
 
-import { FEE_PERCENTAGE, FEE_RECIPIENT } from '../../common/constants';
+import { FEE_PERCENTAGE, AFFILIATE_FEE_RECIPIENT } from '../../common/constants';
 import { RelayerState } from '../../util/types';
 import * as actions from '../actions';
 import { RootAction } from '../reducers';
@@ -12,7 +12,7 @@ const initialRelayerState: RelayerState = {
     ieoOrders: [],
     userIEOOrders: [],
     feePercentage: FEE_PERCENTAGE,
-    feeRecipient: FEE_RECIPIENT,
+    feeRecipient: AFFILIATE_FEE_RECIPIENT,
 };
 
 export function relayer(state: RelayerState = initialRelayerState, action: RootAction): RelayerState {

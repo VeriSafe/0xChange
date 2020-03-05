@@ -1,8 +1,13 @@
 import { ExchangeFillEventArgs, LogWithDecodedArgs } from '@0x/contract-wrappers';
 import { assetDataUtils } from '@0x/order-utils';
+import { AssetProxyId, ERC20AssetData } from '@0x/types';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 
 import { KNOWN_TOKENS_META_DATA, TokenMetaData } from '../common/tokens_meta_data';
 import { KNOWN_TOKENS_IEO_META_DATA } from '../common/tokens_meta_data_ieo';
+import { getERC20ContractWrapper } from '../services/contract_wrappers';
+import { getTokenMetaData } from '../services/relayer';
+import { getTokenByAddress } from '../services/tokens';
 import { getLogger } from '../util/logger';
 
 import { mapTokensIEOMetaDataToTokenByNetworkId } from './token_ieo_meta_data';
@@ -11,7 +16,7 @@ import {
     mapTokensMetaDataFromForm,
     mapTokensMetaDataToTokenByNetworkId,
 } from './token_meta_data';
-import { Token } from './types';
+import { Token, TokenIEO } from './types';
 
 const logger = getLogger('Tokens::known_tokens .ts');
 
@@ -77,13 +82,22 @@ export class KnownTokens {
     };
 
     public getTokenByAssetData = (assetData: string): Token => {
-        const tokenAddress = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
+        const tokenAddress = (assetDataUtils.decodeAssetDataOrThrow(assetData) as ERC20AssetData).tokenAddress;
         return this.getTokenByAddress(tokenAddress);
     };
 
     public isKnownAddress = (address: string): boolean => {
         try {
             this.getTokenByAddress(address);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    public isKnownSymbol = (symbol: string): boolean => {
+        try {
+            this.getTokenBySymbol(symbol);
             return true;
         } catch (e) {
             return false;
@@ -112,8 +126,10 @@ export class KnownTokens {
             return false;
         }
 
-        const makerAssetAddress = assetDataUtils.decodeERC20AssetData(makerAssetData).tokenAddress;
-        const takerAssetAddress = assetDataUtils.decodeERC20AssetData(takerAssetData).tokenAddress;
+        const makerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(makerAssetData) as ERC20AssetData)
+            .tokenAddress;
+        const takerAssetAddress = (assetDataUtils.decodeAssetDataOrThrow(takerAssetData) as ERC20AssetData)
+            .tokenAddress;
 
         if (!this.isKnownAddress(makerAssetAddress) || !this.isKnownAddress(takerAssetAddress)) {
             return false;
@@ -139,6 +155,108 @@ export class KnownTokens {
 
     public getTokens = (): Token[] => {
         return this._tokens;
+    };
+    public findToken = (data: string | null) => {
+        if (!data) {
+            return null;
+        }
+        if (this.isKnownSymbol(data)) {
+            return this.getTokenBySymbol(data);
+        }
+
+        if (this.isKnownAddress(data)) {
+            return this.getTokenByAddress(data);
+        }
+        return null;
+    };
+    /**
+     * Try to find token, if not exists in current list it will try to
+     * fetch it
+     */
+    public findTokenOrFetchIt = async (data: string | null) => {
+        if (!data) {
+            return null;
+        }
+        let token = this.findToken(data);
+        if (token) {
+            return token;
+        } else {
+            if (Web3Wrapper.isAddress(data)) {
+                token = await this._fetchTokenMetadata(data);
+                if (token) {
+                    return token;
+                } else {
+                    return null;
+                }
+            }
+        }
+        return null;
+    };
+    public pushToken = (token: Token) => {
+        this._tokens.push(token);
+    };
+    public pushTokenIEO = (token: TokenIEO) => {
+        this._tokensIEO.push(token);
+    };
+    // Could be address or symbol
+    public addTokenByAddress = async (data: string) => {
+        if (this.isKnownSymbol(data) || this.isKnownAddress(data)) {
+            return null;
+        }
+        if (Web3Wrapper.isAddress(data)) {
+            const token = await this._fetchTokenMetadata(data);
+            if (token) {
+                this._tokens.push(token);
+                return token;
+            } else {
+                return null;
+            }
+        }
+    };
+    /**
+     * Adds metadata from Coingecko
+     */
+    public fetchTokenMetadaFromGecko = async (token: Token): Promise<Token> => {
+        try {
+            const tokenData = await getTokenByAddress(token.address.toLowerCase());
+            const thumbImage = tokenData.image.thumb;
+            let t;
+            t = {
+                ...token,
+                c_id: tokenData.id,
+                icon: thumbImage.substring(0, thumbImage.indexOf('?')),
+                displayDecimals: 2,
+                minAmount: 0,
+            };
+            return t;
+        } catch (e) {
+            return token;
+        }
+    };
+
+    private readonly _fetchTokenMetadata = async (address: string): Promise<Token | null> => {
+        try {
+            let token = await getTokenMetadaDataFromContract(address);
+            if (!token) {
+                return null;
+            }
+            try {
+                const tokenData = await getTokenByAddress(address.toLowerCase());
+                const thumbImage = tokenData.image.thumb;
+                token = {
+                    ...token,
+                    c_id: tokenData.id,
+                    icon: thumbImage.substring(0, thumbImage.indexOf('?')),
+                    displayDecimals: 2,
+                    minAmount: 0,
+                };
+                return token;
+            } catch (e) {
+                return token;
+            }
+        } catch (e) {
+            return null;
+        }
     };
 }
 
@@ -177,9 +295,57 @@ export const isWethToken = (token: Token): boolean => {
 
 export const isERC20AssetData = (assetData: string): boolean => {
     try {
-        assetDataUtils.decodeERC20AssetData(assetData);
-        return true;
+        const asset = assetDataUtils.decodeAssetDataOrThrow(assetData);
+        if (asset.assetProxyId === AssetProxyId.ERC20) {
+            return true;
+        } else {
+            return false;
+        }
     } catch (e) {
         return false;
+    }
+};
+
+export const getTokenMetadaDataFromContract = async (address: string): Promise<Token | null> => {
+    try {
+        const contract = await getERC20ContractWrapper(address.toLowerCase(), {});
+        const name = await contract.name().callAsync();
+        const symbol = (await contract.symbol().callAsync()).toLowerCase();
+        const decimals = Number(await contract.decimals().callAsync());
+        const token: Token = {
+            address: address.toLowerCase(),
+            decimals,
+            name,
+            symbol,
+            primaryColor: '#081e6e',
+            displayDecimals: 2,
+            minAmount: 0,
+            listed: false,
+        };
+        return token;
+    } catch (e) {
+        return null;
+    }
+};
+
+export const getTokenMetadaDataFromServer = async (address: string): Promise<Token | null> => {
+    try {
+        const tokenData = await getTokenMetaData(address.toLowerCase());
+        if (!tokenData) {
+            return null;
+        }
+        const token: Token = {
+            address: address.toLowerCase(),
+            decimals: Number(tokenData.decimals),
+            name: tokenData.name,
+            symbol: tokenData.symbol,
+            primaryColor: '#081e6e',
+            displayDecimals: 2,
+            minAmount: 0,
+            listed: false,
+        };
+        return token;
+    } catch (e) {
+        return null;
     }
 };

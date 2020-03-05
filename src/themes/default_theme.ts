@@ -1,13 +1,15 @@
-import { Theme, ThemeModalStyle, ThemeProperties } from './commons';
+import { Styles } from 'react-modal';
 
-const modalThemeStyle: ThemeModalStyle = {
+import { fontSizes, Theme, ThemeProperties } from './commons';
+
+const modalThemeStyle: Styles = {
     content: {
         backgroundColor: '#fff',
         borderColor: '#dedede',
         bottom: 'auto',
         display: 'flex',
         flexDirection: 'column',
-        flexGrow: '0',
+        flexGrow: 0,
         left: 'auto',
         maxHeight: '90%',
         minWidth: '350px',
@@ -22,7 +24,7 @@ const modalThemeStyle: ThemeModalStyle = {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         display: 'flex',
         justifyContent: 'center',
-        zIndex: '12345',
+        zIndex: 12345,
     },
 };
 
@@ -48,9 +50,11 @@ const lightThemeColors: ThemeProperties = {
     buttonTorusBackgroundColor: '#3a96ff',
     cardImageBackgroundColor: '#EBF0F5',
     cardBackgroundColor: '#fff',
+    cardHeaderBackgroundColor: '#fff',
     cardBorderColor: '#dedede',
     cardTitleColor: '#000',
     cardTitleOwnerColor: '#3CB34F',
+    cardTitleFontSize: '13px',
     chartColor: '#00AE99',
     darkBlue: '#002979',
     darkGray: '#474747',
@@ -101,6 +105,7 @@ const lightThemeColors: ThemeProperties = {
     stepsProgressStepTitleColorActive: '#000',
     tableBorderColor: '#dedede',
     tdColor: '#000',
+    tdFontSize: '12px',
     textColorCommon: '#000',
     textDark: '#666',
     textInputBackgroundColor: '#F9F9F9',
@@ -109,16 +114,18 @@ const lightThemeColors: ThemeProperties = {
     textLight: '#999',
     textLighter: '#666',
     thColor: '#B9B9B9',
+    thFontSize: '12px',
     tooltipBackgroundColor: '#222',
     tooltipTextColor: '#fff',
     topbarBackgroundColor: '#fff',
     topbarBorderColor: '#dedede',
     topbarSeparatorColor: '#dedede',
+    ...fontSizes,
 };
 
 export class DefaultTheme implements Theme {
     public componentsTheme: ThemeProperties;
-    public modalTheme: ThemeModalStyle;
+    public modalTheme: Styles;
     constructor() {
         this.componentsTheme = lightThemeColors;
         this.modalTheme = modalThemeStyle;

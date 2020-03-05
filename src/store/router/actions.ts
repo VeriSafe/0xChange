@@ -6,24 +6,29 @@ import {
     ERC721_APP_BASE_PATH,
     LAUNCHPAD_APP_BASE_PATH,
     MARGIN_APP_BASE_PATH,
+    MARKET_APP_BASE_PATH,
 } from '../../common/constants';
 import { CollectibleFilterType } from '../../util/filterable_collectibles';
 import { CollectibleSortType } from '../../util/sortable_collectibles';
 import { ThunkCreator } from '../../util/types';
-import { getCurrentRoutePath } from '../selectors';
+import { getCollectibleCollectionSelected, getCurrentRoutePath } from '../selectors';
 
 export const goToHome: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
         const currentRoute = getCurrentRoutePath(state);
-        currentRoute.includes(ERC20_APP_BASE_PATH) ? dispatch(goToHomeErc20()) : dispatch(goToHomeErc721());
+        const isRoutes =
+            currentRoute.includes(ERC20_APP_BASE_PATH) ||
+            currentRoute.includes(MARGIN_APP_BASE_PATH) ||
+            currentRoute.includes(LAUNCHPAD_APP_BASE_PATH) ||
+            currentRoute.includes(MARKET_APP_BASE_PATH);
+        isRoutes ? dispatch(goToHomeErc20()) : dispatch(goToHomeErc721());
     };
 };
 
 const goToHomeErc20: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
-
         dispatch(
             push({
                 ...state.router.location,
@@ -59,6 +64,19 @@ export const goToHomeMarginLend: ThunkCreator = () => {
     };
 };
 
+export const goToHomeMarketTrade: ThunkCreator = () => {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        dispatch(
+            push({
+                ...state.router.location,
+                pathname: `${MARKET_APP_BASE_PATH}`,
+            }),
+        );
+    };
+};
+
 export const goToDexWizard: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
@@ -85,6 +103,19 @@ export const goToListedTokens: ThunkCreator = () => {
     };
 };
 
+export const goToListings: ThunkCreator = () => {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        dispatch(
+            push({
+                ...state.router.location,
+                pathname: `${ERC20_APP_BASE_PATH}/listings`,
+            }),
+        );
+    };
+};
+
 export const goToWallet: ThunkCreator = () => {
     return async (dispatch, getState) => {
         const state = getState();
@@ -101,11 +132,11 @@ export const goToWallet: ThunkCreator = () => {
 const goToHomeErc721 = () => {
     return async (dispatch: any, getState: any) => {
         const state = getState();
-
+        const collection = getCollectibleCollectionSelected(state);
         dispatch(
             push({
                 ...state.router.location,
-                pathname: `${ERC721_APP_BASE_PATH}/`,
+                pathname: `${ERC721_APP_BASE_PATH}/${collection.slug}`,
             }),
         );
     };
@@ -114,11 +145,11 @@ const goToHomeErc721 = () => {
 export const goToMyCollectibles = () => {
     return async (dispatch: any, getState: any) => {
         const state = getState();
-
+        const collection = getCollectibleCollectionSelected(state);
         dispatch(
             push({
                 ...state.router.location,
-                pathname: `${ERC721_APP_BASE_PATH}/my-collectibles`,
+                pathname: `${ERC721_APP_BASE_PATH}/${collection.name.toLowerCase()}/my-collectibles`,
             }),
         );
     };
@@ -128,12 +159,12 @@ export const goToIndividualCollectible = (collectibleId: string) => {
     return async (dispatch: any, getState: any) => {
         const state = getState();
         const currentRoutePath = getCurrentRoutePath(state);
-
+        const collection = getCollectibleCollectionSelected(state);
         if (!currentRoutePath.includes(`collectible/${collectibleId}`)) {
             dispatch(
                 push({
                     ...state.router.location,
-                    pathname: `${ERC721_APP_BASE_PATH}/collectible/${collectibleId}`,
+                    pathname: `${ERC721_APP_BASE_PATH}/${collection.name.toLowerCase()}/collectible/${collectibleId}`,
                 }),
             );
         }
