@@ -271,7 +271,7 @@ class BuySell extends React.Component<Props, State> {
     };
 
     public render = () => {
-        const { currencyPair, web3State, quoteTokenBalance, baseTokenBalance } = this.props;
+        const { currencyPair, web3State, quoteTokenBalance, baseTokenBalance, totalEthBalance } = this.props;
         const { makerAmount, price, tab, orderType, error } = this.state;
 
         const buySellInnerTabs = [
@@ -296,12 +296,14 @@ class BuySell extends React.Component<Props, State> {
         const basePrecision = currencyPair.config.basePrecision;
         const stepAmount = new BigNumber(1).div(new BigNumber(10).pow(basePrecision));
         const stepAmountUnits = unitsInTokenAmount(String(stepAmount), decimals);
+        const isWethQuote = quoteTokenBalance && isWeth(quoteTokenBalance.token.symbol);
+        const isWethBase = baseTokenBalance && isWeth(baseTokenBalance.token.symbol);
 
-        const quoteUnits = tokenAmountInUnitsToBigNumber(
-            (quoteTokenBalance && quoteTokenBalance.balance) || ZERO,
-            quoteDecimals,
-        );
-        const baseBalance = (baseTokenBalance && baseTokenBalance.balance) || ZERO;
+        const quoteUnits = isWethQuote
+            ? tokenAmountInUnitsToBigNumber(totalEthBalance || ZERO, 18)
+            : tokenAmountInUnitsToBigNumber((quoteTokenBalance && quoteTokenBalance.balance) || ZERO, quoteDecimals);
+
+        const baseBalance = isWethBase ? totalEthBalance : (baseTokenBalance && baseTokenBalance.balance) || ZERO;
 
         const amount = makerAmount || minAmountUnits;
         const makerAmountUnits = tokenAmountInUnitsToBigNumber(amount, decimals);

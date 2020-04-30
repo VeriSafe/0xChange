@@ -176,7 +176,6 @@ export const toggleTokenLock: ThunkCreator<Promise<any>> = (
 
         const erc20Token = new ERC20TokenContract(token.address, contractWrappers.getProvider());
         const amount = isUnlocked ? ZERO : UNLIMITED_ALLOWANCE_IN_BASE_UNITS;
-
         const tx = await erc20Token
             .approve(contractWrappers.contractAddresses.erc20Proxy, amount)
             .sendTransactionAsync({

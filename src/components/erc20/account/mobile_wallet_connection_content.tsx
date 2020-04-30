@@ -175,7 +175,7 @@ export const MobileWalletConnectionContent = () => {
                 <ListItem onClick={onGoToWallet}>Wallet</ListItem>
                 <ListItem onClick={onGoToMarketTrade}>Market Trade</ListItem>
                 <ListItem onClick={onGoToLaunchpad}>Launchpad</ListItem>
-                <ListItem onClick={onGoToMarginLend}>Lend</ListItem>
+                {/*<ListItem onClick={onGoToMarginLend}>Lend</ListItem>*/}
                 <hr />
                 <CopyToClipboard text={ethAccount ? ethAccount : ''}>
                     <ListItemFlex>

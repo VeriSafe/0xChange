@@ -277,6 +277,13 @@ export const getColorBySymbol = (symbol: string): string => {
     return token.primaryColor;
 };
 
+export const getWethAssetData = (): string => {
+    const known_tokens = getKnownTokens();
+    const wethToken = known_tokens.getWethToken();
+    return assetDataUtils.encodeERC20AssetData(wethToken.address).toLowerCase();
+};
+
+
 export const isZrx = (token: string): boolean => {
     return token === 'zrx';
 };

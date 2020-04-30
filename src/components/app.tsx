@@ -60,7 +60,7 @@ class App extends React.Component<Props> {
         const { MARKETPLACE, onInitConfig, onInitTheme } = this.props;
         // no need to init when instant is the marketplace
         // Check if any config is requested
-        const parsedUrl = new URL(window.location.href.replace('#/', ''));
+        /*const parsedUrl = new URL(window.location.href.replace('#/', ''));
         const dex = parsedUrl.searchParams.get('dex');
         const origin = window.location.origin;
         if (origin !== VERIDEX_ORIGIN) {
@@ -68,10 +68,10 @@ class App extends React.Component<Props> {
         } else if (dex) {
             onInitConfig(dex, undefined);
         } else {
-            const themeName = localStorage.getThemeName();
-            onInitTheme(themeName);
-        }
-
+        
+        }*/
+        const themeName = localStorage.getThemeName();
+        onInitTheme(themeName);
         if (MARKETPLACE === MARKETPLACES.Instant || MARKETPLACE === MARKETPLACES.FiatRamp) {
             serviceWorker.unregister();
             return;

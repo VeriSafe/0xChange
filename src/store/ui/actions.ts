@@ -18,7 +18,7 @@ import { LocalStorage } from '../../services/local_storage';
 import { Theme } from '../../themes/commons';
 import { getThemeFromConfigDex } from '../../themes/theme_meta_data_utils';
 import { getCurrencyPairByTokensSymbol } from '../../util/known_currency_pairs';
-import { getKnownTokens, isWeth } from '../../util/known_tokens';
+import { getKnownTokens, getWethAssetData, isWeth } from '../../util/known_tokens';
 import {
     buildLimitOrder,
     buildLimitOrderIEO,
@@ -453,11 +453,18 @@ export const startBuySellLimitMatchingSteps: ThunkCreator = (
                 throw new InsufficientTokenBalanceException(baseToken.symbol);
             }
         } else {
+            let takerWethFee: BigNumber = new BigNumber(0);
+            const wethAssetData = getWethAssetData();
+            for (const or of ordersToFill) {
+                if (or.takerFeeAssetData.toLowerCase() === wethAssetData && or.takerFee.gt(0)) {
+                    takerWethFee = takerWethFee.plus(or.takerFee);
+                }
+            }
             // When buying and
             // if quote token is weth, should have enough ETH + WETH balance, or
             // if quote token is not weth, should have enough quote token balance
             const isEthAndWethNotEnoughBalance =
-                isWeth(quoteToken.symbol) && totalEthBalance.isLessThan(totalFilledAmount);
+                isWeth(quoteToken.symbol) && totalEthBalance.isLessThan(totalFilledAmount.plus(takerWethFee));
             const isOtherQuoteTokenAndNotEnoughBalance =
                 !isWeth(quoteToken.symbol) &&
                 quoteTokenBalance &&
@@ -477,7 +484,7 @@ export const startBuySellLimitMatchingSteps: ThunkCreator = (
             side,
             price,
             price_avg,
-            orderFeeData,
+            ordersToFill,
         );
 
         dispatch(setStepsModalCurrentStep(buySellLimitMatchingFlow[0]));
@@ -551,7 +558,7 @@ export const startBuySellMarketSteps: ThunkCreator = (
 
         const orders = side === OrderSide.Buy ? selectors.getOpenSellOrders(state) : selectors.getOpenBuyOrders(state);
         // tslint:disable-next-line:no-unused-variable
-        const [_ordersToFill, filledAmounts, canBeFilled] = buildMarketOrders(
+        const [ordersToFill, filledAmounts, canBeFilled] = buildMarketOrders(
             {
                 amount,
                 orders,
@@ -574,11 +581,18 @@ export const startBuySellMarketSteps: ThunkCreator = (
                 throw new InsufficientTokenBalanceException(baseToken.symbol);
             }
         } else {
+            let takerWethFee: BigNumber = new BigNumber(0);
+            const wethAssetData = getWethAssetData();
+            for (const or of ordersToFill) {
+                if (or.takerFeeAssetData.toLowerCase() === wethAssetData && or.takerFee.gt(0)) {
+                    takerWethFee = takerWethFee.plus(or.takerFee);
+                }
+            }
             // When buying and
             // if quote token is weth, should have enough ETH + WETH balance, or
             // if quote token is not weth, should have enough quote token balance
             const isEthAndWethNotEnoughBalance =
-                isWeth(quoteToken.symbol) && totalEthBalance.isLessThan(totalFilledAmount);
+                isWeth(quoteToken.symbol) && totalEthBalance.isLessThan(totalFilledAmount.plus(takerWethFee));
             const ifOtherQuoteTokenAndNotEnoughBalance =
                 !isWeth(quoteToken.symbol) &&
                 quoteTokenBalance &&
@@ -597,7 +611,7 @@ export const startBuySellMarketSteps: ThunkCreator = (
             amount,
             side,
             price,
-            orderFeeData,
+            ordersToFill,
         );
 
         dispatch(setStepsModalCurrentStep(buySellMarketFlow[0]));

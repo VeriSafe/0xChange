@@ -115,7 +115,6 @@ const ModalContent = styled.div`
     flex-shrink: 0;
     max-height: 100%;
     min-height: 300px;
-    overflow: auto;
     width: 310px;
     height: 410px;
 `;
