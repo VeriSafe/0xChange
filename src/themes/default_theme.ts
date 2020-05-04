@@ -77,6 +77,7 @@ const lightThemeColors: ThemeProperties = {
     iconUnlockedColor: '#C4C4C4',
     inactiveTabBackgroundColor: '#f9f9f9',
     lightGray: '#B9B9B9',
+    logoColor: '#000',
     logoERC20Color: '#0029FF',
     logoERC20TextColor: '#000',
     logoERC721Color: '#00AE99',

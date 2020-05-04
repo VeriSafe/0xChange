@@ -15,5 +15,5 @@
         "jsx": "preserve",
         "isolatedModules": true
     },
-    "include": ["src"]
+    "include": ["src", "typings/**/*.d.ts"]
 }

@@ -14,19 +14,17 @@ const LogoLink = styled.a<any>`
     align-items: center;
     cursor: pointer;
     display: flex;
-    height: 33px;
-    font-family: 'Inter var', sans-serif;
-    text-decoration: none;
+    font-family: 'Renner* Light', sans-serif;
+    margin: 0 6px;
 `;
 
-const LogoText = styled.h1<{ textColor?: string }>`
+const LogoText = styled.span<{ textColor?: string }>`
     color: ${props => props.textColor};
     display: none;
-    font-size: 18px;
-    font-weight: 500;
-    margin-left: 10px;
-    text-decoration: none;
-
+    font-size: 32.231px;
+    margin-left: 4px;
+    font-weight: bold;
+    letter-spacing: 0.07rem;
     @media (min-width: ${themeBreakPoints.xxl}) {
         display: block;
     }

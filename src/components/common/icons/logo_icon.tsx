@@ -11,13 +11,8 @@ interface Props {
 }
 
 const IconContainer = styled.div<{ color: string; isInline?: boolean }>`
-    align-items: center;
-    background-color: ${props => (props.color ? props.color : 'transparent')};
-    border-radius: 50%;
     display: ${props => (props.isInline ? 'inline-flex' : 'flex')};
-    height: 26px;
-    justify-content: center;
-    width: 26px;
+    color: ${props => props.theme.componentsTheme.logoColor};
 `;
 
 const LogoIconContainer = (props: Props) => {
@@ -39,7 +34,7 @@ const LogoIconContainer = (props: Props) => {
     }
 
     return (
-        <IconContainer color={theme.componentsTheme.gray} {...restProps}>
+        <IconContainer color={theme.componentsTheme.logoColor} {...restProps}>
             {Icon}
         </IconContainer>
     );

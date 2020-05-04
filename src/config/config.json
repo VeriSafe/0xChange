@@ -1,7 +1,7 @@
 {
     "general": {
-        "title": "0xBitcoin Exchange",
-        "icon": "assets/icons/0xChangeLogo.svg"
+        "title": "xchange",
+        "icon": "assets/icons/0xchange-logotype.svg"
     },
     "tokens": [
         {
@@ -18,6 +18,34 @@
             "c_id": "oxbitcoin",
             "description": "Pure Mined Currency For Ethereum Applications",
             "website": "https://0xbitcoin.org"
+        },
+        {
+            "decimals": 8,
+            "symbol": "news",
+            "name": "CryptoNewsNet",
+            "primaryColor": "#fff",
+            "icon": "assets/icons/cryptonewsnet.svg",
+            "addresses": {
+                "1": "0x130da3e198f092fe2a6e6c21893dc77746d7e406"
+            },
+            "id": "cptoken",
+            "displayDecimals": 0,
+            "description": "Token to pay writers, rather than them paying us to advertise.",
+            "website": "https://www.cpt.io"
+        },
+        {
+            "decimals": 8,
+            "symbol": "cpt",
+            "name": "Crypto Projects Token",
+            "primaryColor": "#fff",
+            "icon": "assets/icons/cpt.svg",
+            "addresses": {
+                "1": "0xfc86c646d2c90e38e0f0af6d0baee4ea95aa4893"
+            },
+            "id": "cptoken",
+            "displayDecimals": 0,
+            "description": "The Crypto Projects Token!",
+            "website": "https://www.cpt.io"
         },
         {
             "decimals": 18,
@@ -192,18 +220,6 @@
             "website": "https://www.btcsov.com/"
         },
         {
-            "decimals": 5,
-            "displayDecimals": 2,
-            "symbol": "res",
-            "name": "Resfinex",
-            "primaryColor": "#090d21",
-            "icon": "assets/icons/res.svg",
-            "addresses": {
-                "1": "0x0a9f693fce6f00a51a8e0db4351b5a8078b4242e"
-            },
-            "website": "https://resfinex.com/"
-        },
-        {
             "decimals": 2,
             "displayDecimals": 2,
             "symbol": "lit",
@@ -218,9 +234,17 @@
     "pairs": [
         {
             "base": "0xbtc",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 2,
+                "pricePrecision": 6
+            }
+        },
+        {
+            "base": "0xbtc",
             "quote": "vsf",
             "config": {
-                "basePrecision": 0,
+                "basePrecision": 2,
                 "pricePrecision": 6
             }
         },
@@ -297,6 +321,22 @@
             }
         },
         {
+            "base": "news",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 0,
+                "pricePrecision": 8
+            }
+        },
+        {
+            "base": "cpt",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 0,
+                "pricePrecision": 8
+            }
+        },
+        {
             "base": "lpt",
             "quote": "weth",
             "config": {
@@ -333,22 +373,6 @@
             "quote": "0xbtc",
             "config": {
                 "basePrecision": 2,
-                "pricePrecision": 4
-            }
-        },
-        {
-            "base": "res",
-            "quote": "weth",
-            "config": {
-                "basePrecision": 2,
-                "pricePrecision": 8
-            }
-        },
-        {
-            "base": "res",
-            "quote": "0xbtc",
-            "config": {
-                "basePrecision": 8,
                 "pricePrecision": 4
             }
         },
