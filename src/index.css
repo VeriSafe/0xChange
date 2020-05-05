@@ -1,14 +1,10 @@
-@import url('https://rsms.me/inter/inter.css');
-@import url('https://rsms.me/inter/inter-ui.css');
-@import url('https://fonts.googleapis.com/css?family=Nunito&display=swap');
-
 html {
-    font-family:  'Nunito', sans-serif;
+    font:1em/1.5 'Helvetica Neue', sans-serif;
 }
 
 @supports (font-variation-settings: normal) {
     html {
-        font-family: 'Nunito', sans-serif;
+        font:1em/1.5 'Helvetica Neue', sans-serif;
     }
 }
 

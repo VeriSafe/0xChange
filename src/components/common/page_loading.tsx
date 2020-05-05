@@ -8,7 +8,7 @@ const Ball = styled.div`
     color: white;
 `;
 
-export const PageLoading = ({ text = '0xChange Loading ...' }) => (
+export const PageLoading = ({ text = '0xchange Loading...' }) => (
     <div className="black-overlay">
         <Ball className="la-ball-square-clockwise-spin la-2x">
             <div />
@@ -22,7 +22,7 @@ export const PageLoading = ({ text = '0xChange Loading ...' }) => (
         </Ball>
         <div className="loading-text">
             <LoadingText>
-                <strong> {text}</strong>{' '}
+                <strong>{text}</strong>{' '}
             </LoadingText>
         </div>
     </div>
