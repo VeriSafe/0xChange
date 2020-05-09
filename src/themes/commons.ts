@@ -150,7 +150,7 @@ export const themeDimensions = {
     mainPadding: '5px',
     sidebarWidth: '350px',
     toolbarHeight: '64px',
-    verticalPadding: '5px',
+    verticalPadding: '15px',
     verticalSeparation: '5px',
     verticalSeparationSm: '10px',
 };

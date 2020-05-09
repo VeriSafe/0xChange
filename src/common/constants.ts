@@ -75,7 +75,7 @@ export const UI_DECIMALS_DISPLAYED_SPREAD_PERCENT = 2;
 export const UI_DECIMALS_DISPLAYED_DEFAULT_PRECISION = 8;
 export const UI_DECIMALS_DISPLAYED_ORDER_SIZE = 0;
 export const UI_DECIMALS_DISPLAYED_PRICE_ETH = 8;
-export const UI_GENERAL_TITLE = '0xChange';
+export const UI_GENERAL_TITLE = '0xchange';
 
 export const METAMASK_EXTENSION_URL = 'https://metamask.io/';
 export const METAMASK_CHROME_EXTENSION_DOWNLOAD_URL =

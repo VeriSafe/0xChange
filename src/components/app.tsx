@@ -7,6 +7,7 @@ import {
     UPDATE_ERC20_MARKETS,
     UPDATE_ETHER_PRICE_INTERVAL,
     UPDATE_TOKENS_PRICE_INTERVAL,
+    ERC20_THEME_NAME,
     VERIDEX_ORIGIN,
 } from '../common/constants';
 import { LocalStorage } from '../services/local_storage';
@@ -71,7 +72,12 @@ class App extends React.Component<Props> {
         
         }*/
         const themeName = localStorage.getThemeName();
-        onInitTheme(themeName);
+        if (themeName === null) {
+            onInitTheme(ERC20_THEME_NAME);
+        } else {
+            onInitTheme(themeName);
+        }
+
         if (MARKETPLACE === MARKETPLACES.Instant || MARKETPLACE === MARKETPLACES.FiatRamp) {
             serviceWorker.unregister();
             return;
@@ -86,7 +92,7 @@ class App extends React.Component<Props> {
     };
 
     public componentDidUpdate = async (prevProps: Readonly<Props>, prevState: Readonly<Props>, snapshot?: any) => {
-        const { web3State, MARKETPLACE } = this.props;
+        const { web3State, MARKETPLACE, onInitTheme } = this.props;
         // no need to init when instant is the marketplace
         if (MARKETPLACE === MARKETPLACES.Instant || MARKETPLACE === MARKETPLACES.FiatRamp) {
             serviceWorker.unregister();

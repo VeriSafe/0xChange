@@ -14,27 +14,19 @@ import { SocialIcon } from './icons/social_icon';
 interface Props extends HTMLAttributes<HTMLDivElement> {}
 
 const FooterWrapper = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-evenly;
     width: 100%;
     background-color: ${props => props.theme.componentsTheme.background};
 `;
 
 const LinksContainer = styled.div`
-    align-items: left;
-    display: flex;
-    justify-content: center;
-    padding: 0 ${themeDimensions.horizontalPadding} ${themeDimensions.verticalPadding};
+    padding: ${themeDimensions.verticalPadding} ${themeDimensions.horizontalPadding};
+    text-align: center;
 
     @media (max-width: ${themeBreakPoints.md}) {
-        flex-direction: column;
         height: 100%;
     }
 
     .break {
-        flex-basis: 100%;
         width: 0px;
         height: 0px;
         overflow: hidden;
@@ -42,10 +34,7 @@ const LinksContainer = styled.div`
 `;
 
 const SocialsContainer = styled.div`
-    align-items: center;
-    display: flex;
     height: ${themeDimensions.footerHeight};
-    justify-content: center;
     padding: 0 ${themeDimensions.horizontalPadding} ${themeDimensions.verticalPadding};
 `;
 

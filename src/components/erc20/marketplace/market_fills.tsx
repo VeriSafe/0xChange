@@ -19,9 +19,6 @@ import { CustomTD, Table, TH, THead, TR } from '../../common/table';
 const MarketTradesList = styled(Card)`
     height: 100%;
     overflow: auto;
-    @media (max-width: ${themeBreakPoints.sm}) {
-        max-height: 300px;
-    }
 `;
 
 interface StateProps {

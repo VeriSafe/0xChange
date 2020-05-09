@@ -2,6 +2,7 @@ import { BigNumber } from '@0x/utils';
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
+import {themeBreakPoints} from '../../../themes/commons';
 
 import { IS_ORDER_LIMIT_MATCHING, ZERO } from '../../../common/constants';
 import {
@@ -94,7 +95,6 @@ interface State {
 }
 
 const BuySellWrapper = styled(CardBase)`
-    margin-bottom: ${themeDimensions.verticalSeparationSm};
 `;
 
 const Content = styled.div`

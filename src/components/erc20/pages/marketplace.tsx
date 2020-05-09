@@ -43,6 +43,7 @@ import { WalletBalanceContainer } from '../marketplace/wallet_balance';
 `;*/
 
 const MarketPlaceDiv = styled.div`
+    height: 100%;
     display: block;
     padding: 0px;
     margin: 0px;
@@ -50,6 +51,7 @@ const MarketPlaceDiv = styled.div`
 
 const Grid = styled(Responsive)`
     width: 100%;
+    overflow: hidden;
 `;
 
 /*const StyledButton = styled(Button)`
@@ -311,13 +313,13 @@ const Marketplace = () => {
                 <Grid
                     className="layout"
                     layouts={layouts}
-                    width={size.width - 8}
+                    width={size.width}
                     onLayoutChange={onLayoutChange}
-                    isResizable={isDynamicLayout}
-                    isDraggable={isDynamicLayout}
+                    isResizable={false}
+                    isDraggable={false}
                     margin={[2, 2]}
-                    rowHeight={10}
-                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                    rowHeight={12.4}
+                    cols={{ lg: 12, md: 12, sm: 1, xs: 1, xxs: 1 }}
                     onBreakpointChange={onBreakpointChange}
                 >
                     {cards}

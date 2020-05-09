@@ -18,19 +18,12 @@ const General = styled.div`
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    @media (min-width: ${themeBreakPoints.xl}) {
-        height: 100%;
-    }
 `;
 
 const ContentScroll = styled.div`
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    @media (min-width: ${themeBreakPoints.xl}) {
-        height: calc(100% - ${themeDimensions.toolbarHeight});
-        overflow: auto;
-    }
 `;
 
 interface OwnProps {

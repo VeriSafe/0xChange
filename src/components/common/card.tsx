@@ -19,7 +19,6 @@ const CardWrapper = styled(CardBase)`
     flex-direction: column;
     margin-bottom: ${themeDimensions.verticalSeparationSm};
     max-height: 100%;
-
     &:last-child {
         margin-bottom: 0;
     }

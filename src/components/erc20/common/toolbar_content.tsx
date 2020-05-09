@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
+import {components} from 'react-select';
 import styled, { withTheme } from 'styled-components';
 
 import { ERC20_APP_BASE_PATH, UI_GENERAL_TITLE, RELAYER_URL, CHAIN_ID, INSTANT_FEE_PERCENTAGE } from '../../../common/constants';
@@ -12,27 +13,31 @@ import {
     goToHomeMarketTrade,
     goToWallet,
     openFiatOnRampModal,
-    openSideBar,
-    setFiatType,
+    openSideBar, setERC20Theme,
+    setFiatType, setThemeName,
     setTour,
 } from '../../../store/actions';
-import { getCurrentMarketPlace, getGeneralConfig, getFeePercentage, getFeeRecipient } from '../../../store/selectors';
+import {
+    getCurrentMarketPlace,
+    getGeneralConfig,
+    getFeePercentage,
+    getFeeRecipient,
+    getThemeName
+} from '../../../store/selectors';
 import { Theme, themeBreakPoints } from '../../../themes/commons';
+import {getThemeFromConfigDex} from '../../../themes/theme_meta_data_utils';
 import { isMobile } from '../../../util/screen';
 import { MARKETPLACES, Token } from '../../../util/types';
 import { Button } from '../../common/button';
 import { withWindowWidth } from '../../common/hoc/withWindowWidth';
 import { LogoIcon } from '../../common/icons/logo_icon';
 import { MenuBurguer } from '../../common/icons/menu_burguer';
-import { SettingsDropdownContainer } from '../account/settings_dropdown';
 import { WalletConnectionContentContainer } from '../account/wallet_connection_content';
 
 import { MarketsDropdownStatsContainer } from './markets_dropdown_stats';
 import { SwapDropdownContainer } from './swap_dropdown';
 import { load0xInstantScript } from './0xinstant';
 import { getKnownTokens } from '../../../util/known_tokens';
-import { getWeb3Wrapper, isWeb3Wrapper } from '../../../services/web3_wrapper';
-
 
 interface DispatchProps {
     onGoToHome: () => any;
@@ -155,11 +160,19 @@ const ToolbarContent = (props: Props) => {
             setScripReady(true);
         });
     }
+
+    const themeName = useSelector(getThemeName);
+
+    const handleThemeClick = () => {
+        const themeN = themeName === 'DARK_THEME' ? 'LIGHT_THEME' : 'DARK_THEME';
+        dispatch(setThemeName(themeN));
+        const theme = getThemeFromConfigDex(themeN);
+        dispatch(setERC20Theme(theme));
+    };
+
     const handleBuy0xBTC: React.EventHandler<React.MouseEvent> = async e => {
         e.preventDefault();
         setIsInstant(true);
-        
-
     };
 
     const handleFiatModal: React.EventHandler<React.MouseEvent> = e => {
@@ -217,8 +230,7 @@ const ToolbarContent = (props: Props) => {
     } else {
         endOptContent = (
             <>
-                {/*  <SettingsContentContainer  className={'settings-dropdown'} /> */}
-                <SettingsDropdownContainer className={'settings-dropdown'} />
+                <StyledButton onClick={handleThemeClick}>{themeName === 'LIGHT_THEME' ? '☾' : '☼'}</StyledButton>
                 <StyledButton onClick={handleTour}>Tour</StyledButton>
                 <StyledButton onClick={handleFiatModal} className={'buy-eth'}>
                     Buy ETH
