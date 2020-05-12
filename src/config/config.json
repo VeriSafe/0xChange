@@ -49,6 +49,20 @@
         },
         {
             "decimals": 18,
+            "symbol": "veth",
+            "name": "VETHER",
+            "primaryColor": "#55441f",
+            "icon": "assets/icons/vether.svg",
+            "addresses": {
+                "1": "0x31bb711de2e457066c6281f231fb473fc5c2afd3"
+            },
+            "id": "vether",
+            "displayDecimals": 4,
+            "description": "A strictly-scarce Ethereum-based asset.",
+            "website": "https://vetherasset.org/"
+        },
+        {
+            "decimals": 18,
             "symbol": "vsf",
             "name": "VeriSafe",
             "primaryColor": "#081e6e",
@@ -241,6 +255,14 @@
             }
         },
         {
+            "base": "veth",
+            "quote": "weth",
+            "config": {
+                "basePrecision": 4,
+                "pricePrecision": 6
+            }
+        },
+        {
             "base": "0xbtc",
             "quote": "vsf",
             "config": {
@@ -382,6 +404,14 @@
             "config": {
                 "basePrecision": 2,
                 "pricePrecision": 6
+            }
+        },
+        {
+            "base": "veth",
+            "quote": "0xbtc",
+            "config": {
+                "basePrecision": 4,
+                "pricePrecision": 4
             }
         }
     ],
